@@ -39,8 +39,7 @@ struct SPSIn
 
 cbuffer DirectionLightCb : register(b1)
 {
-    float3 ligDirection;
-    float3 ligColor;
+    float3 ambientLight;
 }
 
 ///////////////////////////////////////
@@ -91,7 +90,7 @@ float4 PSMain(SPSIn In) : SV_Target0
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
 
     // TODO: add lighting. For example, start with ambient:
-      float3 ambient = float3(0.1, 0.1, 0.1);
+      float3 ambient = float3(0.5, 0.5, 0.5);
       albedoColor.xyz *= ambient;
 
     return albedoColor;

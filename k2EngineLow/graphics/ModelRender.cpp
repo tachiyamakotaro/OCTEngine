@@ -5,11 +5,11 @@
 
 namespace nsK2EngineLow
 {
-	void ModelRender::Init(const char* tkmFilePath, const char* fxFilePath, void* expandConstantBuffer, const int expandConstantBufferSize)
+	void ModelRender::Init(const char* tkmFilePath, void* expandConstantBuffer, const int expandConstantBufferSize)
 	{
 		ModelInitData initData;
 		initData.m_tkmFilePath = tkmFilePath;
-		initData.m_fxFilePath = fxFilePath;
+		initData.m_fxFilePath = "Assets/shader/model.fx";
 		initData.m_expandConstantBuffer = expandConstantBuffer;
 		initData.m_expandConstantBufferSize = expandConstantBufferSize;
 

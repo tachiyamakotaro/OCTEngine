@@ -15,12 +15,12 @@ public:
 
 private:
 
-	struct DirectionLight
+	struct Light
 	{
-		Vector3 direction;
+		Vector3 ambient;
 		float pad0;
 	};
-	DirectionLight m_light;
+	Light m_light;
 
 	ModelRender m_modelRender;
 };

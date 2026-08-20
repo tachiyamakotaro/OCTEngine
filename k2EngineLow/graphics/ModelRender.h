@@ -6,7 +6,7 @@ namespace nsK2EngineLow
 	class ModelRender
 	{
 	public:
-		void Init(const char* tkmFilePath, const char* fxFilePath, void* expandConstantBuffer, const int expandConstantBufferSize);
+		void Init(const char* tkmFilePath, void* expandConstantBuffer = nullptr, const int expandConstantBufferSize = 0);
 
 		void SetPosition(const Vector3& pos)
 		{
