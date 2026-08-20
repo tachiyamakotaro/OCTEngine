@@ -37,6 +37,12 @@ struct SPSIn
 ///////////////////////////////////////
 #include "ModelVSCommon.h"
 
+cbuffer DirectionLightCb : register(b1)
+{
+    float3 ligDirection;
+    float3 ligColor;
+}
+
 ///////////////////////////////////////
 // Shader resources.
 // The tkm material binds the albedo texture to t0.
@@ -85,8 +91,8 @@ float4 PSMain(SPSIn In) : SV_Target0
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
 
     // TODO: add lighting. For example, start with ambient:
-    //   float3 ambient = float3(0.3, 0.3, 0.3);
-    //   albedoColor.xyz *= ambient;
+      float3 ambient = float3(0.1, 0.1, 0.1);
+      albedoColor.xyz *= ambient;
 
     return albedoColor;
 }
