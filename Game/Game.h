@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // The starting point of your game.
 // This is a plain IGameObject running on K2EngineLow only.
@@ -14,4 +14,6 @@ public:
 	void Render(RenderContext& rc);
 
 private:
+
+	Sprite m_sprite;
 };
