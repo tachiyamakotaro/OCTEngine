@@ -278,6 +278,7 @@
     <ClCompile Include="graphics\Material.cpp" />
     <ClCompile Include="graphics\MeshParts.cpp" />
     <ClCompile Include="graphics\Model.cpp" />
+    <ClCompile Include="graphics\ModelRender.cpp" />
     <ClCompile Include="graphics\NullTextureMaps.cpp" />
     <ClCompile Include="graphics\PipelineState.cpp" />
     <ClCompile Include="graphics\raytracing\BLASBuffer.cpp" />
@@ -369,6 +370,7 @@
     <ClInclude Include="graphics\Material.h" />
     <ClInclude Include="graphics\MeshParts.h" />
     <ClInclude Include="graphics\Model.h" />
+    <ClInclude Include="graphics\ModelRender.h" />
     <ClInclude Include="graphics\NullTextureMaps.h" />
     <ClInclude Include="graphics\PipelineState.h" />
     <ClInclude Include="graphics\raytracing\BLASBuffer.h" />

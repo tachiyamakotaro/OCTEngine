@@ -234,6 +234,9 @@
     <ClCompile Include="graphics\SpriteRender.cpp">
       <Filter>graphics</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\ModelRender.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="k2EngineLowPreCompile.h" />
@@ -518,6 +521,9 @@
       <Filter>HID</Filter>
     </ClInclude>
     <ClInclude Include="graphics\SpriteRender.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\ModelRender.h">
       <Filter>graphics</Filter>
     </ClInclude>
   </ItemGroup>

@@ -82,6 +82,7 @@ static const int MAX_FPS = 60;	// 最大FPS。USE_FPS_LIMITTERが有効なとき
 #include "graphics/GaussianBlur.h"
 
 #include "graphics/SpriteRender.h"
+#include "graphics/ModelRender.h"
 
 const UINT FRAME_BUFFER_W = 1920;	// フレームバッファの幅。
 const UINT FRAME_BUFFER_H = 1080;	// フレームバッファの高さ。

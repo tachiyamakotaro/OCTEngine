@@ -15,5 +15,5 @@ public:
 
 private:
 
-	Model m_model;
+	ModelRender m_modelRender;
 };
