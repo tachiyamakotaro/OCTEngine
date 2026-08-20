@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+
 #include "Game.h"
 
 
@@ -10,6 +11,7 @@ bool Game::Start()
 	initData.m_fxFilePath = "Assets/shader/sprite.fx";
 	initData.m_height = 256;
 	initData.m_width = 256;
+	initData.m_alphaBlendMode = AlphaBlendMode_Add;
 
 	m_sprite.Init(initData);
 	return true;

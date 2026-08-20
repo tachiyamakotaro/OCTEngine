@@ -294,6 +294,7 @@
     <ClCompile Include="graphics\Shader.cpp" />
     <ClCompile Include="graphics\Skeleton.cpp" />
     <ClCompile Include="graphics\Sprite.cpp" />
+    <ClCompile Include="graphics\SpriteRender.cpp" />
     <ClCompile Include="graphics\StructuredBuffer.cpp" />
     <ClCompile Include="graphics\Texture.cpp" />
     <ClCompile Include="graphics\VertexBuffer.cpp" />
@@ -388,6 +389,7 @@
     <ClInclude Include="graphics\Shader.h" />
     <ClInclude Include="graphics\Skeleton.h" />
     <ClInclude Include="graphics\Sprite.h" />
+    <ClInclude Include="graphics\SpriteRender.h" />
     <ClInclude Include="graphics\StructuredBuffer.h" />
     <ClInclude Include="graphics\Texture.h" />
     <ClInclude Include="graphics\VertexBuffer.h" />

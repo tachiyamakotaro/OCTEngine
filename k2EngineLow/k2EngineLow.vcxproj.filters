@@ -231,6 +231,9 @@
     <ClCompile Include="HID\GamePadVIbration.cpp">
       <Filter>HID</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\SpriteRender.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="k2EngineLowPreCompile.h" />
@@ -513,6 +516,9 @@
     </ClInclude>
     <ClInclude Include="HID\GamePadVibration.h">
       <Filter>HID</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\SpriteRender.h">
+      <Filter>graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
