@@ -40,6 +40,8 @@ struct SPSIn
 cbuffer DirectionLightCb : register(b1)
 {
     float3 ambientLight;
+    float3 ligDirection;
+    float3 ligColor;
 }
 
 ///////////////////////////////////////
@@ -91,7 +93,15 @@ float4 PSMain(SPSIn In) : SV_Target0
 
     // TODO: add lighting. For example, start with ambient:
       float3 ambient = float3(0.5, 0.5, 0.5);
-      albedoColor.xyz *= ambient;
+      //albedoColor.xyz *= ambient;
+
+      float3 normal = normalize(In.normal);
+      float t = max(0.0f, dot(normal, -ligDirection));
+      float3 diffuse = ligColor * t;
+      
+      float3 lig = diffuse + ambient;
+
+      albedoColor.xyz *= lig;
 
     return albedoColor;
 }

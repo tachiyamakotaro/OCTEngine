@@ -15,12 +15,16 @@ public:
 
 private:
 
-	struct Light
+	struct LightData
 	{
 		Vector3 ambient;
 		float pad0;
+		Vector3 direction;
+		float pad1;
+		Vector3 ligColor;
+		float pad2;
 	};
-	Light m_light;
+	LightData m_light;
 
 	ModelRender m_modelRender;
 };
