@@ -1,30 +1,30 @@
-#pragma once
+ï»¿#pragma once
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #pragma comment( lib, "xinput.lib")
 #pragma comment(lib, "dxcompiler.lib")
 
-#include <winsock2.h>
+#include <algorithm>
+#include <array>
+#include <atlbase.h>
+#include <d3d12.h>
+#include <D3Dcompiler.h>
+#include <DirectXMath.h>
+#include <dxcapi.h>
+#include <dxgi.h>
+#include <dxgiformat.h>
+#include <dxgitype.h>
+#include <functional>
+#include <list>
+#include <map>
+#include <math.h>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
-#include <memory>
-#include <math.h>
 #include <vector>
-#include <list>
-#include <D3Dcompiler.h>
 #include <Windows.h>
-#include <d3d12.h>
-#include <map>
-#include <functional>
-#include <algorithm>
-#include <DirectXMath.h>
+#include <winsock2.h>
 #include <Xinput.h>
-#include <array>
-#include <dxcapi.h>
-#include <atlbase.h>
-#include <dxgi.h>
-#include <dxgitype.h>
-#include <dxgiformat.h>
 
 
 #include "DirectXTK/Inc/CommonStates.h"
@@ -36,13 +36,13 @@
 
 #include "graphics/d3dx12.h"
 
-const int MAX_RENDERING_TARGET = D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT;	//ƒŒƒ“ƒ_ƒŠƒ“ƒOƒ^[ƒQƒbƒg‚ÌÅ‘å”B
+const int MAX_RENDERING_TARGET = D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT;	//ãƒ¬ãƒ³ãƒ€ãƒªãƒ³ã‚°ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®æœ€å¤§æ•°ã€‚
 
 using namespace Microsoft::WRL;
 
-#define USE_FPS_LIMITTER		// —LŒø‚ÅFPS‚ÉãŒÀ‚ğİ‚¯‚éB
-static const int MAX_FPS = 60;	// Å‘åFPSBUSE_FPS_LIMITTER‚ª—LŒø‚È‚Æ‚«‚Ég—p‚³‚ê‚éB
-#define ENABLE_DXR_ON_RTX_ONLY	// —LŒø‚ÅDXR‚ÍRTXƒVƒŠ[ƒY‚Ì‚İ—LŒøB
+#define USE_FPS_LIMITTER		// æœ‰åŠ¹ã§FPSã«ä¸Šé™ã‚’è¨­ã‘ã‚‹ã€‚
+static const int MAX_FPS = 60;	// æœ€å¤§FPSã€‚USE_FPS_LIMITTERãŒæœ‰åŠ¹ãªã¨ãã«ä½¿ç”¨ã•ã‚Œã‚‹ã€‚
+#define ENABLE_DXR_ON_RTX_ONLY	// æœ‰åŠ¹ã§DXRã¯RTXã‚·ãƒªãƒ¼ã‚ºã®ã¿æœ‰åŠ¹ã€‚
 
 #include "util/Noncopyable.h"
 #include "dbg/MyAssert.h"
@@ -81,11 +81,13 @@ static const int MAX_FPS = 60;	// Å‘åFPSBUSE_FPS_LIMITTER‚ª—LŒø‚È‚Æ‚«‚Ég—p‚³‚
 
 #include "graphics/GaussianBlur.h"
 
-const UINT FRAME_BUFFER_W = 1920;	// ƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚Ì•B
-const UINT FRAME_BUFFER_H = 1080;	// ƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚Ì‚‚³B
-const UINT UI_SPACE_WIDTH = 1920;	// UI‹óŠÔ‚Ì•B
-const UINT UI_SPACE_HEIGHT = 1080;	// UI‹óŠÔ‚Ì‚‚³B
-static const int MAX_BONE = 512;	// ƒ{[ƒ“‚ÌÅ‘å”B
+#include "graphics/SpriteRender.h"
+
+const UINT FRAME_BUFFER_W = 1920;	// ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã®å¹…ã€‚
+const UINT FRAME_BUFFER_H = 1080;	// ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã®é«˜ã•ã€‚
+const UINT UI_SPACE_WIDTH = 1920;	// UIç©ºé–“ã®å¹…ã€‚
+const UINT UI_SPACE_HEIGHT = 1080;	// UIç©ºé–“ã®é«˜ã•ã€‚
+static const int MAX_BONE = 512;	// ãƒœãƒ¼ãƒ³ã®æœ€å¤§æ•°ã€‚
 
 
 

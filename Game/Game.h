@@ -15,5 +15,5 @@ public:
 
 private:
 
-	Sprite m_sprite;
+	SpriteRender m_spriteRender;
 };
