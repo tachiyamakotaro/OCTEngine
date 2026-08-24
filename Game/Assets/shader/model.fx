@@ -42,6 +42,8 @@ cbuffer DirectionLightCb : register(b1)
     float3 ambientLight;
     float3 ligDirection;
     float3 ligColor;
+    float3 eyePos;
+    float  specPow;
 }
 
 ///////////////////////////////////////
@@ -98,8 +100,13 @@ float4 PSMain(SPSIn In) : SV_Target0
       float3 normal = normalize(In.normal);
       float t = max(0.0f, dot(normal, -ligDirection));
       float3 diffuse = ligColor * t;
+
+      float3 refVec = reflect(ligDirection,normal);
+      float3 toEye = normalize(eyePos - In.worldPos);
+      float t2 = pow(max(0.0f, dot(refVec,toEye)),specPow);
+      float3 specular = ligColor * t2;
       
-      float3 lig = diffuse + ambient;
+      float3 lig = ambient + diffuse + specular;
 
       albedoColor.xyz *= lig;
 

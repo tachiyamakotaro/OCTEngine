@@ -23,6 +23,8 @@ private:
 		float pad1;
 		Vector3 ligColor;
 		float pad2;
+		Vector3 eyePos;
+		float specPow;
 	};
 	LightData m_light;
 
