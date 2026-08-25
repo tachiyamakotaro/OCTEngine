@@ -15,20 +15,7 @@ public:
 
 private:
 
-	struct LightData
-	{
-		Vector3 ambient;
-		float pad0;
-		Vector3 direction;
-		float pad1;
-		Vector3 ligColor;
-		float pad2;
-		Vector3 eyePos;
-		float specPow;
-		float specIntensity;
-		Vector2 pad3;
-	};
-	LightData m_light;
-
 	ModelRender m_modelRender;
+
+	SceneLight m_sceneLight;
 };

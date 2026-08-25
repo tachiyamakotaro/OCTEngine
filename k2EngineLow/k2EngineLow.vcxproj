@@ -292,6 +292,7 @@
     <ClCompile Include="graphics\RenderTarget.cpp" />
     <ClCompile Include="graphics\RootSignature.cpp" />
     <ClCompile Include="graphics\RWStructuredBuffer.cpp" />
+    <ClCompile Include="graphics\SceneLight.cpp" />
     <ClCompile Include="graphics\Shader.cpp" />
     <ClCompile Include="graphics\Skeleton.cpp" />
     <ClCompile Include="graphics\Sprite.cpp" />
@@ -388,6 +389,7 @@
     <ClInclude Include="graphics\RenderTarget.h" />
     <ClInclude Include="graphics\RootSignature.h" />
     <ClInclude Include="graphics\RWStructuredBuffer.h" />
+    <ClInclude Include="graphics\SceneLight.h" />
     <ClInclude Include="graphics\Shader.h" />
     <ClInclude Include="graphics\Skeleton.h" />
     <ClInclude Include="graphics\Sprite.h" />

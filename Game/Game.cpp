@@ -6,13 +6,9 @@
 bool Game::Start()
 {
 	// Load resources and set up your objects here (called once).
-	m_light.ambient = { 0.6f, 0.6f, 0.6f };
-	m_light.direction = { 1.0f, -1.0f, 0.0f };
-	m_light.direction.Normalize();
-	m_light.ligColor = { 0.6f, 0.7f, 0.4f };
-	m_light.specPow = 0.5f;
-	m_light.specIntensity = 5.0f;
-	m_modelRender.Init("Assets/modelData/unityChan.tkm", &m_light, sizeof(m_light));
+	m_sceneLight.Init();
+
+	m_modelRender.Init("Assets/modelData/unityChan.tkm", &m_sceneLight.GetSceneLight(), sizeof(m_sceneLight.GetSceneLight()));
 	m_modelRender.SetPosition({ 0.0f,0.0f,100.0f });
 
 	return true;
@@ -21,7 +17,7 @@ bool Game::Start()
 void Game::Update()
 {
 	// Per-frame logic goes here.
-	m_light.eyePos = g_camera3D->GetPosition();
+	m_sceneLight.SetEyePos(g_camera3D->GetPosition());
 
 	float modelXPos = m_modelRender.GetPosition().x;
 	float modelYPos = m_modelRender.GetPosition().y;
