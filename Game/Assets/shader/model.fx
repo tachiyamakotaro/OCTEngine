@@ -44,6 +44,7 @@ cbuffer DirectionLightCb : register(b1)
     float3 ligColor;
     float3 eyePos;
     float  specPow;
+    float  specIntensity;
 }
 
 ///////////////////////////////////////
@@ -52,6 +53,7 @@ cbuffer DirectionLightCb : register(b1)
 // (t1 = normal map, t2 = metallic/smooth — you can add them when you need them.)
 ///////////////////////////////////////
 Texture2D<float4> albedoTexture : register(t0);
+Texture2D<float4> specularMap : register(t2);
 sampler Sampler : register(s0);
 
 ////////////////////////////////////////////////
@@ -94,19 +96,24 @@ float4 PSMain(SPSIn In) : SV_Target0
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
 
     // TODO: add lighting. For example, start with ambient:
-      float3 ambient = float3(0.5, 0.5, 0.5);
-      //albedoColor.xyz *= ambient;
-
+      
+      // 長さが1からずれている場合計算がおかしくなるので使う直前でnormalizeする
       float3 normal = normalize(In.normal);
+      // -ligDirectionはサーフェスから光源へ向かうベクトル
+
       float t = max(0.0f, dot(normal, -ligDirection));
       float3 diffuse = ligColor * t;
 
       float3 refVec = reflect(ligDirection,normal);
       float3 toEye = normalize(eyePos - In.worldPos);
       float t2 = pow(max(0.0f, dot(refVec,toEye)),specPow);
-      float3 specular = ligColor * t2;
+      float3 specular = ligColor * specIntensity * t2;
+      //float3 specular = ligColor * pow(specPow, specIntensity)
+
+      float specP = specularMap.Sample(Sampler, In.uv).r;
+      specular *= specP;
       
-      float3 lig = ambient + diffuse + specular;
+      float3 lig = ambientLight + diffuse + specular;
 
       albedoColor.xyz *= lig;
 

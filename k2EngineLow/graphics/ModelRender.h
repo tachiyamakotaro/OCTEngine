@@ -13,14 +13,29 @@ namespace nsK2EngineLow
 			m_position = pos;
 		}
 
+		Vector3 GetPosition() const
+		{
+			return m_position;
+		}
+
 		void SetRotation(const Quaternion& rot)
 		{
 			m_rotation = rot;
 		}
 
+		Quaternion GetRotation() const
+		{
+			return m_rotation;
+		}
+
 		void SetScale(const Vector3& scale)
 		{
 			m_scale = scale;
+		}
+
+		Vector3 GetScale() const
+		{
+			return m_scale;
 		}
 
 		void Update();
