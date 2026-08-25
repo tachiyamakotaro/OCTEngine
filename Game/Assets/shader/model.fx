@@ -53,6 +53,7 @@ cbuffer DirectionLightCb : register(b1)
 // (t1 = normal map, t2 = metallic/smooth — you can add them when you need them.)
 ///////////////////////////////////////
 Texture2D<float4> albedoTexture : register(t0);
+Texture2D<float4> normalMap : register(t1);
 Texture2D<float4> specularMap : register(t2);
 sampler Sampler : register(s0);
 
@@ -99,8 +100,12 @@ float4 PSMain(SPSIn In) : SV_Target0
       
       // 長さが1からずれている場合計算がおかしくなるので使う直前でnormalizeする
       float3 normal = normalize(In.normal);
-      // -ligDirectionはサーフェスから光源へ向かうベクトル
 
+      float3 localNormal = normalMap.Sample(Sampler,In.uv).xyz;
+      localNormal = (localNormal - 0.5f) * 2.0f;
+      normal = In.tangent * localNormal.x + In.biNormal * localNormal.y + normal * localNormal.z;
+
+      // -ligDirectionはサーフェスから光源へ向かうベクトル
       float t = max(0.0f, dot(normal, -ligDirection));
       float3 diffuse = ligColor * t;
 
