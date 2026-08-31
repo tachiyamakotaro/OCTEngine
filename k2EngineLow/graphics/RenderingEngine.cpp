@@ -8,7 +8,6 @@ namespace nsK2EngineLow
 
 	void RenderingEngine::Execute(RenderContext& rc)
 	{
-
 		for (auto modelRender : m_renderObjects)
 		{
 			modelRender->Draw(rc);

@@ -15,6 +15,16 @@ namespace nsK2EngineLow
 			return m_instance;
 		}
 
+		Camera& GetLightCamera()
+		{
+			return m_lightCamera;
+		}
+
+		Texture& GetShadowMapTexture()
+		{
+			return m_shadowMap.GetRenderTargetTexture();
+		}
+
 		void AddRenderObject(Model& modelRender)
 		{
 			m_renderObjects.push_back(&modelRender);
@@ -25,8 +35,11 @@ namespace nsK2EngineLow
 	private:
 		RenderingEngine() {}
 
-
 		std::vector<Model*> m_renderObjects;
+
+		Camera m_lightCamera;
+		RenderTarget m_shadowMap;
+		std::vector<Model*> m_shadowCasters;
 
 		static RenderingEngine* m_instance;
 	};
