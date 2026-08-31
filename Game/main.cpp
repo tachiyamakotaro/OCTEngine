@@ -1,8 +1,8 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "system/system.h"
 
-#include<InitGUID.h>
 #include<dxgidebug.h>
+#include<InitGUID.h>
 
 #include "Game.h"
 
@@ -52,6 +52,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		g_engine->ExecuteUpdate();	// Update all game objects (IGameObject::Update).
 		g_engine->ExecuteRender();	// Render all game objects (IGameObject::Render).
 		g_engine->EndFrame();		// End the frame: present the back buffer.
+
+
+		RenderingEngine::GetInstance()->Execute(g_graphicsEngine->GetRenderContext());
 	}
 
 	// Shut down.
