@@ -16,6 +16,4 @@ public:
 private:
 
 	ModelRender m_modelRender;
-
-	SceneLight m_sceneLight;
 };

@@ -24,6 +24,16 @@ namespace nsK2EngineLow
 	public:
 		void Init();
 
+		static SceneLight* GetInstance()
+		{
+			if (m_instance == nullptr)
+			{
+				m_instance = new SceneLight();
+				m_instance->Init();
+			}
+			return m_instance;
+		}
+
 		LightData& GetSceneLight()
 		{
 			return m_light;
@@ -56,5 +66,10 @@ namespace nsK2EngineLow
 			m_light.specIntensity = specIntensity;
 		}
 
+
+	private:
+		SceneLight() {}
+
+		static SceneLight* m_instance;
 	};
 }

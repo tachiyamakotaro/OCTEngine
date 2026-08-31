@@ -5,6 +5,8 @@
 
 namespace nsK2EngineLow
 {
+	SceneLight* SceneLight::m_instance = nullptr;
+
 	void SceneLight::Init()
 	{
 		m_light.ambient = { 0.6f, 0.6f, 0.6f };
@@ -17,6 +19,6 @@ namespace nsK2EngineLow
 
 	void SceneLight::Update()
 	{
-
+		m_light.eyePos = g_camera3D->GetPosition();
 	}
 }

@@ -1,14 +1,15 @@
 ﻿#include "stdafx.h"
 
+#include "../k2EngineLow/graphics/SceneLight.h"
 #include "Game.h"
 
 
 bool Game::Start()
 {
 	// Load resources and set up your objects here (called once).
-	m_sceneLight.Init();
 
-	m_modelRender.Init("Assets/modelData/unityChan.tkm", &m_sceneLight.GetSceneLight(), sizeof(m_sceneLight.GetSceneLight()));
+
+	m_modelRender.Init("Assets/modelData/unityChan.tkm", &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
 	m_modelRender.SetPosition({ 0.0f,0.0f,100.0f });
 
 	return true;
@@ -17,7 +18,6 @@ bool Game::Start()
 void Game::Update()
 {
 	// Per-frame logic goes here.
-	m_sceneLight.SetEyePos(g_camera3D->GetPosition());
 
 	float modelXPos = m_modelRender.GetPosition().x;
 	float modelYPos = m_modelRender.GetPosition().y;
