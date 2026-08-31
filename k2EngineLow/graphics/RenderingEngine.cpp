@@ -14,7 +14,7 @@ namespace nsK2EngineLow
 			2048,
 			1,
 			1,
-			DXGI_FORMAT_R32_TYPELESS,
+			DXGI_FORMAT_R8G8B8A8_UNORM,
 			DXGI_FORMAT_D32_FLOAT,
 			clearColor
 		);
@@ -34,6 +34,11 @@ namespace nsK2EngineLow
 		for (auto shadowCaster : m_shadowCasters)
 		{
 			shadowCaster->Init(shadowCasterInitData);
+			shadowCaster->UpdateWorldMatrix(
+				{ 0.0f, 50.0f, 0.0f },
+				Quaternion::Identity,
+				g_vec3One
+			);
 		}
 	}
 
