@@ -5,7 +5,7 @@
 
 namespace nsK2EngineLow
 {
-	void ModelRender::Init(const char* tkmFilePath, void* expandConstantBuffer, const int expandConstantBufferSize)
+	void ModelRender::Init(const char* tkmFilePath, bool shadowCaster, bool shadowReceiver, void* expandConstantBuffer, const int expandConstantBufferSize)
 	{
 		ModelInitData initData;
 		initData.m_tkmFilePath = tkmFilePath;
@@ -14,6 +14,22 @@ namespace nsK2EngineLow
 		initData.m_expandConstantBufferSize = expandConstantBufferSize;
 
 		m_model.Init(initData);
+
+		m_shadowCaster = shadowCaster;
+		m_shadowReceiver = shadowReceiver;
+
+		if (m_shadowCaster == true)
+		{
+			ModelInitData shadowInitData;
+			shadowInitData.m_tkmFilePath = tkmFilePath;
+			shadowInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
+
+			m_model.Init(shadowInitData);
+		}
+
+		if (m_shadowReceiver == true)
+		{
+		}
 	}
 
 	void ModelRender::Update()

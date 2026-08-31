@@ -9,8 +9,10 @@ bool Game::Start()
 	// Load resources and set up your objects here (called once).
 
 
-	m_modelRender.Init("Assets/modelData/unityChan.tkm", &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
-	m_modelRender.SetPosition({ 0.0f,0.0f,100.0f });
+	m_modelRender.Init("Assets/modelData/unityChan.tkm", true, false, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
+	m_groundRender.Init("Assets/modelData/ground.tkm", false, true, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
+	m_modelRender.SetPosition({ 0.0f,0.0f,10.0f });
+	m_groundRender.SetPosition({ 0.0f,-10.0f,0.0f });
 
 	return true;
 }
@@ -44,4 +46,5 @@ void Game::Render(RenderContext& rc)
 	// Your drawing code goes here.
 	// K2EngineLow already cleared the screen to gray before this is called.
 	m_modelRender.Draw(rc);
+	m_groundRender.Draw(rc);
 }

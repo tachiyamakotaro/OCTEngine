@@ -6,7 +6,7 @@ namespace nsK2EngineLow
 	class ModelRender
 	{
 	public:
-		void Init(const char* tkmFilePath, void* expandConstantBuffer = nullptr, const int expandConstantBufferSize = 0);
+		void Init(const char* tkmFilePath, bool shadowCaster = false, bool shadowReceiver = false, void* expandConstantBuffer = nullptr, const int expandConstantBufferSize = 0);
 
 		void SetPosition(const Vector3& pos)
 		{
@@ -49,5 +49,8 @@ namespace nsK2EngineLow
 		Vector3 m_position = Vector3::Zero;
 		Quaternion m_rotation = Quaternion::Identity;
 		Vector3 m_scale = Vector3::One;
+
+		bool m_shadowCaster = false;
+		bool m_shadowReceiver = false;
 	};
 }
