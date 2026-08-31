@@ -33,7 +33,7 @@ namespace nsK2EngineLow
 		void Execute(RenderContext& rc);
 
 	private:
-		RenderingEngine() {}
+		RenderingEngine();
 
 		std::vector<Model*> m_renderObjects;
 

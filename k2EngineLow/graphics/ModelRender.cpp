@@ -29,6 +29,8 @@ namespace nsK2EngineLow
 
 		if (m_shadowReceiver == true)
 		{
+			initData.m_fxFilePath = "Assets/shader/model.fx";
+			initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
 		}
 	}
 
