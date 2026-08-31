@@ -23,6 +23,6 @@ namespace nsK2EngineLow
 
 	void ModelRender::Draw(RenderContext& rc)
 	{
-		RenderingEngine::GetInstance()->AddRenderObject(this);
+		RenderingEngine::GetInstance()->AddRenderObject(m_model);
 	}
 }

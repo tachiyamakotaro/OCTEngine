@@ -11,24 +11,22 @@ namespace nsK2EngineLow
 			if (m_instance == nullptr)
 			{
 				m_instance = new RenderingEngine();
-				m_instance->Init();
 			}
 			return m_instance;
 		}
 
-		void Init();
-		void Update();
-		void Draw(RenderContext& rc);
-
-		void AddRenderObject(ModelRender* modelRender)
+		void AddRenderObject(Model& modelRender)
 		{
-			m_renderObjects.push_back(modelRender);
+			m_renderObjects.push_back(&modelRender);
 		}
 
 		void Execute(RenderContext& rc);
 
 	private:
-		std::vector<ModelRender*> m_renderObjects;
+		RenderingEngine() {}
+
+
+		std::vector<Model*> m_renderObjects;
 
 		static RenderingEngine* m_instance;
 	};
