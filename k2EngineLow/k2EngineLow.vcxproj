@@ -289,6 +289,7 @@
     <ClCompile Include="graphics\raytracing\RaytracingShaderTable.cpp" />
     <ClCompile Include="graphics\raytracing\RaytracingWorld.cpp" />
     <ClCompile Include="graphics\raytracing\TLASBuffer.cpp" />
+    <ClCompile Include="graphics\RenderingEngine.cpp" />
     <ClCompile Include="graphics\RenderTarget.cpp" />
     <ClCompile Include="graphics\RootSignature.cpp" />
     <ClCompile Include="graphics\RWStructuredBuffer.cpp" />
@@ -386,6 +387,7 @@
     <ClInclude Include="graphics\raytracing\TLASBuffer.h" />
     <ClInclude Include="graphics\RenderContext.h" />
     <ClInclude Include="graphics\RenderContext_inline.h" />
+    <ClInclude Include="graphics\RenderingEngine.h" />
     <ClInclude Include="graphics\RenderTarget.h" />
     <ClInclude Include="graphics\RootSignature.h" />
     <ClInclude Include="graphics\RWStructuredBuffer.h" />
