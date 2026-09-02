@@ -94,47 +94,54 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
 // Pixel shader.
 // For now: just output the albedo texture. Add your lighting here.
 ////////////////////////////////////////////////
-float4 PSMain(SPSIn In) : SV_Target0
+float4 CalcLitColor(SPSIn In, bool receiveShadow)
 {
     float4 albedoColor = albedoTexture.Sample(Sampler, In.uv);
 
-    // TODO: add lighting. For example, start with ambient:
-      
-      // 長さが1からずれている場合計算がおかしくなるので使う直前でnormalizeする
-      float3 normal = normalize(In.normal);
+    float3 normal = normalize(In.normal);
 
-      float3 localNormal = normalMap.Sample(Sampler,In.uv).xyz;
-      localNormal = (localNormal - 0.5f) * 2.0f;
-      normal = In.tangent * localNormal.x + In.biNormal * localNormal.y + normal * localNormal.z;
+    float3 localNormal = normalMap.Sample(Sampler, In.uv).xyz;
+    localNormal = (localNormal - 0.5f) * 2.0f;
+    normal = In.tangent * localNormal.x + In.biNormal * localNormal.y + normal * localNormal.z;
 
-      // -ligDirectionはサーフェスから光源へ向かうベクトル
-      float t = max(0.0f, dot(normal, -ligDirection));
-      float3 diffuse = ligColor * t;
+    float t = max(0.0f, dot(normal, -ligDirection));
+    float3 diffuse = ligColor * t;
 
-      float3 refVec = reflect(ligDirection,normal);
-      float3 toEye = normalize(eyePos - In.worldPos);
-      float t2 = pow(max(0.0f, dot(refVec,toEye)),specPow);
-      float3 specular = ligColor * specIntensity * t2;
-      //float3 specular = ligColor * pow(specPow, specIntensity)
+    float3 refVec = reflect(ligDirection, normal);
+    float3 toEye = normalize(eyePos - In.worldPos);
+    float t2 = pow(max(0.0f, dot(refVec, toEye)), specPow);
+    float3 specular = ligColor * specIntensity * t2;
 
-      float specP = specularMap.Sample(Sampler, In.uv).r;
-      specular *= specP;
-      
-      float3 lig = ambientLight + diffuse + specular;
+    float specP = specularMap.Sample(Sampler, In.uv).r;
+    specular *= specP;
 
-      float4 posInLVP = mul(mLVP,float4(In.worldPos,1.0f));
-      float2 shadowMapUV = posInLVP.xy / posInLVP.w;
-      shadowMapUV *= float2 (0.5f, -0.5f);
-      shadowMapUV += 0.5f;
+    float3 lig = ambientLight + diffuse + specular;
 
-      if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f  
-            && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
+    if (receiveShadow)
+    {
+        float4 posInLVP = mul(mLVP, float4(In.worldPos, 1.0f));
+        float2 shadowMapUV = posInLVP.xy / posInLVP.w;
+        shadowMapUV *= float2(0.5f, -0.5f);
+        shadowMapUV += 0.5f;
+
+        if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
+         && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
         {
             float3 shadow = shadowMap.Sample(Sampler, shadowMapUV).xyz;
-            albedoColor.xyz *= shadow; 
+            albedoColor.xyz *= shadow;
         }
+    }
 
-      albedoColor.xyz *= lig;
-
+    albedoColor.xyz *= lig;
     return albedoColor;
+}
+
+float4 PSMain(SPSIn In) : SV_Target0
+{
+    return CalcLitColor(In, false);   // 影のサンプリングをしない
+}
+
+float4 PSMainShadowReceiver(SPSIn In) : SV_Target0
+{
+    return CalcLitColor(In, true);    // 影のサンプリングをする
 }

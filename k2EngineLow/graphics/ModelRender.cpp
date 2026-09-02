@@ -13,12 +13,10 @@ namespace nsK2EngineLow
 		initData.m_expandConstantBuffer = expandConstantBuffer;
 		initData.m_expandConstantBufferSize = expandConstantBufferSize;
 
-		//m_shadowReceiver = shadowReceiver;
-		//if (m_shadowReceiver == true)
-		//{
-		//	initData.m_fxFilePath = "Assets/shader/model.fx";
-		//	initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
-		//}
+		m_shadowReceiver = shadowReceiver;
+		initData.m_psEntryPointFunc = m_shadowReceiver ? "PSMainShadowReceiver" : "PSMain";
+
+		// model.fx は常にt10(shadowMap)を要求するので、常にバインドしておく。
 		initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
 
 		m_model.Init(initData);
@@ -30,7 +28,6 @@ namespace nsK2EngineLow
 			ModelInitData shadowInitData;
 			shadowInitData.m_tkmFilePath = tkmFilePath;
 			shadowInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
-
 			m_shadowModel.Init(shadowInitData);
 		}
 	}
