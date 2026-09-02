@@ -45,6 +45,7 @@ cbuffer DirectionLightCb : register(b1)
     float3 eyePos;
     float  specPow;
     float  specIntensity;
+    float4x4 mLVP;
 }
 
 ///////////////////////////////////////
@@ -55,6 +56,7 @@ cbuffer DirectionLightCb : register(b1)
 Texture2D<float4> albedoTexture : register(t0);
 Texture2D<float4> normalMap : register(t1);
 Texture2D<float4> specularMap : register(t2);
+Texture2D<float4> shadowMap : register(t10);
 sampler Sampler : register(s0);
 
 ////////////////////////////////////////////////
@@ -119,6 +121,18 @@ float4 PSMain(SPSIn In) : SV_Target0
       specular *= specP;
       
       float3 lig = ambientLight + diffuse + specular;
+
+      float4 posInLVP = mul(mLVP,float4(In.worldPos,1.0f));
+      float2 shadowMapUV = posInLVP.xy / posInLVP.w;
+      shadowMapUV *= float2 (0.5f, -0.5f);
+      shadowMapUV += 0.5f;
+
+      if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f  
+            && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
+        {
+            float3 shadow = shadowMap.Sample(Sampler, shadowMapUV).xyz;
+            albedoColor.xyz *= shadow; 
+        }
 
       albedoColor.xyz *= lig;
 

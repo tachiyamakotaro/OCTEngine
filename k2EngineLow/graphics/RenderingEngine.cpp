@@ -10,8 +10,8 @@ namespace nsK2EngineLow
 	{
 		float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		m_shadowMap.Create(
-			2048,
-			2048,
+			1024,
+			1024,
 			1,
 			1,
 			DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -22,37 +22,30 @@ namespace nsK2EngineLow
 		m_lightCamera.SetPosition(-50, 500, 0);
 		m_lightCamera.SetTarget(0, 0, 0);
 		m_lightCamera.SetUp(1, 0, 0);
-
-		m_lightCamera.SetViewAngle(Math::DegToRad(20.0f));
-
+		m_lightCamera.SetWidth(2000.0f);
+		m_lightCamera.SetHeight(2000.0f);
+		m_lightCamera.SetUpdateProjMatrixFunc(Camera::enUpdateProjMatrixFunc_Ortho);
 		m_lightCamera.Update();
-
-		ModelInitData shadowCasterInitData;
-		shadowCasterInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
-		shadowCasterInitData.m_tkmFilePath = "Assets/shader/unityChan.tkm";
-
-		for (auto shadowCaster : m_shadowCasters)
-		{
-			shadowCaster->Init(shadowCasterInitData);
-			shadowCaster->UpdateWorldMatrix(
-				{ 0.0f, 50.0f, 0.0f },
-				Quaternion::Identity,
-				g_vec3One
-			);
-		}
 	}
 
 	void RenderingEngine::Execute(RenderContext& rc)
 	{
-		for (auto modelRender : m_renderObjects)
+		rc.WaitUntilToPossibleSetRenderTarget(m_shadowMap);
+		rc.SetRenderTargetAndViewport(m_shadowMap);
+		rc.ClearRenderTargetView(m_shadowMap);
+
+		for (auto model : m_shadowCasters)
 		{
-			rc.WaitUntilToPossibleSetRenderTarget(m_shadowMap);
-			rc.SetRenderTargetAndViewport(m_shadowMap);
-			rc.ClearRenderTargetView(m_shadowMap);
+			model->Draw(rc, m_lightCamera);
+		}
+		m_shadowCasters.clear();
+		rc.WaitUntilFinishDrawingToRenderTarget(m_shadowMap);
+		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+		rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
 
-			modelRender->Draw(rc, m_lightCamera);
-
-			rc.WaitUntilFinishDrawingToRenderTarget(m_shadowMap);
+		for (auto model : m_renderObjects)
+		{
+			model->Draw(rc);
 		}
 
 		m_renderObjects.clear();

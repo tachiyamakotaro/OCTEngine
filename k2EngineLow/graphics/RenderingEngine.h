@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <unordered_set>
 
 namespace nsK2EngineLow
 {
@@ -25,9 +26,14 @@ namespace nsK2EngineLow
 			return m_shadowMap.GetRenderTargetTexture();
 		}
 
-		void AddRenderObject(Model& modelRender)
+		void AddRenderObject(Model& model)
 		{
-			m_renderObjects.push_back(&modelRender);
+			m_renderObjects.push_back(&model);
+		}
+
+		void AddShadowCaster(Model& model)
+		{
+			m_shadowCasters.push_back(&model);
 		}
 
 		void Execute(RenderContext& rc);
@@ -36,6 +42,7 @@ namespace nsK2EngineLow
 		RenderingEngine();
 
 		std::vector<Model*> m_renderObjects;
+		//std::unordered_set<Model*> m_shadowMapBoundModels; // SRVを設定済みのモデル
 
 		Camera m_lightCamera;
 		RenderTarget m_shadowMap;

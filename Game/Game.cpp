@@ -37,8 +37,10 @@ void Game::Update()
 	modelRot.AddRotationDegY(g_pad[0]->GetRStickXF());
 	m_modelRender.SetRotation(modelRot);
 
-	m_modelRender.Update();
 
+	SceneLight::GetInstance()->Update();
+	m_modelRender.Update();
+	m_groundRender.Update();
 }
 
 void Game::Render(RenderContext& rc)

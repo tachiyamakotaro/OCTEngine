@@ -18,6 +18,8 @@ namespace nsK2EngineLow
 			float specPow;
 			float specIntensity;
 			Vector2 pad3;
+			float pad4;
+			Matrix mLVP;
 		};
 		LightData m_light;
 

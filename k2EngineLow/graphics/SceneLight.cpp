@@ -1,5 +1,6 @@
 ﻿#include "k2EngineLowPreCompile.h"
 
+#include "RenderingEngine.h"
 #include "SceneLight.h"
 
 
@@ -20,5 +21,6 @@ namespace nsK2EngineLow
 	void SceneLight::Update()
 	{
 		m_light.eyePos = g_camera3D->GetPosition();
+		m_light.mLVP = RenderingEngine::GetInstance()->GetLightCamera().GetViewProjectionMatrix();
 	}
 }

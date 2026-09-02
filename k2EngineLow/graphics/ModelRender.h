@@ -45,6 +45,7 @@ namespace nsK2EngineLow
 
 	private:
 		Model m_model;
+		Model m_shadowModel;
 
 		Vector3 m_position = Vector3::Zero;
 		Quaternion m_rotation = Quaternion::Identity;
