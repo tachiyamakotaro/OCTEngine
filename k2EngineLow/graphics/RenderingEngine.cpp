@@ -14,7 +14,7 @@ namespace nsK2EngineLow
 			2048,
 			1,
 			1,
-			DXGI_FORMAT_R8G8B8A8_UNORM,
+			DXGI_FORMAT_R32_FLOAT,
 			DXGI_FORMAT_D32_FLOAT,
 			clearColor
 		);

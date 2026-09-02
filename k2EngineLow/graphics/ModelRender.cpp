@@ -28,6 +28,7 @@ namespace nsK2EngineLow
 			ModelInitData shadowInitData;
 			shadowInitData.m_tkmFilePath = tkmFilePath;
 			shadowInitData.m_fxFilePath = "Assets/shader/drawShadowMap.fx";
+			shadowInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R32_FLOAT;
 			m_shadowModel.Init(shadowInitData);
 		}
 	}

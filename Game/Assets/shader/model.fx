@@ -124,11 +124,19 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
         shadowMapUV *= float2(0.5f, -0.5f);
         shadowMapUV += 0.5f;
 
+        float zInLVP = posInLVP.z / posInLVP.w;
+
         if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
          && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
         {
-            float3 shadow = shadowMap.Sample(Sampler, shadowMapUV).xyz;
-            albedoColor.xyz *= shadow;
+            // float3 shadow = shadowMap.Sample(Sampler, shadowMapUV).xyz;
+            // albedoColor.xyz *= shadow;
+
+            float zInShadowMap = shadowMap.Sample(Sampler,shadowMapUV).r;
+            if(zInLVP > zInShadowMap)
+            {
+                albedoColor.xyz *= 0.5f;
+            }
         }
     }
 

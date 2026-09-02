@@ -1,33 +1,19 @@
-/*!
- * @brief   Minimal model shader (STARTING POINT).
- *
- * Right now this only draws the albedo (base color) texture. There is NO lighting.
- * Your job is to add lighting here, step by step:
- *   1. ambient        (add a constant brightness)
- *   2. diffuse         (directional light + Lambert:  dot(normal, -lightDir))
- *   3. specular        (Phong / Blinn-Phong highlight)
- *   4. specular map    (control the highlight strength per-pixel with a texture)
- *   5. normal map      (per-pixel normals using the tangent space / TBN)
- *
- * See: 学習ガイド_自作レンダリングエンジン.md  (Phase 1)
- *
- * NOTE: To pass values (light direction/color, ambient, etc.) from C++ into this
- *       shader, add your own cbuffer here and fill it from a ConstantBuffer on the
- *       C++ side. The engine does NOT feed lighting data anymore (that used to be
- *       k2Engine's job, which you are now replacing).
- */
+////////////////////////////////////////////////
+// Shadow map (depth-only) pass.
+//
+// Reuses the shared VSMain / VSMainSkin / VSMainInstancing entry points and
+// the ModelCb (mWorld/mView/mProj) / SVSIn / bone matrices provided by
+// ModelVSCommon.h (same as model.fx), so skinned / instanced models still
+// cast correct shadows without extra code here.
+////////////////////////////////////////////////
 
 ////////////////////////////////////////////////
 // Pixel shader input.
 ////////////////////////////////////////////////
 struct SPSIn
 {
-    float4 pos      : SV_POSITION;  // Clip-space position.
-    float3 normal   : NORMAL;       // World-space normal.
-    float3 tangent  : TANGENT;      // World-space tangent   (for normal mapping later).
-    float3 biNormal : BINORMAL;     // World-space binormal  (for normal mapping later).
-    float2 uv       : TEXCOORD0;    // UV.
-    float3 worldPos : TEXCOORD1;    // World-space position  (for specular later).
+    float4 pos      : SV_POSITION; // Clip-space position (rasterizer will turn this into screen pos).
+    float4 posInLVP : TEXCOORD0;   // Un-touched light-view-projection clip-space position.
 };
 
 ///////////////////////////////////////
@@ -37,16 +23,6 @@ struct SPSIn
 ///////////////////////////////////////
 #include "ModelVSCommon.h"
 
-///////////////////////////////////////
-// Shader resources.
-// The tkm material binds the albedo texture to t0.
-// (t1 = normal map, t2 = metallic/smooth — you can add them when you need them.)
-///////////////////////////////////////
-Texture2D<float4> albedoTexture : register(t0);
-Texture2D<float4> normalMap : register(t1);
-Texture2D<float4> specularMap : register(t2);
-sampler Sampler : register(s0);
-
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
 ////////////////////////////////////////////////
@@ -55,34 +31,28 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
     SPSIn psIn;
 
     // Local space -> world space.
-    psIn.pos = CalcVertexPositionInWorldSpace(vsIn.pos, mWorldLocal, isUsePreComputedVertexBuffer);
-    psIn.worldPos = psIn.pos;
+    float4 worldPos = CalcVertexPositionInWorldSpace(vsIn.pos, mWorldLocal, isUsePreComputedVertexBuffer);
 
     // World -> view -> projection (clip) space.
-    psIn.pos = mul(mView, psIn.pos);
+    // We're rendering from the light's camera here, so this clip-space
+    // position IS the light-view-projection ("LVP") position.
+    psIn.pos = mul(mView, worldPos);
     psIn.pos = mul(mProj, psIn.pos);
 
-    // World-space normal / tangent / binormal.
-    CalcVertexNormalTangentBiNormalInWorldSpace(
-        psIn.normal,
-        psIn.tangent,
-        psIn.biNormal,
-        mWorldLocal,
-        vsIn.normal,
-        vsIn.tangent,
-        vsIn.biNormal,
-        isUsePreComputedVertexBuffer
-    );
+    // SV_POSITION gets perspective-divided by the rasterizer before the pixel
+    // shader sees it, so we keep an untouched copy to divide ourselves below.
+    psIn.posInLVP = psIn.pos;
 
-    psIn.uv = vsIn.uv;
     return psIn;
 }
 
 ////////////////////////////////////////////////
 // Pixel shader.
-// For now: just output the albedo texture. Add your lighting here.
+// The shadow render target is DXGI_FORMAT_R32_FLOAT (see ModelRender::Init),
+// so we only need to output a single float, not a full float4.
 ////////////////////////////////////////////////
-float4 PSMain(SPSIn In) : SV_Target0
+float PSMain(SPSIn psIn) : SV_Target0
 {
-    return float4(0.0f, 0.0f, 0.0f, 1.0f);
+    // Depth as seen from the light (closer to the light = smaller value).
+    return psIn.posInLVP.z / psIn.posInLVP.w;
 }
