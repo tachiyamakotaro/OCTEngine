@@ -58,6 +58,7 @@ Texture2D<float4> normalMap : register(t1);
 Texture2D<float4> specularMap : register(t2);
 Texture2D<float4> shadowMap : register(t10);
 sampler Sampler : register(s0);
+SamplerComparisonState g_shadowMapSampler : register(s1);
 
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
@@ -129,14 +130,33 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
         if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
          && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
         {
-            // float3 shadow = shadowMap.Sample(Sampler, shadowMapUV).xyz;
-            // albedoColor.xyz *= shadow;
+            // float zInShadowMap = shadowMap.Sample(Sampler,shadowMapUV).r;
+            // if(zInLVP > zInShadowMap)
+            // {
+            //     albedoColor.xyz *= 0.5f;
+            // }
 
-            float zInShadowMap = shadowMap.Sample(Sampler,shadowMapUV).r;
-            if(zInLVP > zInShadowMap)
+            float shadow = 0.0f;
+            float2 texelSize = float2(1.0f / 2048.0f, 1.0f / 2048.0f); // シャドウマップ解像度に合わせる
+
+            [unroll]
+            for (int x = -1; x <= 1; x++)
             {
-                albedoColor.xyz *= 0.5f;
+                [unroll]
+                for (int y = -1; y <= 1; y++)
+                {
+                    float2 offset = float2(x, y) * texelSize;
+                    shadow += shadowMap.SampleCmpLevelZero(
+                        g_shadowMapSampler,
+                        shadowMapUV + offset,
+                        zInLVP
+                    );
+                }
             }
+            shadow /= 9.0f; // 3x3=9サンプルの平均
+
+            float3 shadowColor = albedoColor.xyz * 0.5f;
+            albedoColor.xyz = lerp(albedoColor.xyz, shadowColor, shadow);
         }
     }
 
