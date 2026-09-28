@@ -48,11 +48,12 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
 
 ////////////////////////////////////////////////
 // Pixel shader.
-// The shadow render target is DXGI_FORMAT_R32_FLOAT (see ModelRender::Init),
-// so we only need to output a single float, not a full float4.
+// The shadow render target is DXGI_FORMAT_R32G32_FLOAT (VSM),
+// so we output (depth, depth^2).
 ////////////////////////////////////////////////
-float PSMain(SPSIn psIn) : SV_Target0
+float2 PSMain(SPSIn psIn) : SV_Target0
 {
     // Depth as seen from the light (closer to the light = smaller value).
-    return psIn.posInLVP.z / psIn.posInLVP.w;
+    float depth = psIn.posInLVP.z / psIn.posInLVP.w;
+    return float2(depth, depth * depth);   // VSM：深度と深度の2乗
 }

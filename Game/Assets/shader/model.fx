@@ -56,12 +56,14 @@ cbuffer DirectionLightCb : register(b1)
 Texture2D<float4> albedoTexture : register(t0);
 Texture2D<float4> normalMap : register(t1);
 Texture2D<float4> specularMap : register(t2);
-Texture2D<float4> g_shadowMap : register(t10);
+Texture2D<float4> g_shadowMap : register(t10);   // ModelRender が t10 に繋いだシャドウマップ
 sampler Sampler : register(s0);
-//SamplerComparisonState g_shadowMapSampler : register(s1);
 
-static const float SHADOW_MAP_SIZE = 1024.0f;
-static const float SHADOW_BIAS = 0.001f;
+///////////////////////////////////////
+// Shadow settings.
+///////////////////////////////////////
+static const float SHADOW_MAP_SIZE = 1024.0f;  // RenderingEngine の m_shadowMap.Create のサイズと合わせる
+static const float SHADOW_BIAS     = 0.001f;   // シャドウバイアス（シャドウアクネ対策）
 
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
@@ -94,10 +96,15 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
     return psIn;
 }
 
+////////////////////////////////////////////////
+// Soft shadow (PCF).
+// 周囲 3x3 テクセルで深度比較を行い、「影だった割合」を返す。
+// 戻り値：0.0 = 影なし、1.0 = 完全に影
+////////////////////////////////////////////////
 float CalcShadowRatePCF(float2 shadowMapUV, float zInLVP)
 {
-    float2 texelSize = 1.0f / SHADOW_MAP_SIZE;
-    float shadowCount = 0.0f;
+    float2 texelSize   = 1.0f / SHADOW_MAP_SIZE;   // シャドウマップ1テクセル分のUV幅
+    float  shadowCount = 0.0f;
 
     [unroll]
     for (int y = -1; y <= 1; y++)
@@ -107,7 +114,7 @@ float CalcShadowRatePCF(float2 shadowMapUV, float zInLVP)
         {
             float2 uv = shadowMapUV + float2(x, y) * texelSize;
             float  zInShadowMap = g_shadowMap.Sample(Sampler, uv).r;
- 
+
             // Step 2-3 と同じ判定（バイアス付き）。影なら 1 を数える
             if (zInLVP > zInShadowMap + SHADOW_BIAS)
             {
@@ -116,6 +123,32 @@ float CalcShadowRatePCF(float2 shadowMapUV, float zInLVP)
         }
     }
     return shadowCount / 9.0f;   // 3x3 = 9 サンプルの平均
+}
+
+////////////////////////////////////////////////
+// Soft shadow (VSM).
+// ぼかし済みの (E[d], E[d^2]) から、チェビシェフの不等式で影の割合を求める。
+// 戻り値：0.0 = 影なし、1.0 = 完全に影
+////////////////////////////////////////////////
+float CalcShadowRateVSM(float2 shadowMapUV, float zInLVP)
+{
+    float2 moments = g_shadowMap.Sample(Sampler, shadowMapUV).xy;
+
+    // 平均より手前なら光が当たっている
+    if (zInLVP <= moments.x)
+    {
+        return 0.0f;
+    }
+
+    // 分散 = E[d^2] - E[d]^2
+    float variance = moments.y - moments.x * moments.x;
+    variance = max(variance, 0.00002f);   // 精度誤差対策（シャドウバイアスの役目も兼ねる）
+
+    // 光が届く確率の上限
+    float d    = zInLVP - moments.x;
+    float pMax = variance / (variance + d * d);
+
+    return 1.0f - pMax;
 }
 
 ////////////////////////////////////////////////
@@ -144,6 +177,8 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
     specular *= specP;
 
     float3 lig = ambientLight + diffuse + specular;
+
+    // 先にライティングを済ませる（md Step 2-2：影はライティングの後）
     float4 finalColor = albedoColor;
     finalColor.xyz *= lig;
 
@@ -159,7 +194,7 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
         if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
          && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
         {
-            float shadowRate = CalcShadowRatePCF(shadowMapUV, zInLVP);
+            float shadowRate = CalcShadowRateVSM(shadowMapUV, zInLVP);   // PCF → VSM
             finalColor.xyz *= lerp(1.0f, 0.5f, shadowRate);   // 0.5 = 影の濃さ
         }
     }

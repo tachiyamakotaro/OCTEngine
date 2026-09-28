@@ -23,7 +23,7 @@ namespace nsK2EngineLow
 
 		Texture& GetShadowMapTexture()
 		{
-			return m_shadowMap.GetRenderTargetTexture();
+			return m_shadowBlur.GetBokeTexture();   // VSM：ぼかし後のシャドウマップを渡す
 		}
 
 		void AddRenderObject(Model& model)
@@ -46,6 +46,8 @@ namespace nsK2EngineLow
 
 		Camera m_lightCamera;
 		RenderTarget m_shadowMap;
+		GaussianBlur m_shadowBlur;              // VSM：シャドウマップのぼかし
+		float m_shadowBlurPower = 5.0f;         // ぼかしの強さ（Phase 4 で imgui につなぐ候補）
 		std::vector<Model*> m_shadowCasters;
 
 		static RenderingEngine* m_instance;

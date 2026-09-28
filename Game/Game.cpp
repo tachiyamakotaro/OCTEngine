@@ -10,7 +10,7 @@ bool Game::Start()
 
 
 	m_modelRender.Init("Assets/modelData/unityChan.tkm", true, false, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
-	m_groundRender.Init("Assets/modelData/ground.tkm", false, true, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
+	m_groundRender.Init("Assets/modelData/ground.tkm", true, true, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
 	m_modelRender.SetPosition({ 0.0f,0.0f,10.0f });
 	m_groundRender.SetPosition({ 0.0f,-10.0f,0.0f });
 
