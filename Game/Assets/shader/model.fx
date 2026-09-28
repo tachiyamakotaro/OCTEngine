@@ -56,7 +56,7 @@ cbuffer DirectionLightCb : register(b1)
 Texture2D<float4> albedoTexture : register(t0);
 Texture2D<float4> normalMap : register(t1);
 Texture2D<float4> specularMap : register(t2);
-Texture2D<float4> shadowMap : register(t10);
+Texture2D<float4> g_shadowMap : register(t10);
 sampler Sampler : register(s0);
 //SamplerComparisonState g_shadowMapSampler : register(s1);
 
