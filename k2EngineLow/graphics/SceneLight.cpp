@@ -21,6 +21,16 @@ namespace nsK2EngineLow
 	void SceneLight::Update()
 	{
 		m_light.eyePos = g_camera3D->GetPosition();
-		m_light.mLVP = RenderingEngine::GetInstance()->GetLightCamera().GetViewProjectionMatrix();
+		//m_light.mLVP = RenderingEngine::GetInstance()->GetLightCamera().GetViewProjectionMatrix();
+
+		// ライトカメラをライト方向に追従させてから LVP を取る（md Step 2-2）
+		Camera& lightCamera = RenderingEngine::GetInstance()->GetLightCamera();
+		Vector3 lightCameraPos = m_light.direction;
+		lightCameraPos.Scale(-1000.0f);            // ライトの向きの逆側に置く
+		lightCamera.SetPosition(lightCameraPos);
+		lightCamera.SetTarget(0.0f, 0.0f, 0.0f);
+		lightCamera.Update();
+
+		m_light.mLVP = lightCamera.GetViewProjectionMatrix();
 	}
 }

@@ -58,7 +58,10 @@ Texture2D<float4> normalMap : register(t1);
 Texture2D<float4> specularMap : register(t2);
 Texture2D<float4> shadowMap : register(t10);
 sampler Sampler : register(s0);
-SamplerComparisonState g_shadowMapSampler : register(s1);
+//SamplerComparisonState g_shadowMapSampler : register(s1);
+
+static const float SHADOW_MAP_SIZE = 1024.0f;
+static const float SHADOW_BIAS = 0.001f;
 
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
@@ -91,6 +94,30 @@ SPSIn VSMainCore(SVSIn vsIn, float4x4 mWorldLocal, uniform bool isUsePreComputed
     return psIn;
 }
 
+float CalcShadowRatePCF(float2 shadowMapUV, float zInLVP)
+{
+    float2 texelSize = 1.0f / SHADOW_MAP_SIZE;
+    float shadowCount = 0.0f;
+
+    [unroll]
+    for (int y = -1; y <= 1; y++)
+    {
+        [unroll]
+        for (int x = -1; x <= 1; x++)
+        {
+            float2 uv = shadowMapUV + float2(x, y) * texelSize;
+            float  zInShadowMap = g_shadowMap.Sample(Sampler, uv).r;
+ 
+            // Step 2-3 と同じ判定（バイアス付き）。影なら 1 を数える
+            if (zInLVP > zInShadowMap + SHADOW_BIAS)
+            {
+                shadowCount += 1.0f;
+            }
+        }
+    }
+    return shadowCount / 9.0f;   // 3x3 = 9 サンプルの平均
+}
+
 ////////////////////////////////////////////////
 // Pixel shader.
 // For now: just output the albedo texture. Add your lighting here.
@@ -103,7 +130,7 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
 
     float3 localNormal = normalMap.Sample(Sampler, In.uv).xyz;
     localNormal = (localNormal - 0.5f) * 2.0f;
-    normal = In.tangent * localNormal.x + In.biNormal * localNormal.y + normal * localNormal.z;
+    normal = normalize(In.tangent * localNormal.x + In.biNormal * localNormal.y + normal * localNormal.z);
 
     float t = max(0.0f, dot(normal, -ligDirection));
     float3 diffuse = ligColor * t;
@@ -117,6 +144,8 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
     specular *= specP;
 
     float3 lig = ambientLight + diffuse + specular;
+    float4 finalColor = albedoColor;
+    finalColor.xyz *= lig;
 
     if (receiveShadow)
     {
@@ -130,38 +159,12 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
         if (shadowMapUV.x > 0.0f && shadowMapUV.x < 1.0f
          && shadowMapUV.y > 0.0f && shadowMapUV.y < 1.0f)
         {
-            // float zInShadowMap = shadowMap.Sample(Sampler,shadowMapUV).r;
-            // if(zInLVP > zInShadowMap)
-            // {
-            //     albedoColor.xyz *= 0.5f;
-            // }
-
-            float shadow = 0.0f;
-            float2 texelSize = float2(1.0f / 2048.0f, 1.0f / 2048.0f); // シャドウマップ解像度に合わせる
-
-            [unroll]
-            for (int x = -1; x <= 1; x++)
-            {
-                [unroll]
-                for (int y = -1; y <= 1; y++)
-                {
-                    float2 offset = float2(x, y) * texelSize;
-                    shadow += shadowMap.SampleCmpLevelZero(
-                        g_shadowMapSampler,
-                        shadowMapUV + offset,
-                        zInLVP
-                    );
-                }
-            }
-            shadow /= 9.0f; // 3x3=9サンプルの平均
-
-            float3 shadowColor = albedoColor.xyz * 0.5f;
-            albedoColor.xyz = lerp(albedoColor.xyz, shadowColor, shadow);
+            float shadowRate = CalcShadowRatePCF(shadowMapUV, zInLVP);
+            finalColor.xyz *= lerp(1.0f, 0.5f, shadowRate);   // 0.5 = 影の濃さ
         }
     }
 
-    albedoColor.xyz *= lig;
-    return albedoColor;
+    return finalColor;
 }
 
 float4 PSMain(SPSIn In) : SV_Target0

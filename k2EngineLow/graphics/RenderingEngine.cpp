@@ -10,8 +10,8 @@ namespace nsK2EngineLow
 	{
 		float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 		m_shadowMap.Create(
-			2048,
-			2048,
+			1024,
+			1024,
 			1,
 			1,
 			DXGI_FORMAT_R32_FLOAT,
@@ -19,8 +19,8 @@ namespace nsK2EngineLow
 			clearColor
 		);
 
-		m_lightCamera.SetPosition(0, 500, 0);
-		m_lightCamera.SetTarget(0, 0, 0);
+		//m_lightCamera.SetPosition(0, 500, 0);
+		//m_lightCamera.SetTarget(0, 0, 0);
 		m_lightCamera.SetUp(1, 0, 0);
 		m_lightCamera.SetWidth(2000.0f);
 		m_lightCamera.SetHeight(2000.0f);
