@@ -47,7 +47,7 @@ namespace nsK2EngineLow
 		Camera m_lightCamera;
 		RenderTarget m_shadowMap;
 		GaussianBlur m_shadowBlur;              // VSM：シャドウマップのぼかし
-		float m_shadowBlurPower = 5.0f;         // ぼかしの強さ（Phase 4 で imgui につなぐ候補）
+		float m_shadowBlurPower = 2.5f;         // ぼかしの強さ（Phase 4 で imgui につなぐ候補）
 		std::vector<Model*> m_shadowCasters;
 
 		static RenderingEngine* m_instance;

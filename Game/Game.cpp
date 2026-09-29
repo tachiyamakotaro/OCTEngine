@@ -7,10 +7,14 @@
 bool Game::Start()
 {
 	// Load resources and set up your objects here (called once).
+	m_animationClips[0].Load("Assets/animData/idle.tka");
+	m_animationClips[0].SetLoopFlag(true);
+	m_animationClips[1].Load("Assets/animData/walk.tka");
+	m_animationClips[1].SetLoopFlag(true);
 
 
-	m_modelRender.Init("Assets/modelData/unityChan.tkm", true, false, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
-	m_groundRender.Init("Assets/modelData/ground.tkm", true, true, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
+	m_modelRender.Init("Assets/modelData/unityChan.tkm", m_animationClips, 2, true, false, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()), enModelUpAxisY);
+	m_groundRender.Init("Assets/modelData/ground.tkm", nullptr, 0, true, true, &SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()));
 	m_modelRender.SetPosition({ 0.0f,0.0f,10.0f });
 	m_groundRender.SetPosition({ 0.0f,-10.0f,0.0f });
 

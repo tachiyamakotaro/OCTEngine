@@ -17,4 +17,6 @@ private:
 
 	ModelRender m_modelRender;
 	ModelRender m_groundRender;
+
+	AnimationClip m_animationClips[2];
 };
