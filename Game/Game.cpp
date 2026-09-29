@@ -3,6 +3,10 @@
 #include "../k2EngineLow/graphics/SceneLight.h"
 #include "Game.h"
 
+#include "imgui.h"
+#include "imgui_impl_dx12.h"
+#include "imgui_impl_win32.h"
+
 
 bool Game::Start()
 {
@@ -50,6 +54,12 @@ void Game::Update()
 	modelRot.AddRotationDegY(g_pad[0]->GetRStickXF());
 	m_modelRender.SetRotation(modelRot);
 
+	ImGui::Begin("Light");
+	ImGui::SliderFloat3("Direction", &SceneLight::GetInstance()->GetSceneLight().direction.x, -1.0f, 1.0f);
+	ImGui::ColorEdit3("Color", &SceneLight::GetInstance()->GetSceneLight().ligColor.x);
+	ImGui::ColorEdit3("Ambient", &SceneLight::GetInstance()->GetSceneLight().ambient.x);
+	ImGui::SliderFloat("Spec Pow", &SceneLight::GetInstance()->GetSceneLight().specPow, 0.0f, 200.0f);
+	ImGui::End();
 
 	SceneLight::GetInstance()->Update();
 	m_modelRender.Update();
