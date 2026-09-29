@@ -37,6 +37,15 @@ void Game::Update()
 		m_modelRender.SetPosition({ modelXPos += g_pad[0]->GetLStickXF(), modelYPos , modelZPos += g_pad[0]->GetLStickYF() });
 	}
 
+	if (g_pad[0]->IsPress(enButtonA))
+	{
+		m_modelRender.PlayAnimation(1, 0.5f);
+	}
+	else
+	{
+		m_modelRender.PlayAnimation(0, 0.5f);
+	}
+
 	Quaternion modelRot = m_modelRender.GetRotation();
 	modelRot.AddRotationDegY(g_pad[0]->GetRStickXF());
 	m_modelRender.SetRotation(modelRot);
