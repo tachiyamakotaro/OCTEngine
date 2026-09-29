@@ -59,6 +59,7 @@ void Game::Update()
 	ImGui::ColorEdit3("Color", &SceneLight::GetInstance()->GetSceneLight().ligColor.x);
 	ImGui::ColorEdit3("Ambient", &SceneLight::GetInstance()->GetSceneLight().ambient.x);
 	ImGui::SliderFloat("Spec Pow", &SceneLight::GetInstance()->GetSceneLight().specPow, 0.0f, 200.0f);
+	ImGui::SliderFloat("Shadow Bias", &SceneLight::GetInstance()->GetSceneLight().shadowBias, 0.0f, 0.005f, "%.4f");
 	ImGui::End();
 
 	SceneLight::GetInstance()->Update();

@@ -15,6 +15,7 @@ namespace nsK2EngineLow
 		m_light.direction.Normalize();
 		m_light.ligColor = { 0.6f, 0.7f, 0.4f };
 		m_light.specPow = 0.5f;
+		m_light.shadowBias = 0.001f;
 		m_light.specIntensity = 5.0f;
 	}
 

@@ -45,6 +45,7 @@ cbuffer DirectionLightCb : register(b1)
     float3 eyePos;
     float  specPow;
     float  specIntensity;
+    float  shadowBias;
     float4x4 mLVP;
 }
 
@@ -63,7 +64,7 @@ sampler Sampler : register(s0);
 // Shadow settings.
 ///////////////////////////////////////
 static const float SHADOW_MAP_SIZE = 1024.0f;  // RenderingEngine の m_shadowMap.Create のサイズと合わせる
-static const float SHADOW_BIAS     = 0.001f;   // シャドウバイアス（シャドウアクネ対策）
+// static const float SHADOW_BIAS     = 0.001f;   // シャドウバイアス（シャドウアクネ対策）
 
 ////////////////////////////////////////////////
 // Vertex shader core (called by the VSMain* entry points in ModelVSCommon.h).
@@ -116,7 +117,7 @@ float CalcShadowRatePCF(float2 shadowMapUV, float zInLVP)
             float  zInShadowMap = g_shadowMap.Sample(Sampler, uv).r;
 
             // Step 2-3 と同じ判定（バイアス付き）。影なら 1 を数える
-            if (zInLVP > zInShadowMap + SHADOW_BIAS)
+            if (zInLVP > zInShadowMap + shadowBias)
             {
                 shadowCount += 1.0f;
             }
@@ -132,6 +133,7 @@ float CalcShadowRatePCF(float2 shadowMapUV, float zInLVP)
 ////////////////////////////////////////////////
 float CalcShadowRateVSM(float2 shadowMapUV, float zInLVP)
 {
+    zInLVP -=shadowBias;
     float2 moments = g_shadowMap.Sample(Sampler, shadowMapUV).xy;
 
     // 平均より手前なら光が当たっている

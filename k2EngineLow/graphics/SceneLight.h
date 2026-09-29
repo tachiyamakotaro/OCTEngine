@@ -17,7 +17,8 @@ namespace nsK2EngineLow
 			Vector3 eyePos;
 			float specPow;
 			float specIntensity;
-			Vector2 pad3;
+			float shadowBias;
+			float pad3;
 			float pad4;
 			Matrix mLVP;
 		};
@@ -62,6 +63,10 @@ namespace nsK2EngineLow
 		void SetSpecPow(float specPow)
 		{
 			m_light.specPow = specPow;
+		}
+		void SetShadowBias(float shadowBias)
+		{
+			m_light.shadowBias = shadowBias;
 		}
 		void SetSpecIntensity(float specIntensity)
 		{
