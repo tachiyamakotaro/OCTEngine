@@ -17,6 +17,10 @@ namespace nsK2EngineLow
 		m_light.specPow = 0.5f;
 		m_light.shadowBias = 0.001f;
 		m_light.specIntensity = 5.0f;
+
+		m_light.ptPosition = { 0.0f,50.0f,20.0f };
+		m_light.ptRange = 500.0f;
+		m_light.ptColor = { 15.0f,0.0f,0.0f };
 	}
 
 	void SceneLight::Update()

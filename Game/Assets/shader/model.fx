@@ -46,6 +46,9 @@ cbuffer DirectionLightCb : register(b1)
     float  specPow;
     float  specIntensity;
     float  shadowBias;
+    float3 ptPosition;
+    float  ptRange;
+    float3 ptColor;
     float4x4 mLVP;
 }
 
@@ -154,6 +157,14 @@ float CalcShadowRateVSM(float2 shadowMapUV, float zInLVP)
 }
 
 ////////////////////////////////////////////////
+//ポイントライトの関数
+////////////////////////////////////////////////
+float3 CalcPointLight(float3 worldPos, float3 normal, float3 toEye, float specP)
+{
+
+}
+
+////////////////////////////////////////////////
 // Pixel shader.
 // For now: just output the albedo texture. Add your lighting here.
 ////////////////////////////////////////////////
@@ -178,7 +189,16 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
     float specP = specularMap.Sample(Sampler, In.uv).r;
     specular *= specP;
 
-    float3 lig = ambientLight + diffuse + specular;
+    float3 ptLigDir = normalize(In.worldPos - ptPosition);
+    float ptDistance = length(In.worldPos - ptPosition);
+
+    float affect = saturate(1.0f - ptDistance / ptRange);
+    affect = pow(affect, 3.0f);
+
+    float ptT = max(0.0f,dot(normal, -ptLigDir));
+    float3 ptDiffuse = ptColor * ptT * affect;
+
+    float3 lig = ambientLight + diffuse + specular + ptDiffuse;
 
     // 先にライティングを済ませる（md Step 2-2：影はライティングの後）
     float4 finalColor = albedoColor;

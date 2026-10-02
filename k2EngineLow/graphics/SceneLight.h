@@ -20,6 +20,10 @@ namespace nsK2EngineLow
 			float shadowBias;
 			float pad3;
 			float pad4;
+			Vector3 ptPosition;
+			float ptRange;
+			Vector3 ptColor;
+			float pad5;
 			Matrix mLVP;
 		};
 		LightData m_light;
