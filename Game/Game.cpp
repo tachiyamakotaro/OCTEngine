@@ -54,13 +54,7 @@ void Game::Update()
 	modelRot.AddRotationDegY(g_pad[0]->GetRStickXF());
 	m_modelRender.SetRotation(modelRot);
 
-	ImGui::Begin("Light");
-	ImGui::SliderFloat3("Direction", &SceneLight::GetInstance()->GetSceneLight().direction.x, -1.0f, 1.0f);
-	ImGui::ColorEdit3("Color", &SceneLight::GetInstance()->GetSceneLight().ligColor.x);
-	ImGui::ColorEdit3("Ambient", &SceneLight::GetInstance()->GetSceneLight().ambient.x);
-	ImGui::SliderFloat("Spec Pow", &SceneLight::GetInstance()->GetSceneLight().specPow, 0.0f, 200.0f);
-	ImGui::SliderFloat("Shadow Bias", &SceneLight::GetInstance()->GetSceneLight().shadowBias, 0.0f, 0.005f, "%.4f");
-	ImGui::End();
+	IMGUIRender();
 
 	SceneLight::GetInstance()->Update();
 	m_modelRender.Update();
@@ -73,4 +67,31 @@ void Game::Render(RenderContext& rc)
 	// K2EngineLow already cleared the screen to gray before this is called.
 	m_modelRender.Draw(rc);
 	m_groundRender.Draw(rc);
+}
+
+void Game::IMGUIRender()
+{
+	ImGui::Begin("Light");
+	ImGui::SliderFloat3("Direction", &SceneLight::GetInstance()->GetSceneLight().direction.x, -1.0f, 1.0f);
+	ImGui::ColorEdit3("Color", &SceneLight::GetInstance()->GetSceneLight().ligColor.x);
+	ImGui::ColorEdit3("Ambient", &SceneLight::GetInstance()->GetSceneLight().ambient.x);
+	ImGui::SliderFloat("Spec Pow", &SceneLight::GetInstance()->GetSceneLight().specPow, 0.0f, 200.0f);
+	ImGui::SliderFloat("Shadow Bias", &SceneLight::GetInstance()->GetSceneLight().shadowBias, 0.0f, 0.005f, "%.4f");
+	ImGui::End();
+
+	ImGui::Begin("PointLights");
+	ImGui::SliderInt("Count", &SceneLight::GetInstance()->GetSceneLight().numPtLights, 0, SceneLight::GetMaxPointLight());
+	for (int i = 0; i < SceneLight::GetInstance()->GetSceneLight().numPtLights; i++)
+	{
+		ImGui::PushID(i);
+		if (ImGui::TreeNode("", "Light %d", i))
+		{
+			ImGui::DragFloat3("Position", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].position.x, 5.01f);
+			ImGui::ColorEdit3("Color", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].color.x);
+			ImGui::DragFloat("Range", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].range, 5.0f, 0.0f, 2000.0f);
+			ImGui::TreePop();
+		}
+		ImGui::PopID();
+	}
+	ImGui::End();
 }

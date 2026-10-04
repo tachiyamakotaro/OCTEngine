@@ -13,6 +13,8 @@ public:
 	void Update();
 	void Render(RenderContext& rc);
 
+	void IMGUIRender();
+
 private:
 
 	ModelRender m_modelRender;

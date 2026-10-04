@@ -37,6 +37,12 @@ struct SPSIn
 ///////////////////////////////////////
 #include "ModelVSCommon.h"
 
+struct PointLight
+{
+    float3 position; float range;
+    float3 color; float pad;
+};
+
 cbuffer DirectionLightCb : register(b1)
 {
     float3 ambientLight;
@@ -46,10 +52,10 @@ cbuffer DirectionLightCb : register(b1)
     float  specPow;
     float  specIntensity;
     float  shadowBias;
-    float3 ptPosition;
-    float  ptRange;
-    float3 ptColor;
     float4x4 mLVP;
+
+    PointLight ptLights[4];
+    int        numPtLights;
 }
 
 ///////////////////////////////////////
@@ -161,7 +167,19 @@ float CalcShadowRateVSM(float2 shadowMapUV, float zInLVP)
 ////////////////////////////////////////////////
 float3 CalcPointLight(float3 worldPos, float3 normal, float3 toEye, float specP)
 {
+    float3 total = 0.0f;
+    for (int i = 0; i < numPtLights; i++)
+    {
+        float3 ptLigDir   = normalize(worldPos - ptLights[i].position);
+        float  ptDistance = length(worldPos - ptLights[i].position);
 
+        float affect = saturate(1.0f - ptDistance / ptLights[i].range);
+        affect = pow(affect, 3.0f);
+
+        float ptT = max(0.0f, dot(normal, -ptLigDir));
+        total += ptLights[i].color * ptT * affect;
+    }
+    return total;
 }
 
 ////////////////////////////////////////////////
@@ -189,14 +207,7 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
     float specP = specularMap.Sample(Sampler, In.uv).r;
     specular *= specP;
 
-    float3 ptLigDir = normalize(In.worldPos - ptPosition);
-    float ptDistance = length(In.worldPos - ptPosition);
-
-    float affect = saturate(1.0f - ptDistance / ptRange);
-    affect = pow(affect, 3.0f);
-
-    float ptT = max(0.0f,dot(normal, -ptLigDir));
-    float3 ptDiffuse = ptColor * ptT * affect;
+    float3 ptDiffuse = CalcPointLight(In.worldPos, normal, toEye, specP);
 
     float3 lig = ambientLight + diffuse + specular + ptDiffuse;
 

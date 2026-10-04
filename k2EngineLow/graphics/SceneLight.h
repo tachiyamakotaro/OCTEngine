@@ -6,6 +6,15 @@ namespace nsK2EngineLow
 	{
 
 	private:
+		struct PointLight
+		{
+			Vector3 position;
+			float range;
+			Vector3 color;
+			float pad;
+		};
+		static const int MAX_POINT_LIGHT = 4;
+
 		struct LightData
 		{
 			Vector3 ambient;
@@ -20,11 +29,12 @@ namespace nsK2EngineLow
 			float shadowBias;
 			float pad3;
 			float pad4;
-			Vector3 ptPosition;
-			float ptRange;
-			Vector3 ptColor;
-			float pad5;
+
 			Matrix mLVP;
+
+			PointLight ptLights[MAX_POINT_LIGHT];
+			int numPtLights = 0;
+			Vector3 pad5;
 		};
 		LightData m_light;
 
@@ -44,6 +54,11 @@ namespace nsK2EngineLow
 		LightData& GetSceneLight()
 		{
 			return m_light;
+		}
+
+		static int GetMaxPointLight()
+		{
+			return MAX_POINT_LIGHT;
 		}
 
 		void Update();
