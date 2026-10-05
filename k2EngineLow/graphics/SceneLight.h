@@ -11,7 +11,9 @@ namespace nsK2EngineLow
 			Vector3 position;
 			float range;
 			Vector3 color;
-			float pad;
+			float pad0;
+			Vector3 direction;
+			float angle;
 		};
 		static const int MAX_POINT_LIGHT = 4;
 

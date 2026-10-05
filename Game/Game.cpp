@@ -89,6 +89,8 @@ void Game::IMGUIRender()
 			ImGui::DragFloat3("Position", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].position.x, 5.01f);
 			ImGui::ColorEdit3("Color", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].color.x);
 			ImGui::DragFloat("Range", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].range, 5.0f, 0.0f, 2000.0f);
+			ImGui::DragFloat3("Direction", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].direction.x, 0.01f, -1.0f, 1.0f);
+			ImGui::SliderAngle("Angle", &SceneLight::GetInstance()->GetSceneLight().ptLights[i].angle, 0.0f, 90.0f);
 			ImGui::TreePop();
 		}
 		ImGui::PopID();

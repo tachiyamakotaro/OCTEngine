@@ -17,6 +17,12 @@ namespace nsK2EngineLow
 		m_light.specPow = 0.5f;
 		m_light.shadowBias = 0.001f;
 		m_light.specIntensity = 5.0f;
+
+		for (int i = 0; i < MAX_POINT_LIGHT; i++)
+		{
+			m_light.ptLights[i].direction = { 0.0f, -1.0f, 0.0f };
+			m_light.ptLights[i].angle = 0.0f;
+		}
 	}
 
 	void SceneLight::Update()

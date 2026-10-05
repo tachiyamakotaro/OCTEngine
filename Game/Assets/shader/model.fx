@@ -40,7 +40,9 @@ struct SPSIn
 struct PointLight
 {
     float3 position; float range;
-    float3 color; float pad;
+    float3 color; float pad0;
+    float3 direction;
+    float angle;
 };
 
 cbuffer DirectionLightCb : register(b1)
@@ -175,6 +177,19 @@ float3 CalcPointLight(float3 worldPos, float3 normal, float3 toEye, float specP)
 
         float affect = saturate(1.0f - ptDistance / ptLights[i].range);
         affect = pow(affect, 3.0f);
+
+        if (ptLights[i].angle > 0.0f)
+        {
+            // 正面方向とピクセル方向のなす角（誤差で ±1 をはみ出すと acos が NaN になるので clamp）
+            float cosTheta = clamp(dot(ptLigDir, ptLights[i].direction), -1.0f, 1.0f);
+            float theta    = acos(cosTheta);
+
+            // 中心で 1、照射角で 0
+            float angleAffect = saturate(1.0f - theta / ptLights[i].angle);
+            angleAffect = pow(angleAffect, 0.5f);   // 縁のボケ具合。指数を変えて好みに
+
+            affect *= angleAffect;
+        }
 
         float ptT = max(0.0f, dot(normal, -ptLigDir));
         total += ptLights[i].color * ptT * affect;
