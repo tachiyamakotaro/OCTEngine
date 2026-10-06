@@ -6,6 +6,12 @@ namespace nsK2EngineLow
 {
 	RenderingEngine* RenderingEngine::m_instance = nullptr;
 
+	namespace
+	{
+		constexpr float FRAME_BUFFER_W = 1920.0f;
+		constexpr float FRAME_BUFFER_H = 1080.0f;
+	}
+
 	RenderingEngine::RenderingEngine()
 	{
 		float clearColor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -20,6 +26,28 @@ namespace nsK2EngineLow
 		);
 		// シャドウマップを Create した後に初期化する
 		m_shadowBlur.Init(&m_shadowMap.GetRenderTargetTexture());
+
+		float mainClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+		m_mainRenderTarget.Create(
+			FRAME_BUFFER_W,
+			FRAME_BUFFER_H,
+			1,
+			1,
+			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			DXGI_FORMAT_D32_FLOAT,
+			mainClearColor
+		);
+		m_screenBlur.Init(&m_mainRenderTarget.GetRenderTargetTexture());
+
+		SpriteInitData spriteInitData;
+		spriteInitData.m_width = FRAME_BUFFER_W;
+		spriteInitData.m_height = FRAME_BUFFER_H;
+		spriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		spriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
+		m_copyToFrameBufferSprite.Init(spriteInitData);
+
+		spriteInitData.m_textures[0] = &m_screenBlur.GetBokeTexture();   // VSM：ぼかし後のシャドウマップを渡す
+		m_copyBlurToFrameBufferSprite.Init(spriteInitData);
 
 		// 位置と注視点は SceneLight::Update でライト方向から毎フレーム決める
 		m_lightCamera.SetUp(1, 0, 0);
@@ -45,15 +73,41 @@ namespace nsK2EngineLow
 		// VSM：シャドウマップをぼかす（画面に戻す前に）
 		m_shadowBlur.ExecuteOnGPU(rc, m_shadowBlurPower);
 
-		g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
-		rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
+		//g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+		//rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
 
-		for (auto model : m_renderObjects)
+		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
+		rc.ClearRenderTargetView(m_mainRenderTarget);
+		for (auto model : m_models)
 		{
 			model->Draw(rc);
 		}
+		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 
-		m_renderObjects.clear();
+		// 後でポストプロセスのパスを入れていく
+		if (m_screenBlurPower > 0.0f)
+		{
+			m_screenBlur.ExecuteOnGPU(rc, m_screenBlurPower);
+
+			g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+			rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
+			m_copyBlurToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_copyBlurToFrameBufferSprite.Draw(rc);
+		}
+		else
+		{
+			// ぼかしなしの場合は、メインレンダーターゲットのテクスチャをフレームバッファにコピーする
+			g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+			m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_copyToFrameBufferSprite.Draw(rc);
+		}
+
+		//g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+		//m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+		//m_copyToFrameBufferSprite.Draw(rc);
+
+		m_models.clear();
 	}
 
 }

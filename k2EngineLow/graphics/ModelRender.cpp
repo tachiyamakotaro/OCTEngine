@@ -14,6 +14,7 @@ namespace nsK2EngineLow
 		ModelInitData initData;
 		initData.m_tkmFilePath = tkmFilePath;
 		initData.m_fxFilePath = "Assets/shader/model.fx";
+		initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		initData.m_skeleton = &m_skeleton;
 		initData.m_vsSkinEntryPointFunc = "VSMainSkin";
 		initData.m_modelUpAxis = modelUpAxis;

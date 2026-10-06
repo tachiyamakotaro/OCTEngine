@@ -28,7 +28,7 @@ namespace nsK2EngineLow
 
 		void AddRenderObject(Model& model)
 		{
-			m_renderObjects.push_back(&model);
+			m_models.push_back(&model);
 		}
 
 		void AddShadowCaster(Model& model)
@@ -36,15 +36,27 @@ namespace nsK2EngineLow
 			m_shadowCasters.push_back(&model);
 		}
 
+		float& GetScreenBlurPower()
+		{
+			return m_screenBlurPower;
+		}
+
 		void Execute(RenderContext& rc);
 
 	private:
 		RenderingEngine();
 
-		std::vector<Model*> m_renderObjects;
+		std::vector<Model*> m_models;
 		//std::unordered_set<Model*> m_shadowMapBoundModels; // SRVを設定済みのモデル
 
 		Camera m_lightCamera;
+
+		RenderTarget m_mainRenderTarget;
+		Sprite m_copyToFrameBufferSprite;
+		Sprite m_copyBlurToFrameBufferSprite;
+		GaussianBlur m_screenBlur;              // スクリーンのぼかし
+		float m_screenBlurPower = 0.0f;
+
 		RenderTarget m_shadowMap;
 		GaussianBlur m_shadowBlur;              // VSM：シャドウマップのぼかし
 		float m_shadowBlurPower = 2.5f;         // ぼかしの強さ（Phase 4 で imgui につなぐ候補）

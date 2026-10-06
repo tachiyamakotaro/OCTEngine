@@ -96,4 +96,8 @@ void Game::IMGUIRender()
 		ImGui::PopID();
 	}
 	ImGui::End();
+
+	ImGui::Begin("Blur");
+	ImGui::SliderFloat("Blur Power", &RenderingEngine::GetInstance()->GetScreenBlurPower(), 0.0f, 20.0f);
+	ImGui::End();
 }
