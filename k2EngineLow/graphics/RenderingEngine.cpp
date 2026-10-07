@@ -49,6 +49,37 @@ namespace nsK2EngineLow
 		spriteInitData.m_textures[0] = &m_screenBlur.GetBokeTexture();   // VSM：ぼかし後のシャドウマップを渡す
 		m_copyBlurToFrameBufferSprite.Init(spriteInitData);
 
+
+		float luminanceClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		m_luminanceRenderTarget.Create(
+			FRAME_BUFFER_W,
+			FRAME_BUFFER_H,
+			1,
+			1,
+			DXGI_FORMAT_R16G16B16A16_FLOAT,
+			DXGI_FORMAT_D32_FLOAT,
+			luminanceClearColor
+		);
+
+		SpriteInitData luminanceSpriteInitData;
+		luminanceSpriteInitData.m_width = FRAME_BUFFER_W;
+		luminanceSpriteInitData.m_height = FRAME_BUFFER_H;
+		luminanceSpriteInitData.m_fxFilePath = "Assets/shader/samplingLuminance.fx";
+		luminanceSpriteInitData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
+		luminanceSpriteInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		m_luminanceSprite.Init(luminanceSpriteInitData);
+
+		m_bloomBlur.Init(&m_luminanceRenderTarget.GetRenderTargetTexture());
+		SpriteInitData addSpriteInitData;
+		addSpriteInitData.m_width = FRAME_BUFFER_W;
+		addSpriteInitData.m_height = FRAME_BUFFER_H;
+		addSpriteInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+		addSpriteInitData.m_textures[0] = &m_bloomBlur.GetBokeTexture();
+		addSpriteInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		addSpriteInitData.m_alphaBlendMode = AlphaBlendMode_Add;
+		m_bloomAddSprite.Init(addSpriteInitData);
+
+
 		// 位置と注視点は SceneLight::Update でライト方向から毎フレーム決める
 		m_lightCamera.SetUp(1, 0, 0);
 		m_lightCamera.SetWidth(2000.0f);
@@ -84,6 +115,27 @@ namespace nsK2EngineLow
 			model->Draw(rc);
 		}
 		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+
+		if (m_isEnableBloom && m_bloomBlurPower > 0.0f)
+		{
+			// 輝度抽出：mainRT → luminanceRT
+			rc.WaitUntilToPossibleSetRenderTarget(m_luminanceRenderTarget);
+			rc.SetRenderTargetAndViewport(m_luminanceRenderTarget);
+			rc.ClearRenderTargetView(m_luminanceRenderTarget);
+			m_luminanceSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_luminanceSprite.Draw(rc);
+			rc.WaitUntilFinishDrawingToRenderTarget(m_luminanceRenderTarget);
+
+			// ぼかす
+			m_bloomBlur.ExecuteOnGPU(rc, m_bloomBlurPower);
+
+			// mainRT に加算（クリアしない！）
+			rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+			rc.SetRenderTargetAndViewport(m_mainRenderTarget);
+			m_bloomAddSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_bloomAddSprite.Draw(rc);
+			rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+		}
 
 		// 後でポストプロセスのパスを入れていく
 		if (m_screenBlurPower > 0.0f)

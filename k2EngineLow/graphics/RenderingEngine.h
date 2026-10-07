@@ -41,6 +41,16 @@ namespace nsK2EngineLow
 			return m_screenBlurPower;
 		}
 
+		float& GetBloomBlurPower()
+		{
+			return m_bloomBlurPower;
+		}
+
+		bool& IsEnableBloom()
+		{
+			return m_isEnableBloom;
+		}
+
 		void Execute(RenderContext& rc);
 
 	private:
@@ -56,6 +66,13 @@ namespace nsK2EngineLow
 		Sprite m_copyBlurToFrameBufferSprite;
 		GaussianBlur m_screenBlur;              // スクリーンのぼかし
 		float m_screenBlurPower = 0.0f;
+
+		RenderTarget m_luminanceRenderTarget;
+		Sprite m_luminanceSprite;
+		GaussianBlur m_bloomBlur;              // ブルームのぼかし
+		Sprite m_bloomAddSprite;
+		bool m_isEnableBloom = true;                 // ブルームを有効にするかどうか
+		float m_bloomBlurPower = 10.0f;
 
 		RenderTarget m_shadowMap;
 		GaussianBlur m_shadowBlur;              // VSM：シャドウマップのぼかし

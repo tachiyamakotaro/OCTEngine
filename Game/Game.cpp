@@ -98,6 +98,8 @@ void Game::IMGUIRender()
 	ImGui::End();
 
 	ImGui::Begin("Blur");
-	ImGui::SliderFloat("Blur Power", &RenderingEngine::GetInstance()->GetScreenBlurPower(), 0.0f, 20.0f);
+	ImGui::SliderFloat("Blur Power", &RenderingEngine::GetInstance()->GetScreenBlurPower(), 0.1f, 20.0f);
+	ImGui::SliderFloat("Bloom Power", &RenderingEngine::GetInstance()->GetBloomBlurPower(), 0.1f, 20.0f);
+	ImGui::Checkbox("Enable Bloom", &RenderingEngine::GetInstance()->IsEnableBloom());
 	ImGui::End();
 }
