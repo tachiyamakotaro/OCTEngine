@@ -4,6 +4,11 @@ cbuffer cb : register(b0){
 	float4 mulColor;
 };
 
+cbuffer BloomCb : register(b1)
+{
+	float threshold;
+}
+
 struct VSInput{
 	float4 pos : POSITION;
 	float2 uv  : TEXCOORD0;
@@ -29,6 +34,6 @@ float4 PSMain(PSInput In) : SV_Target0
 {
 	float4 color = mainTexture.Sample(Sampler, In.uv);
 	float t = dot(color.xyz, float3(0.2125f, 0.7154f, 0.0721f));  // 輝度
-	clip(t - 1.0f);   // 輝度 1.0 未満は捨てる（閾値は一旦固定）
+	clip(t - threshold);   // 輝度 1.0 未満は捨てる（閾値は一旦固定）
 	return color;
 }
