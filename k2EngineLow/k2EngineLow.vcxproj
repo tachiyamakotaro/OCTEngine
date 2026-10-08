@@ -265,6 +265,7 @@
     <ClCompile Include="graphics\ComputeAnimationVertexBuffer.cpp" />
     <ClCompile Include="graphics\ConstantBuffer.cpp" />
     <ClCompile Include="graphics\DescriptorHeap.cpp" />
+    <ClCompile Include="graphics\DualBlur.cpp" />
     <ClCompile Include="graphics\effect\Effect.cpp" />
     <ClCompile Include="graphics\effect\EffectEmitter.cpp" />
     <ClCompile Include="graphics\effect\EffectEngine.cpp" />
@@ -357,6 +358,7 @@
     <ClInclude Include="graphics\d3dx12.h" />
     <ClInclude Include="graphics\DescriptorHeap.h" />
     <ClInclude Include="graphics\DescriptorHeap_inline.h" />
+    <ClInclude Include="graphics\DualBlur.h" />
     <ClInclude Include="graphics\effect\Effect.h" />
     <ClInclude Include="graphics\effect\EffectEmitter.h" />
     <ClInclude Include="graphics\effect\EffectEngine.h" />

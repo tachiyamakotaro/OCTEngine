@@ -247,7 +247,7 @@ float4 CalcLitColor(SPSIn In, bool receiveShadow)
         }
     }
 
-    return finalColor;
+    return float4(finalColor.xyz, length(In.worldPos - eyePos));
 }
 
 float4 PSMain(SPSIn In) : SV_Target0

@@ -56,6 +56,21 @@ namespace nsK2EngineLow
 			return m_isEnableBloom;
 		}
 
+		bool& IsEnableDof()
+		{
+			return m_isEnableDof;
+		}
+
+		float& GetFocusDistance()
+		{
+			return m_dofParam.focusDistance;
+		}
+
+		float& GetFocusRange()
+		{
+			return m_dofParam.focusRange;
+		}
+
 		void Execute(RenderContext& rc);
 
 	private:
@@ -73,12 +88,20 @@ namespace nsK2EngineLow
 		float m_screenBlurPower = 0.0f;
 
 		RenderTarget m_luminanceRenderTarget;
-		RenderTarget m_downRenderTarget[4];
-		RenderTarget m_upRenderTarget[3];
 		Sprite m_luminanceSprite;
-		Sprite m_downSprite[4];
-		Sprite m_upSprite[3];
 		Sprite m_bloomAddSprite;
+
+		DualBlur m_bloomBlur;                          // ブルームのぼかし
+		DualBlur m_dofBlur;                            // DOFのぼかし
+
+		struct DofParam
+		{
+			float focusDistance = 500.0f;
+			float focusRange = 100.0f;
+		};
+		DofParam m_dofParam;
+		Sprite m_dofSprite;
+		bool m_isEnableDof = false;
 
 		bool m_isEnableBloom = true;                 // ブルームを有効にするかどうか
 		float m_bloomThreshold = 1.0f;

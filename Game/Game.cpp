@@ -106,4 +106,9 @@ void Game::IMGUIRender()
 	ImGui::SliderFloat("Threshold", &RenderingEngine::GetInstance()->GetBloomThreshold(), 0.0f, 3.0f);
 	ImGui::SliderFloat("Intensity", &RenderingEngine::GetInstance()->GetBloomIntensity(), 0.0f, 3.0f);
 	ImGui::End();
+
+	auto* renderingEngine = RenderingEngine::GetInstance();
+	ImGui::Checkbox("DoF", &renderingEngine->IsEnableDof());
+	ImGui::SliderFloat("FocusDistance", &renderingEngine->GetFocusDistance(), 0.0f, 3000.0f);   // ピント送り！
+	ImGui::SliderFloat("FocusRange", &renderingEngine->GetFocusRange(), 10.0f, 2000.0f);
 }

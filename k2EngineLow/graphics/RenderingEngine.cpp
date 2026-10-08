@@ -27,7 +27,7 @@ namespace nsK2EngineLow
 		// シャドウマップを Create した後に初期化する
 		m_shadowBlur.Init(&m_shadowMap.GetRenderTargetTexture());
 
-		float mainClearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+		float mainClearColor[4] = { 0.5f, 0.5f, 0.5f, 100000.0f };
 		m_mainRenderTarget.Create(
 			FRAME_BUFFER_W,
 			FRAME_BUFFER_H,
@@ -61,78 +61,46 @@ namespace nsK2EngineLow
 			luminanceClearColor
 		);
 
-		const int frameW = static_cast<int>(FRAME_BUFFER_W);
-		const int frameH = static_cast<int>(FRAME_BUFFER_H);
-		for (int i = 0; i < 4; i++)
-		{
-			m_downRenderTarget[i].Create(
-				frameW >> (i + 1),
-				frameH >> (i + 1),
-				1,
-				1,
-				DXGI_FORMAT_R16G16B16A16_FLOAT,
-				DXGI_FORMAT_D32_FLOAT
-			);
-		}
-
-		for (int i = 0; i < 3; i++)
-		{
-			m_upRenderTarget[i].Create(
-				frameW >> (3 - i),
-				frameH >> (3 - i),
-				1,
-				1,
-				DXGI_FORMAT_R16G16B16A16_FLOAT,
-				DXGI_FORMAT_D32_FLOAT
-			);
-		}
-
-		auto initBloomSprite = [](Sprite& sprite, Texture& src, const char* fxPath, RenderTarget& dst,
-			void* expandCB = nullptr, int expandCBSize = 0)
-			{
-				SpriteInitData initData;
-				initData.m_textures[0] = &src;
-				initData.m_fxFilePath = fxPath;
-				initData.m_width = dst.GetWidth();          // 描き先の RT と同じサイズ
-				initData.m_height = dst.GetHeight();
-				initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				initData.m_expandConstantBuffer = expandCB;
-				initData.m_expandConstantBufferSize = expandCBSize;
-				sprite.Init(initData);
-			};
-
 		// 輝度抽出：mainRT → luminanceRT
-		initBloomSprite(m_luminanceSprite, m_mainRenderTarget.GetRenderTargetTexture(),
-			"Assets/shader/samplingLuminance.fx", m_luminanceRenderTarget,
-			&m_bloomThreshold, sizeof(m_bloomThreshold));
-
-		// down：前の段の出力が、次の段の入力
-		Texture* src = &m_luminanceRenderTarget.GetRenderTargetTexture();
-		for (int i = 0; i < 4; i++)
-		{
-			initBloomSprite(m_downSprite[i], *src, "Assets/shader/dualBlurDown.fx", m_downRenderTarget[i]);
-			src = &m_downRenderTarget[i].GetRenderTargetTexture();
-		}
-
-		// up：down の最後（1/16）から始まる
-		for (int i = 0; i < 3; i++)
-		{
-			initBloomSprite(m_upSprite[i], *src, "Assets/shader/dualBlurUp.fx", m_upRenderTarget[i]);
-			src = &m_upRenderTarget[i].GetRenderTargetTexture();
-		}
-
-		// 加算合成：upRT[2]（1/2）を mainRT に足す
 		{
 			SpriteInitData initData;
-			initData.m_textures[0] = &m_upRenderTarget[2].GetRenderTargetTexture();
+			initData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
+			initData.m_fxFilePath = "Assets/shader/samplingLuminance.fx";
+			initData.m_width = m_luminanceRenderTarget.GetWidth();
+			initData.m_height = m_luminanceRenderTarget.GetHeight();
+			initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			initData.m_expandConstantBuffer = &m_bloomThreshold;
+			initData.m_expandConstantBufferSize = sizeof(m_bloomThreshold);
+			m_luminanceSprite.Init(initData);
+		}
+
+		// デュアルブラー：渡す元テクスチャだけが違う！
+		m_bloomBlur.Init(&m_luminanceRenderTarget.GetRenderTargetTexture());   // 輝度抽出の後の絵
+		m_dofBlur.Init(&m_mainRenderTarget.GetRenderTargetTexture());          // ★mainRT を直接（輝度抽出を通さない）
+
+		{
+			SpriteInitData initData;
+			initData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();   // t0：くっきり版（α = 距離）
+			initData.m_textures[1] = &m_dofBlur.GetResultTexture();                  // t1：ボケ版
+			initData.m_fxFilePath = "Assets/shader/dof.fx";
+			initData.m_width = FRAME_BUFFER_W;
+			initData.m_height = FRAME_BUFFER_H;
+			initData.m_expandConstantBuffer = &m_dofParam;
+			initData.m_expandConstantBufferSize = sizeof(m_dofParam);
+			m_dofSprite.Init(initData);
+		}
+
+		// 加算合成：ブルームのぼかし結果を mainRT に足す
+		{
+			SpriteInitData initData;
+			initData.m_textures[0] = &m_bloomBlur.GetResultTexture();   // ★DualBlur の結果
 			initData.m_fxFilePath = "Assets/shader/sprite.fx";
 			initData.m_width = FRAME_BUFFER_W;
 			initData.m_height = FRAME_BUFFER_H;
 			initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			initData.m_alphaBlendMode = AlphaBlendMode_Add;     // ⑤：上書きではなく「足す」
+			initData.m_alphaBlendMode = AlphaBlendMode_Add;     // 上書きではなく「足す」
 			m_bloomAddSprite.Init(initData);
 		}
-
 
 		// 位置と注視点は SceneLight::Update でライト方向から毎フレーム決める
 		m_lightCamera.SetUp(1, 0, 0);
@@ -179,23 +147,8 @@ namespace nsK2EngineLow
 			m_luminanceSprite.Draw(rc);
 			rc.WaitUntilFinishDrawingToRenderTarget(m_luminanceRenderTarget);
 
-			// ② down × 4：1/2 → 1/4 → 1/8 → 1/16
-			for (int i = 0; i < 4; i++)
-			{
-				rc.WaitUntilToPossibleSetRenderTarget(m_downRenderTarget[i]);
-				rc.SetRenderTargetAndViewport(m_downRenderTarget[i]);
-				m_downSprite[i].Draw(rc);
-				rc.WaitUntilFinishDrawingToRenderTarget(m_downRenderTarget[i]);   // 次の段が読めるように待つ
-			}
-
-			// ③ up × 3：1/8 → 1/4 → 1/2
-			for (int i = 0; i < 3; i++)
-			{
-				rc.WaitUntilToPossibleSetRenderTarget(m_upRenderTarget[i]);
-				rc.SetRenderTargetAndViewport(m_upRenderTarget[i]);
-				m_upSprite[i].Draw(rc);
-				rc.WaitUntilFinishDrawingToRenderTarget(m_upRenderTarget[i]);
-			}
+			// ②③ デュアルブラー（down × 4 → up × 3）
+			m_bloomBlur.ExecuteOnGPU(rc);
 
 			// ④ 加算合成：描き先を mainRT に戻して、ぼかした光を足す
 			rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
@@ -216,6 +169,17 @@ namespace nsK2EngineLow
 			rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
 			m_copyBlurToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
 			m_copyBlurToFrameBufferSprite.Draw(rc);
+		}
+		else if (m_isEnableDof)
+		{
+			// ボケ版を作る（ブルームを足し終わった mainRT をぼかす）
+			m_dofBlur.ExecuteOnGPU(rc);
+
+			// くっきり版とボケ版を距離でブレンドして、フレームバッファへ
+			g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
+			rc.SetViewportAndScissor(g_graphicsEngine->GetFrameBufferViewport());
+			m_dofSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_dofSprite.Draw(rc);
 		}
 		else
 		{
