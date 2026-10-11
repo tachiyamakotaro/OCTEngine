@@ -7,6 +7,42 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{df5b09a7-ffe7-4f9e-b59a-0f5a6d5d9195}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4ad7608c-dae9-4bde-a75d-8be9de5ce12c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor">
+      <UniqueIdentifier>{a040d2cb-100b-419d-a185-8b117712ab44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Core">
+      <UniqueIdentifier>{11a3a656-a268-4d0e-b024-a6e3d77c22df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Input">
+      <UniqueIdentifier>{f2a40361-d9a5-46d1-84b1-8ca67941df3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Physics">
+      <UniqueIdentifier>{12ea03d5-548f-4b86-bef2-f27d93be1190}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Stage">
+      <UniqueIdentifier>{662c61d3-565f-4b22-bff0-241e5e481383}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character">
+      <UniqueIdentifier>{5ba21ea2-7481-479c-ba7e-abac59b6389a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Actor\Character\Player">
+      <UniqueIdentifier>{4424901e-2c80-4c0f-94ec-ed1bc23f1694}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Core\Math">
+      <UniqueIdentifier>{8d8eaf0b-0232-4482-9d9d-9380341bee20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Stage\Editor">
+      <UniqueIdentifier>{d29dd434-1c5e-402f-bc56-e7594e9a1cd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Stage\Stages">
+      <UniqueIdentifier>{bdcc2da8-f357-43f8-9e17-49917b1533f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render">
+      <UniqueIdentifier>{21fd3c9a-6d13-4611-add6-3c5dd51089bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -14,7 +50,6 @@
     <ClCompile Include="system\system.cpp">
       <Filter>system</Filter>
     </ClCompile>
-    <ClCompile Include="Game.cpp" />
     <ClCompile Include="..\ThirdParty\imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
@@ -36,12 +71,169 @@
     <ClCompile Include="..\ThirdParty\imgui\backends\imgui_impl_win32.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Actor\Character\CharacterController.cpp">
+      <Filter>Source\Actor\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp">
+      <Filter>Source\Actor\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\CharacterStatus.cpp">
+      <Filter>Source\Actor\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Player\Player.cpp">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Player\PlayerController.cpp">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Player\PlayerState.cpp">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Player\PlayerStateMachine.cpp">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Player\PlayerStatus.cpp">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Input\GamePadInputDevice.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp">
+      <Filter>Source\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp">
+      <Filter>Source\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\MirrorInteractor.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Actor\Character\CharacterBase.cpp">
+      <Filter>Source\Actor\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Editor\StageEditor.cpp">
+      <Filter>Source\Stage\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Stages\Stage01.cpp">
+      <Filter>Source\Stage\Stages</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\LightTracer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Stage.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Editor\StageDebugOverlay.cpp">
+      <Filter>Source\Stage\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\StageRenderer.cpp">
+      <Filter>Source\Stage\Stages</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Source\Stage\GimmickRenderer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h">
       <Filter>system</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Actor\Actor.h">
+      <Filter>Source\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterCommand.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterController.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterParameter.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterStatus.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\ICharacterState.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\Player.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\PlayerController.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\PlayerParameter.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\PlayerState.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\PlayerStateMachine.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\PlayerStatus.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Math\MathUtil.h">
+      <Filter>Source\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Math\Rect.h">
+      <Filter>Source\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Math\Vec2.h">
+      <Filter>Source\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Input\GamePadInputDevice.h">
+      <Filter>Source\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Input\IInputDevice.h">
+      <Filter>Source\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Physics\ICollisionWorld.h">
+      <Filter>Source\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Physics\MirroredCollisionWorld.h">
+      <Filter>Source\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Physics\SimpleCollisionWorld.h">
+      <Filter>Source\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\MirrorInteractor.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Stages\Stage01.h">
+      <Filter>Source\Stage\Stages</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\CharacterBase.h">
+      <Filter>Source\Actor\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Editor\StageEditor.h">
+      <Filter>Source\Stage\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\LightTracer.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Stage.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\StageObjects.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\MirrorReflection.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Editor\StageDebugOverlay.h">
+      <Filter>Source\Stage\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\StageRenderer.h">
+      <Filter>Source\Stage\Stages</Filter>
+    </ClInclude>
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Source\Stage\GimmickRenderer.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

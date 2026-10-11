@@ -6,7 +6,9 @@ namespace nsK2EngineLow
 	class ModelRender
 	{
 	public:
-		void Init(const char* tkmFilePath, AnimationClip* animationClips = nullptr, int numAnimationClips = 0, bool shadowCaster = false, bool shadowReceiver = false, void* expandConstantBuffer = nullptr, const int expandConstantBufferSize = 0, EnModelUpAxis modelUpAxis = enModelUpAxisZ);
+		void Init(const char* tkmFilePath, AnimationClip* animationClips = nullptr, int numAnimationClips = 0,
+			bool shadowCaster = false, bool shadowReceiver = false, void* expandConstantBuffer = nullptr, const int expandConstantBufferSize = 0,
+			EnModelUpAxis modelUpAxis = enModelUpAxisZ, D3D12_CULL_MODE cullMode = D3D12_CULL_MODE_BACK);
 
 		void SetPosition(const Vector3& pos)
 		{

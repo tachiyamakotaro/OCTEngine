@@ -1,0 +1,109 @@
+﻿/**
+ * @file MirrorInteractor.cpp
+ * @brief プレイヤーによる反射鏡の操作（回転・移動）
+ */
+#include "stdafx.h"
+#include "MirrorInteractor.h"
+#include "Stage.h"
+#include "Source/Actor/Character/CharacterBase.h"
+
+
+namespace app
+{
+	namespace stage
+	{
+		void MirrorInteractor::Update(Stage& stage, const actor::CharacterBase& character)
+		{
+			std::vector<LightMirror>& mirrors = stage.GetLightMirrors();
+			const actor::CharacterCommand& command = character.GetCommand();
+			const math::Vec2& position = character.GetPosition();
+
+			// 引きずり中：つかむを離した・地面から離れた・鏡が消えた ならやめる
+			if (m_isDragging)
+			{
+				const bool isValid = m_focusedIndex >= 0 && m_focusedIndex < static_cast<int>(mirrors.size());
+				if (!isValid || !command.grabHold || !character.GetController().IsOnGround())
+				{
+					m_isDragging = false;
+				}
+			}
+
+			if (!m_isDragging)
+			{
+				m_focusedIndex = FindNearestMirror(stage, character);
+			}
+			if (m_focusedIndex < 0)
+			{
+				return;
+			}
+
+			LightMirror& mirror = mirrors[m_focusedIndex];
+
+			// 回転
+			if (command.actionTrigger && mirror.isRotatable)
+			{
+				mirror.Rotate(character.GetFacing() > 0 ? -1 : 1);
+			}
+
+			// 引きずり開始
+			if (!m_isDragging && command.grabHold && mirror.isMovable && character.GetController().IsOnGround())
+			{
+				m_isDragging = true;
+				m_dragOffsetX = mirror.center.x - position.x;
+			}
+
+			// 引きずり中：キャラクターについていく（地形にぶつかる位置には動かさない）
+			if (m_isDragging)
+			{
+				const float targetX = mirror.ClampToRail(position.x + m_dragOffsetX);
+				LightMirror moved = mirror;
+				moved.center.x = targetX;
+				if (!stage.OverlapsTerrain(moved.GetBounds()))
+				{
+					mirror.center.x = targetX;
+				}
+			}
+		}
+
+
+		void MirrorInteractor::Reset()
+		{
+			m_focusedIndex = -1;
+			m_isDragging = false;
+			m_dragOffsetX = 0.0f;
+		}
+
+
+		int MirrorInteractor::FindNearestMirror(const Stage& stage, const actor::CharacterBase& character) const
+		{
+			const std::vector<LightMirror>& mirrors = stage.GetLightMirrors();
+			const math::Vec2& position = character.GetPosition();
+
+			int nearestIndex = -1;
+			float nearestDistance = interactRangeX;
+			for (size_t i = 0; i < mirrors.size(); ++i)
+			{
+				const LightMirror& mirror = mirrors[i];
+				if (!mirror.isRotatable && !mirror.isMovable)
+				{
+					continue;
+				}
+				const float dx = math::Abs(mirror.center.x - position.x);
+				const float dy = mirror.center.y - position.y;
+				if (dx <= nearestDistance && dy >= -interactRangeY * 0.25f && dy <= interactRangeY)
+				{
+					nearestDistance = dx;
+					nearestIndex = static_cast<int>(i);
+				}
+			}
+			return nearestIndex;
+		}
+
+
+		MirrorInteractor::MirrorInteractor()
+			: m_focusedIndex(-1)
+			, m_isDragging(false)
+			, m_dragOffsetX(0.0f)
+		{}
+	}
+}

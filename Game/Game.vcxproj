@@ -266,6 +266,26 @@
     </ClCompile>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\Actor\Character\CharacterBase.cpp" />
+    <ClCompile Include="Source\Actor\Character\CharacterController.cpp" />
+    <ClCompile Include="Source\Actor\Character\CharacterStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\CharacterStatus.cpp" />
+    <ClCompile Include="Source\Actor\Character\Player\Player.cpp" />
+    <ClCompile Include="Source\Actor\Character\Player\PlayerController.cpp" />
+    <ClCompile Include="Source\Actor\Character\Player\PlayerState.cpp" />
+    <ClCompile Include="Source\Actor\Character\Player\PlayerStateMachine.cpp" />
+    <ClCompile Include="Source\Actor\Character\Player\PlayerStatus.cpp" />
+    <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
+    <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
+    <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
+    <ClCompile Include="Source\Stage\Editor\StageDebugOverlay.cpp" />
+    <ClCompile Include="Source\Stage\Editor\StageEditor.cpp" />
+    <ClCompile Include="Source\Stage\GimmickRenderer.cpp" />
+    <ClCompile Include="Source\Stage\LightTracer.cpp" />
+    <ClCompile Include="Source\Stage\MirrorInteractor.cpp" />
+    <ClCompile Include="Source\Stage\Stage.cpp" />
+    <ClCompile Include="Source\Stage\StageRenderer.cpp" />
+    <ClCompile Include="Source\Stage\Stages\Stage01.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -275,6 +295,38 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
+    <ClInclude Include="Source\Actor\Actor.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterBase.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterCommand.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterController.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterParameter.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\CharacterStatus.h" />
+    <ClInclude Include="Source\Actor\Character\ICharacterState.h" />
+    <ClInclude Include="Source\Actor\Character\Player\Player.h" />
+    <ClInclude Include="Source\Actor\Character\Player\PlayerController.h" />
+    <ClInclude Include="Source\Actor\Character\Player\PlayerParameter.h" />
+    <ClInclude Include="Source\Actor\Character\Player\PlayerState.h" />
+    <ClInclude Include="Source\Actor\Character\Player\PlayerStateMachine.h" />
+    <ClInclude Include="Source\Actor\Character\Player\PlayerStatus.h" />
+    <ClInclude Include="Source\Core\Math\MathUtil.h" />
+    <ClInclude Include="Source\Core\Math\Rect.h" />
+    <ClInclude Include="Source\Core\Math\Vec2.h" />
+    <ClInclude Include="Source\Input\GamePadInputDevice.h" />
+    <ClInclude Include="Source\Input\IInputDevice.h" />
+    <ClInclude Include="Source\Physics\ICollisionWorld.h" />
+    <ClInclude Include="Source\Physics\MirroredCollisionWorld.h" />
+    <ClInclude Include="Source\Physics\SimpleCollisionWorld.h" />
+    <ClInclude Include="Source\Render\MirrorReflection.h" />
+    <ClInclude Include="Source\Stage\Editor\StageDebugOverlay.h" />
+    <ClInclude Include="Source\Stage\Editor\StageEditor.h" />
+    <ClInclude Include="Source\Stage\GimmickRenderer.h" />
+    <ClInclude Include="Source\Stage\LightTracer.h" />
+    <ClInclude Include="Source\Stage\MirrorInteractor.h" />
+    <ClInclude Include="Source\Stage\Stage.h" />
+    <ClInclude Include="Source\Stage\StageObjects.h" />
+    <ClInclude Include="Source\Stage\StageRenderer.h" />
+    <ClInclude Include="Source\Stage\Stages\Stage01.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="system\system.h" />
   </ItemGroup>

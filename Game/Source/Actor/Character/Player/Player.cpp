@@ -1,0 +1,92 @@
+﻿/**
+ * @file Player.cpp
+ * @brief プレイヤー（探検家）
+ */
+#include "stdafx.h"
+#include "Player.h"
+#include "PlayerStateMachine.h"
+#include "PlayerStatus.h"
+
+
+namespace app
+{
+	namespace actor
+	{
+		namespace
+		{
+			/**
+			 * @brief アニメーションデータ（PlayerAnimation と並びを合わせる）
+			 * @note 専用のアニメーションができるまでは、今あるもので代用している（★仮）
+			 */
+			const AnimationData PLAYER_ANIMATION_DATA[] =
+			{
+				{ "Assets/animData/idle.tka", true },	// Idle
+				{ "Assets/animData/run.tka",  true },	// Run
+				{ "Assets/animData/jump.tka", false },	// Jump
+				{ "Assets/animData/jump.tka", false },	// Fall      ★仮
+				{ "Assets/animData/idle.tka", true },	// Crouch    ★仮
+				{ "Assets/animData/idle.tka", true },	// LedgeHang ★仮
+				{ "Assets/animData/walk.tka", false },	// ClimbUp   ★仮
+				{ "Assets/animData/idle.tka", false },	// HardLand  ★仮
+				{ "Assets/animData/idle.tka", false },	// Dead      ★仮
+			};
+			static_assert(
+				sizeof(PLAYER_ANIMATION_DATA) / sizeof(PLAYER_ANIMATION_DATA[0]) == static_cast<size_t>(PlayerAnimation::Num),
+				"PLAYER_ANIMATION_DATA の数が PlayerAnimation と合っていません");
+
+			/** モデルデータ */
+			const ModelData PLAYER_MODEL_DATA =
+			{
+				"Assets/modelData/unityChan.tkm",
+				PLAYER_ANIMATION_DATA,
+				static_cast<int>(PlayerAnimation::Num),
+				enModelUpAxisY,
+			};
+		}
+
+
+		void Player::SetInputDevice(const input::IInputDevice* device)
+		{
+			m_playerController.SetInputDevice(device);
+		}
+
+
+		void Player::SetMirrored(const bool isMirrored)
+		{
+			m_playerController.SetMirrorX(isMirrored);
+			SetFacing(isMirrored ? -1 : 1);
+		}
+
+
+		bool Player::Start()
+		{
+			// モデルを先に読み込んでおくと、最初のステートの Enter でアニメーションが再生される
+			InitModel(PLAYER_MODEL_DATA);
+			return CharacterBase::Start();
+		}
+
+
+		std::unique_ptr<CharacterStatus> Player::CreateStatus()
+		{
+			return std::make_unique<PlayerStatus>(m_parameter.invincibleTime);
+		}
+
+
+		std::unique_ptr<CharacterStateMachine> Player::CreateStateMachine()
+		{
+			return std::make_unique<PlayerStateMachine>(this);
+		}
+
+
+		void Player::UpdateCommand(const float /*deltaTime*/)
+		{
+			m_playerController.Update(m_command);
+		}
+
+
+		Player::Player()
+			: m_parameter()
+			, m_playerController(nullptr)
+		{}
+	}
+}

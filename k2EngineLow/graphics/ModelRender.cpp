@@ -5,7 +5,7 @@
 
 namespace nsK2EngineLow
 {
-	void ModelRender::Init(const char* tkmFilePath, AnimationClip* animationClips, int numAnimationClips, bool shadowCaster, bool shadowReceiver, void* expandConstantBuffer, const int expandConstantBufferSize, EnModelUpAxis modelUpAxis)
+	void ModelRender::Init(const char* tkmFilePath, AnimationClip* animationClips, int numAnimationClips, bool shadowCaster, bool shadowReceiver, void* expandConstantBuffer, const int expandConstantBufferSize, EnModelUpAxis modelUpAxis, D3D12_CULL_MODE cullMode)
 	{
 		std::string skeletonFilePath = tkmFilePath;
 		skeletonFilePath.replace(skeletonFilePath.length() - 3, 3, "tks");
@@ -18,6 +18,7 @@ namespace nsK2EngineLow
 		initData.m_skeleton = &m_skeleton;
 		initData.m_vsSkinEntryPointFunc = "VSMainSkin";
 		initData.m_modelUpAxis = modelUpAxis;
+		initData.m_cullMode = cullMode;
 		initData.m_expandConstantBuffer = expandConstantBuffer;
 		initData.m_expandConstantBufferSize = expandConstantBufferSize;
 
@@ -40,6 +41,7 @@ namespace nsK2EngineLow
 			shadowInitData.m_skeleton = &m_skeleton;
 			shadowInitData.m_vsSkinEntryPointFunc = "VSMainSkin";
 			shadowInitData.m_modelUpAxis = modelUpAxis;
+			shadowInitData.m_cullMode = cullMode;
 			m_shadowModel.Init(shadowInitData);
 		}
 
