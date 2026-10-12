@@ -324,6 +324,7 @@
     <ClInclude Include="Source\Actor\Character\Player\PlayerState.h" />
     <ClInclude Include="Source\Actor\Character\Player\PlayerStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Player\PlayerStatus.h" />
+    <ClInclude Include="Source\Core\DebugUI.h" />
     <ClInclude Include="Source\Core\Fade.h" />
     <ClInclude Include="Source\Core\Math\MathUtil.h" />
     <ClInclude Include="Source\Core\Math\Rect.h" />

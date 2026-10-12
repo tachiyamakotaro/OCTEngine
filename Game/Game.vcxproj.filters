@@ -307,5 +307,8 @@
     <ClInclude Include="Source\Render\MirrorGlass.h">
       <Filter>Source\Render</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Core\DebugUI.h">
+      <Filter>Source\Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

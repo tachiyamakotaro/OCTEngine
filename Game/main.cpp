@@ -63,12 +63,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		RenderingEngine::GetInstance()->Execute(g_graphicsEngine->GetRenderContext());
 
 		ImGui::Render();
+#ifdef _DEBUG
+		// Debug のときだけ ImGui を画面に描く（F4 で出す / 消す）
 		if (Game::IsImGuiVisible())
 		{
 			auto* cmdList = g_graphicsEngine->GetCommandList();
 			cmdList->SetDescriptorHeaps(1, &g_imguiSrvHeap);
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
 		}
+#endif // _DEBUG
 
 		g_engine->EndFrame();		// End the frame: present the back buffer.
 	}

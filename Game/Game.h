@@ -7,6 +7,7 @@
  *          ・ResultScene … クリア画面（A でタイトルへ）
  */
 #pragma once
+#include "Source/Core/DebugUI.h"
 
 
 class Game : public IGameObject
@@ -21,14 +22,11 @@ public:
 
 	/**
 	 * @brief ImGui（デバッグウィンドウ・エディタ・当たり判定の表示など）を画面に出すか
-	 * @details main.cpp で、これが false のときは ImGui_ImplDX12_RenderDrawData を呼ばない（＝ImGui を一切描かない）。
-	 *          最初は出さない（Debug でも Release でも）。F4 で出す / 消す。
+	 * @details 中身は app::debug::IsDebugUIVisible()（Source/Core/DebugUI.h）。
+	 *          false の間はウィンドウを1つも作らないので、見えないウィンドウを触ってしまうこともない。
+	 *          main.cpp では、これが false のときは ImGui_ImplDX12_RenderDrawData を呼ばない。
+	 *          最初は false。Debug ビルドは F4 で切り替えられる。Release ビルドはずっと false。
 	 */
-	static bool IsImGuiVisible() { return s_isImGuiVisible; }
-	static void SetImGuiVisible(const bool isVisible) { s_isImGuiVisible = isVisible; }
-
-
-private:
-	/** ImGui を画面に出すか */
-	static bool s_isImGuiVisible;
+	static bool IsImGuiVisible() { return app::debug::IsDebugUIVisible(); }
+	static void SetImGuiVisible(const bool isVisible) { app::debug::SetDebugUIVisible(isVisible); }
 };

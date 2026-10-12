@@ -10,9 +10,6 @@
 #include "imgui.h"
 
 
-// ImGui は最初は出さない（Debug でも Release でも）。F4 で出す / 消す
-bool Game::s_isImGuiVisible = false;
-
 
 Game::Game()
 {}
@@ -39,10 +36,10 @@ bool Game::Start()
 
 void Game::Update()
 {
-	// F4：撮影モード（ImGui を全部消す / 戻す）。文字入力中は無視する
-	if (!ImGui::GetIO().WantTextInput && ImGui::IsKeyPressed(ImGuiKey_F4, false))
+	// F4：デバッグ用の表示と操作（ImGui・F1/F2/F5）を ON / OFF する。Release では効かない。文字入力中は無視する
+	if (app::debug::IsDebugUIAvailable() && !ImGui::GetIO().WantTextInput && ImGui::IsKeyPressed(ImGuiKey_F4, false))
 	{
-		s_isImGuiVisible = !s_isImGuiVisible;
+		app::debug::SetDebugUIVisible(!app::debug::IsDebugUIVisible());
 	}
 
 	app::SceneManager::GetInstance()->Update();

@@ -12,6 +12,7 @@
 #include "Source/Stage/Stages/Stage01.h"
 #include "ResultScene.h"
 #include "Source/Sound/SoundManager.h"
+#include "Source/Core/DebugUI.h"
 
 
 namespace
@@ -132,7 +133,12 @@ void DebugScene::Update()
 {
 	const float deltaTime = g_gameTime->GetFrameDeltaTime();
 
-	UpdateHotkeys();
+	// デバッグ用の表示が OFF の間は、F1 / F2 / F5 も ImGui のウィンドウも使わない（見えないウィンドウを触らないように）
+	const bool isDebugUI = app::debug::IsDebugUIVisible();
+	if (isDebugUI)
+	{
+		UpdateHotkeys();
+	}
 	ApplyTuning();
 
 	// 順番が大事：ステージ（スイッチ・光・扉・足場・霧）→ プレイヤー → 反射鏡の操作
@@ -166,7 +172,10 @@ void DebugScene::Update()
 	m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
 	SceneLight::GetInstance()->Update();
 
-	DrawImGui();
+	if (isDebugUI)
+	{
+		DrawImGui();
+	}
 }
 
 
