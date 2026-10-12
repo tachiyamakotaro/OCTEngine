@@ -17,6 +17,9 @@ namespace app
 			std::vector<LightMirror>& mirrors = stage.GetLightMirrors();
 			const actor::CharacterCommand& command = character.GetCommand();
 			const math::Vec2& position = character.GetPosition();
+			m_isRotatedThisFrame = false;
+			m_isGrabbedThisFrame = false;
+			m_movedDistanceThisFrame = 0.0f;
 
 			// 引きずり中：つかむを離した・地面から離れた・鏡が消えた ならやめる
 			if (m_isDragging)
@@ -43,12 +46,14 @@ namespace app
 			if (command.actionTrigger && mirror.isRotatable)
 			{
 				mirror.Rotate(character.GetFacing() > 0 ? -1 : 1);
+				m_isRotatedThisFrame = true;
 			}
 
 			// 引きずり開始
 			if (!m_isDragging && command.grabHold && mirror.isMovable && character.GetController().IsOnGround())
 			{
 				m_isDragging = true;
+				m_isGrabbedThisFrame = true;
 				m_dragOffsetX = mirror.center.x - position.x;
 			}
 
@@ -60,6 +65,7 @@ namespace app
 				moved.center.x = targetX;
 				if (!stage.OverlapsTerrain(moved.GetBounds()))
 				{
+					m_movedDistanceThisFrame = math::Abs(targetX - mirror.center.x);
 					mirror.center.x = targetX;
 				}
 			}
@@ -71,6 +77,9 @@ namespace app
 			m_focusedIndex = -1;
 			m_isDragging = false;
 			m_dragOffsetX = 0.0f;
+			m_isRotatedThisFrame = false;
+			m_isGrabbedThisFrame = false;
+			m_movedDistanceThisFrame = 0.0f;
 		}
 
 
@@ -104,6 +113,9 @@ namespace app
 			: m_focusedIndex(-1)
 			, m_isDragging(false)
 			, m_dragOffsetX(0.0f)
+			, m_isRotatedThisFrame(false)
+			, m_isGrabbedThisFrame(false)
+			, m_movedDistanceThisFrame(0.0f)
 		{}
 	}
 }

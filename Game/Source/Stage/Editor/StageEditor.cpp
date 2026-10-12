@@ -57,6 +57,11 @@ namespace app
 			const ImU32 EDITOR_COLOR_MIRROR_PLATFORM = IM_COL32(200, 225, 245, 255);
 			const ImU32 EDITOR_COLOR_MIRROR_PLATFORM_FILL = IM_COL32(200, 225, 245, 150);
 			const ImU32 EDITOR_COLOR_CHECKPOINT = IM_COL32(110, 230, 120, 160);
+			const ImU32 EDITOR_COLOR_WARP = IM_COL32(170, 120, 255, 255);
+			const ImU32 EDITOR_COLOR_WARP_FILL = IM_COL32(60, 40, 110, 140);
+			const ImU32 EDITOR_COLOR_INDICATOR_OFF = IM_COL32(90, 90, 100, 255);
+			const ImU32 EDITOR_COLOR_INDICATOR_ON = IM_COL32(120, 255, 140, 255);
+			const ImU32 EDITOR_COLOR_GOAL = IM_COL32(255, 200, 40, 255);
 
 
 			/** 一覧に出す種類の名前 */
@@ -64,7 +69,7 @@ namespace app
 			{
 				static const char* LABELS[] = {
 					"None", "Blocks", "Light Sources", "Light Mirrors", "Receivers", "Doors", "Light Platforms", "Back Mirror",
-					"Floor Switches", "Mist Emitters", "Mirror Platforms", "Checkpoints" };
+					"Floor Switches", "Mist Emitters", "Mirror Platforms", "Checkpoints", "Warp Zones", "Indicators", "Goals" };
 				return LABELS[type];
 			}
 
@@ -372,6 +377,43 @@ namespace app
 				}
 			}
 
+			if (!stage.GetIndicators().empty())
+			{
+				code += "\n\t// 合図のランプ\n";
+				for (const Indicator& indicator : stage.GetIndicators())
+				{
+					code += "\tstage.AddIndicator(" + StringLiteral(indicator.name) + ", "
+						+ FloatLiteral(indicator.rect.min.x) + ", " + FloatLiteral(indicator.rect.min.y) + ", "
+						+ FloatLiteral(indicator.rect.Width()) + ", " + FloatLiteral(indicator.rect.Height()) + ", " + StringLiteral(indicator.signal) + ");\n";
+				}
+			}
+
+			if (!stage.GetWarpZones().empty())
+			{
+				code += "\n\t// ワープ\n";
+				for (const WarpZone& zone : stage.GetWarpZones())
+				{
+					code += "\t{\n";
+					code += "\t\tauto& warp = stage.AddWarpZone(" + StringLiteral(zone.name) + ", "
+						+ FloatLiteral(zone.rect.min.x) + ", " + FloatLiteral(zone.rect.min.y) + ", "
+						+ FloatLiteral(zone.rect.Width()) + ", " + FloatLiteral(zone.rect.Height()) + ", "
+						+ FloatLiteral(zone.destination.x) + ", " + FloatLiteral(zone.destination.y) + ");\n";
+					code += "\t\twarp.disabledBySignal = " + StringLiteral(zone.disabledBySignal) + ";\n";
+					code += "\t}\n";
+				}
+			}
+
+			if (!stage.GetGoals().empty())
+			{
+				code += "\n\t// ゴール\n";
+				for (const Goal& goal : stage.GetGoals())
+				{
+					code += "\tstage.AddGoal(" + StringLiteral(goal.name) + ", "
+						+ FloatLiteral(goal.rect.min.x) + ", " + FloatLiteral(goal.rect.min.y) + ", "
+						+ FloatLiteral(goal.rect.Width()) + ", " + FloatLiteral(goal.rect.Height()) + ");\n";
+				}
+			}
+
 			code += "}\n";
 			return code;
 		}
@@ -439,6 +481,9 @@ namespace app
 			ImGui::SameLine(); if (ImGui::SmallButton("Mist")) { AddObject(stage, ObjectType::MistEmitter); }
 			ImGui::SameLine(); if (ImGui::SmallButton("Mirror Platform")) { AddObject(stage, ObjectType::MirrorPlatform); }
 			ImGui::SameLine(); if (ImGui::SmallButton("Checkpoint")) { AddObject(stage, ObjectType::Checkpoint); }
+			ImGui::SameLine(); if (ImGui::SmallButton("Warp")) { AddObject(stage, ObjectType::WarpZone); }
+			ImGui::SameLine(); if (ImGui::SmallButton("Lamp")) { AddObject(stage, ObjectType::Indicator); }
+			ImGui::SameLine(); if (ImGui::SmallButton("Goal")) { AddObject(stage, ObjectType::Goal); }
 			ImGui::SameLine(); ImGui::TextDisabled("|");
 			ImGui::SameLine();
 			ImGui::BeginDisabled(m_selection.type == ObjectType::None || m_selection.type == ObjectType::BackMirror);
@@ -492,6 +537,9 @@ namespace app
 			drawList(ObjectType::MistEmitter, static_cast<int>(stage.GetMistEmitters().size()), [&](int i) { return stage.GetMistEmitters()[i].name.c_str(); });
 			drawList(ObjectType::MirrorPlatform, static_cast<int>(stage.GetMirrorPlatforms().size()), [&](int i) { return stage.GetMirrorPlatforms()[i].name.c_str(); });
 			drawList(ObjectType::Checkpoint, static_cast<int>(stage.GetCheckpoints().size()), [&](int i) { return stage.GetCheckpoints()[i].name.c_str(); });
+			drawList(ObjectType::WarpZone, static_cast<int>(stage.GetWarpZones().size()), [&](int i) { return stage.GetWarpZones()[i].name.c_str(); });
+			drawList(ObjectType::Indicator, static_cast<int>(stage.GetIndicators().size()), [&](int i) { return stage.GetIndicators()[i].name.c_str(); });
+			drawList(ObjectType::Goal, static_cast<int>(stage.GetGoals().size()), [&](int i) { return stage.GetGoals()[i].name.c_str(); });
 		}
 
 
@@ -684,6 +732,38 @@ namespace app
 				ImGui::TextWrapped("Touch this area to respawn here. Put the bottom on the floor.");
 				break;
 			}
+
+			case ObjectType::WarpZone:
+			{
+				WarpZone& zone = stage.GetWarpZones()[index];
+				EditName(zone.name);
+				EditRect(zone.rect);
+				ImGui::DragFloat2("Destination", &zone.destination.x, 1.0f, 0.0f, 0.0f, "%.1f");
+				ImGui::SetItemTooltip("Feet position after the warp. Keep it outside every warp zone.");
+				SignalCombo(stage, "Disabled by", zone.disabledBySignal);
+				ImGui::SetItemTooltip("While this signal is ON, the warp does nothing.");
+				ImGui::TextWrapped("The player warps when the center of the body enters this area. The running speed is kept.");
+				break;
+			}
+
+			case ObjectType::Indicator:
+			{
+				Indicator& indicator = stage.GetIndicators()[index];
+				EditName(indicator.name);
+				EditRect(indicator.rect);
+				SignalCombo(stage, "Signal", indicator.signal);
+				ImGui::Text("On: %s", indicator.isOn ? "YES" : "no");
+				ImGui::TextDisabled("(none) = a dummy lamp that never lights.");
+				break;
+			}
+
+			case ObjectType::Goal:
+			{
+				Goal& goal = stage.GetGoals()[index];
+				EditName(goal.name);
+				EditRect(goal.rect);
+				break;
+			}
 			}
 
 			ImGui::PopID();
@@ -861,6 +941,32 @@ namespace app
 				drawList->AddCircleFilled(WorldToScreen(checkpoint.GetSpawnPosition()), 4.0f, EDITOR_COLOR_CHECKPOINT);
 				drawLabel({ checkpoint.rect.min.x, checkpoint.rect.max.y }, checkpoint.name);
 			}
+			// ワープ（行き先まで線を引く）
+			for (size_t i = 0; i < stage.GetWarpZones().size(); ++i)
+			{
+				const WarpZone& zone = stage.GetWarpZones()[i];
+				const bool isSelectedZone = isSelected(ObjectType::WarpZone, i);
+				drawRect(zone.rect, EDITOR_COLOR_WARP_FILL, isSelectedZone ? EDITOR_COLOR_SELECTED : EDITOR_COLOR_WARP);
+				const math::Vec2 center = (zone.rect.min + zone.rect.max) * 0.5f;
+				drawList->AddLine(WorldToScreen(center), WorldToScreen(zone.destination), isSelectedZone ? EDITOR_COLOR_SELECTED : EDITOR_COLOR_WARP, isSelectedZone ? 2.0f : 1.0f);
+				drawList->AddCircleFilled(WorldToScreen(zone.destination), 4.0f, EDITOR_COLOR_WARP);
+				drawLabel({ zone.rect.min.x, zone.rect.max.y }, zone.name);
+			}
+			// 合図のランプ
+			for (size_t i = 0; i < stage.GetIndicators().size(); ++i)
+			{
+				const Indicator& indicator = stage.GetIndicators()[i];
+				drawRect(indicator.rect, indicator.isOn ? EDITOR_COLOR_INDICATOR_ON : EDITOR_COLOR_INDICATOR_OFF,
+					isSelected(ObjectType::Indicator, i) ? EDITOR_COLOR_SELECTED : 0);
+				drawLabel({ indicator.rect.min.x, indicator.rect.max.y }, indicator.name + (indicator.signal.empty() ? "" : " <- " + indicator.signal));
+			}
+			// ゴール
+			for (size_t i = 0; i < stage.GetGoals().size(); ++i)
+			{
+				const Goal& goal = stage.GetGoals()[i];
+				drawRect(goal.rect, 0, isSelected(ObjectType::Goal, i) ? EDITOR_COLOR_SELECTED : EDITOR_COLOR_GOAL);
+				drawLabel({ goal.rect.min.x, goal.rect.max.y }, goal.name);
+			}
 			// 受光器
 			for (size_t i = 0; i < stage.GetLightReceivers().size(); ++i)
 			{
@@ -1013,6 +1119,18 @@ namespace app
 				stage.AddCheckpoint(MakeUniqueName(stage, "Checkpoint").c_str(), x, y, 80.0f, 200.0f);
 				m_selection = { type, static_cast<int>(stage.GetCheckpoints().size()) - 1 };
 				break;
+			case ObjectType::WarpZone:
+				stage.AddWarpZone(MakeUniqueName(stage, "Warp").c_str(), x, y, 150.0f, 200.0f, x - 300.0f, y);
+				m_selection = { type, static_cast<int>(stage.GetWarpZones().size()) - 1 };
+				break;
+			case ObjectType::Indicator:
+				stage.AddIndicator(MakeUniqueName(stage, "Lamp").c_str(), x, y, 40.0f, 30.0f, "");
+				m_selection = { type, static_cast<int>(stage.GetIndicators().size()) - 1 };
+				break;
+			case ObjectType::Goal:
+				stage.AddGoal(MakeUniqueName(stage, "Goal").c_str(), x, y, 150.0f, 250.0f);
+				m_selection = { type, static_cast<int>(stage.GetGoals().size()) - 1 };
+				break;
 			default:
 				break;
 			}
@@ -1114,6 +1232,33 @@ namespace app
 				m_selection.index = static_cast<int>(stage.GetCheckpoints().size()) - 1;
 				break;
 			}
+			case ObjectType::WarpZone:
+			{
+				WarpZone copy = stage.GetWarpZones()[i];
+				copy.name = MakeUniqueName(stage, "Warp");
+				copy.rect.min.y += DUPLICATE_OFFSET; copy.rect.max.y += DUPLICATE_OFFSET;
+				stage.GetWarpZones().push_back(copy);
+				m_selection.index = static_cast<int>(stage.GetWarpZones().size()) - 1;
+				break;
+			}
+			case ObjectType::Indicator:
+			{
+				Indicator copy = stage.GetIndicators()[i];
+				copy.name = MakeUniqueName(stage, "Lamp");
+				copy.rect.min.y += DUPLICATE_OFFSET; copy.rect.max.y += DUPLICATE_OFFSET;
+				stage.GetIndicators().push_back(copy);
+				m_selection.index = static_cast<int>(stage.GetIndicators().size()) - 1;
+				break;
+			}
+			case ObjectType::Goal:
+			{
+				Goal copy = stage.GetGoals()[i];
+				copy.name = MakeUniqueName(stage, "Goal");
+				copy.rect.min.x += DUPLICATE_OFFSET; copy.rect.max.x += DUPLICATE_OFFSET;
+				stage.GetGoals().push_back(copy);
+				m_selection.index = static_cast<int>(stage.GetGoals().size()) - 1;
+				break;
+			}
 			default:
 				break;
 			}
@@ -1133,6 +1278,9 @@ namespace app
 			case ObjectType::MistEmitter:		stage.GetMistEmitters().erase(stage.GetMistEmitters().begin() + i); break;
 			case ObjectType::MirrorPlatform:	stage.GetMirrorPlatforms().erase(stage.GetMirrorPlatforms().begin() + i); break;
 			case ObjectType::Checkpoint:		stage.GetCheckpoints().erase(stage.GetCheckpoints().begin() + i); break;
+			case ObjectType::WarpZone:		stage.GetWarpZones().erase(stage.GetWarpZones().begin() + i); break;
+			case ObjectType::Indicator:		stage.GetIndicators().erase(stage.GetIndicators().begin() + i); break;
+			case ObjectType::Goal:			stage.GetGoals().erase(stage.GetGoals().begin() + i); break;
 			case ObjectType::LightReceiver:
 			{
 				// 扉と霧のつながりからも外す
@@ -1173,6 +1321,9 @@ namespace app
 			case ObjectType::MistEmitter:	return i >= 0 && i < static_cast<int>(stage.GetMistEmitters().size());
 			case ObjectType::MirrorPlatform:return i >= 0 && i < static_cast<int>(stage.GetMirrorPlatforms().size());
 			case ObjectType::Checkpoint:	return i >= 0 && i < static_cast<int>(stage.GetCheckpoints().size());
+			case ObjectType::WarpZone:		return i >= 0 && i < static_cast<int>(stage.GetWarpZones().size());
+			case ObjectType::Indicator:		return i >= 0 && i < static_cast<int>(stage.GetIndicators().size());
+			case ObjectType::Goal:			return i >= 0 && i < static_cast<int>(stage.GetGoals().size());
 			}
 			return false;
 		}
@@ -1206,6 +1357,10 @@ namespace app
 				rect.max.y += pickDistance;
 				if (Contains(rect, worldPos)) { return { ObjectType::FloorSwitch, static_cast<int>(i) }; }
 			}
+			for (size_t i = 0; i < stage.GetIndicators().size(); ++i)
+			{
+				if (Contains(stage.GetIndicators()[i].rect, worldPos)) { return { ObjectType::Indicator, static_cast<int>(i) }; }
+			}
 			for (size_t i = 0; i < stage.GetLightReceivers().size(); ++i)
 			{
 				if (Contains(stage.GetLightReceivers()[i].rect, worldPos)) { return { ObjectType::LightReceiver, static_cast<int>(i) }; }
@@ -1225,6 +1380,14 @@ namespace app
 			for (size_t i = 0; i < stage.GetCheckpoints().size(); ++i)
 			{
 				if (Contains(stage.GetCheckpoints()[i].rect, worldPos)) { return { ObjectType::Checkpoint, static_cast<int>(i) }; }
+			}
+			for (size_t i = 0; i < stage.GetWarpZones().size(); ++i)
+			{
+				if (Contains(stage.GetWarpZones()[i].rect, worldPos)) { return { ObjectType::WarpZone, static_cast<int>(i) }; }
+			}
+			for (size_t i = 0; i < stage.GetGoals().size(); ++i)
+			{
+				if (Contains(stage.GetGoals()[i].rect, worldPos)) { return { ObjectType::Goal, static_cast<int>(i) }; }
 			}
 			// 部屋全体を覆う物（霧の範囲・奥の鏡）は、枠線の近くをクリックしたときだけ選ぶ
 			auto isOnFrame = [&](const math::Rect& frame)
@@ -1269,6 +1432,9 @@ namespace app
 			case ObjectType::MistEmitter:	return stage.GetMistEmitters()[i].area.min;
 			case ObjectType::MirrorPlatform:return stage.GetMirrorPlatforms()[i].rect.min;
 			case ObjectType::Checkpoint:	return stage.GetCheckpoints()[i].rect.min;
+			case ObjectType::WarpZone:		return stage.GetWarpZones()[i].rect.min;
+			case ObjectType::Indicator:		return stage.GetIndicators()[i].rect.min;
+			case ObjectType::Goal:			return stage.GetGoals()[i].rect.min;
 			default:						return math::Vec2::Zero();
 			}
 		}
@@ -1307,6 +1473,9 @@ namespace app
 			case ObjectType::MistEmitter:	moveRect(stage.GetMistEmitters()[i].area); break;
 			case ObjectType::MirrorPlatform:moveRect(stage.GetMirrorPlatforms()[i].rect); break;
 			case ObjectType::Checkpoint:	moveRect(stage.GetCheckpoints()[i].rect); break;
+			case ObjectType::WarpZone:		moveRect(stage.GetWarpZones()[i].rect); break;
+			case ObjectType::Indicator:		moveRect(stage.GetIndicators()[i].rect); break;
+			case ObjectType::Goal:			moveRect(stage.GetGoals()[i].rect); break;
 			default: break;
 			}
 		}
@@ -1326,6 +1495,9 @@ namespace app
 				for (const auto& o : stage.GetMistEmitters()) { if (o.name == name) return true; }
 				for (const auto& o : stage.GetMirrorPlatforms()) { if (o.name == name) return true; }
 				for (const auto& o : stage.GetCheckpoints()) { if (o.name == name) return true; }
+				for (const auto& o : stage.GetWarpZones()) { if (o.name == name) return true; }
+				for (const auto& o : stage.GetIndicators()) { if (o.name == name) return true; }
+				for (const auto& o : stage.GetGoals()) { if (o.name == name) return true; }
 				return false;
 			};
 			for (int n = 1; ; ++n)
@@ -1352,6 +1524,14 @@ namespace app
 			{
 				if (mist.triggerSignal == oldName) { mist.triggerSignal = newName; }
 			}
+			for (Indicator& indicator : stage.GetIndicators())
+			{
+				if (indicator.signal == oldName) { indicator.signal = newName; }
+			}
+			for (WarpZone& zone : stage.GetWarpZones())
+			{
+				if (zone.disabledBySignal == oldName) { zone.disabledBySignal = newName; }
+			}
 		}
 
 
@@ -1374,6 +1554,32 @@ namespace app
 			for (MistEmitter& mist : stage.GetMistEmitters())
 			{
 				if (mist.triggerSignal == name) { mist.triggerSignal.clear(); }
+			}
+			for (Indicator& indicator : stage.GetIndicators())
+			{
+				if (indicator.signal == name) { indicator.signal.clear(); }
+			}
+			for (WarpZone& zone : stage.GetWarpZones())
+			{
+				if (zone.disabledBySignal == name) { zone.disabledBySignal.clear(); }
+			}
+		}
+
+
+		void StageEditor::SignalCombo(const Stage& stage, const char* label, std::string& signal)
+		{
+			if (ImGui::BeginCombo(label, signal.empty() ? "(none)" : signal.c_str()))
+			{
+				if (ImGui::Selectable("(none)", signal.empty())) { signal.clear(); }
+				for (const LightReceiver& receiver : stage.GetLightReceivers())
+				{
+					if (ImGui::Selectable(receiver.name.c_str(), signal == receiver.name)) { signal = receiver.name; }
+				}
+				for (const FloorSwitch& floorSwitch : stage.GetFloorSwitches())
+				{
+					if (ImGui::Selectable(floorSwitch.name.c_str(), signal == floorSwitch.name)) { signal = floorSwitch.name; }
+				}
+				ImGui::EndCombo();
 			}
 		}
 

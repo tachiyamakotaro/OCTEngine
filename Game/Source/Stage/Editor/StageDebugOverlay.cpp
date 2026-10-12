@@ -42,6 +42,10 @@ namespace app
 			const ImU32 OVERLAY_COLOR_MIRROR_PLATFORM_LINE = IM_COL32(200, 225, 245, 230);
 			const ImU32 OVERLAY_COLOR_MIRROR_PLATFORM_HIDDEN = IM_COL32(200, 225, 245, 90);
 			const ImU32 OVERLAY_COLOR_CHECKPOINT = IM_COL32(110, 230, 120, 120);
+			const ImU32 OVERLAY_COLOR_WARP = IM_COL32(170, 120, 255, 200);
+			const ImU32 OVERLAY_COLOR_INDICATOR_OFF = IM_COL32(90, 90, 100, 230);
+			const ImU32 OVERLAY_COLOR_INDICATOR_ON = IM_COL32(120, 255, 140, 255);
+			const ImU32 OVERLAY_COLOR_GOAL = IM_COL32(255, 200, 40, 230);
 
 			/** 鏡に映った側を描くときの濃さ（色の透明度にかける） */
 			constexpr float REFLECTION_ALPHA = 0.4f;
@@ -212,6 +216,23 @@ namespace app
 					for (const Checkpoint& checkpoint : stage.GetCheckpoints())
 					{
 						painter.DashedRect(checkpoint.rect, OVERLAY_COLOR_CHECKPOINT, 10.0f);
+					}
+
+					// ワープ（点線と、行き先への線）
+					for (const WarpZone& zone : stage.GetWarpZones())
+					{
+						painter.DashedRect(zone.rect, OVERLAY_COLOR_WARP, 10.0f);
+						painter.Line((zone.rect.min + zone.rect.max) * 0.5f, zone.destination, OVERLAY_COLOR_WARP, 1.0f);
+					}
+
+					// 合図のランプとゴール
+					for (const Indicator& indicator : stage.GetIndicators())
+					{
+						painter.Rect(indicator.rect, indicator.isOn ? OVERLAY_COLOR_INDICATOR_ON : OVERLAY_COLOR_INDICATOR_OFF, 0);
+					}
+					for (const Goal& goal : stage.GetGoals())
+					{
+						painter.Rect(goal.rect, 0, OVERLAY_COLOR_GOAL, 2.0f);
 					}
 				}
 

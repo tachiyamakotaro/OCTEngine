@@ -36,6 +36,11 @@ namespace nsK2EngineLow
 			m_shadowCasters.push_back(&model);
 		}
 
+		void AddRenderObject2D(Sprite& sprite)
+		{
+			m_sprites2D.push_back(&sprite);
+		}
+
 		float& GetScreenBlurPower()
 		{
 			return m_screenBlurPower;
@@ -78,6 +83,8 @@ namespace nsK2EngineLow
 
 		std::vector<Model*> m_models;
 		//std::unordered_set<Model*> m_shadowMapBoundModels; // SRVを設定済みのモデル
+
+		std::vector<Sprite*> m_sprites2D;	// 3Dの後に描く画像
 
 		Camera m_lightCamera;
 

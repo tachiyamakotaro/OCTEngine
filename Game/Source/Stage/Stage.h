@@ -53,6 +53,12 @@ namespace app
 			MirrorPlatform& AddMirrorPlatform(const char* name, float x, float y, float width, float height);
 			/** @brief チェックポイントを追加（x, y は左下。下端の真ん中から再開する） */
 			Checkpoint& AddCheckpoint(const char* name, float x, float y, float width, float height);
+			/** @brief ワープを追加（x, y は左下。体の中心が入ると destX, destY（足元）へ飛ぶ） */
+			WarpZone& AddWarpZone(const char* name, float x, float y, float width, float height, float destX, float destY);
+			/** @brief 合図のランプを追加（x, y は左下。signal がONで光る。空ならずっと消えたまま） */
+			Indicator& AddIndicator(const char* name, float x, float y, float width, float height, const char* signal);
+			/** @brief ゴールを追加（x, y は左下） */
+			Goal& AddGoal(const char* name, float x, float y, float width, float height);
 			/**
 			 * @brief 奥の鏡を設定
 			 * @param enabled 使うか
@@ -127,6 +133,16 @@ namespace app
 			inline const std::vector<Checkpoint>& GetCheckpoints() const { return m_checkpoints; }
 			/** @brief 体が触れているチェックポイント（なければ nullptr） */
 			const Checkpoint* FindCheckpoint(const math::Rect& body) const;
+			inline std::vector<WarpZone>& GetWarpZones() { return m_warpZones; }
+			inline const std::vector<WarpZone>& GetWarpZones() const { return m_warpZones; }
+			inline std::vector<Indicator>& GetIndicators() { return m_indicators; }
+			inline const std::vector<Indicator>& GetIndicators() const { return m_indicators; }
+			inline std::vector<Goal>& GetGoals() { return m_goals; }
+			inline const std::vector<Goal>& GetGoals() const { return m_goals; }
+			/** @brief 体の中心が入っている、今使えるワープ（なければ nullptr） */
+			const WarpZone* FindWarpZone(const math::Rect& body) const;
+			/** @brief 体が触れているゴール（なければ nullptr） */
+			const Goal* FindGoal(const math::Rect& body) const;
 
 
 		public:
@@ -171,6 +187,9 @@ namespace app
 			std::vector<MistEmitter> m_mistEmitters;
 			std::vector<MirrorPlatform> m_mirrorPlatforms;
 			std::vector<Checkpoint> m_checkpoints;
+			std::vector<WarpZone> m_warpZones;
+			std::vector<Indicator> m_indicators;
+			std::vector<Goal> m_goals;
 
 			/** 奥の鏡 */
 			BackMirror m_backMirror;

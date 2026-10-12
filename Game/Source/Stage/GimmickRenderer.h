@@ -1,6 +1,6 @@
 ﻿/**
  * @file GimmickRenderer.h
- * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場）をモデルで描く
+ * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・ゴール）をモデルで描く
  * @details ギミックの位置・大きさ・状態（扉の開き具合、受光器の点灯など）は毎フレーム Stage から読むので、
  *          エディタで動かしたり、遊んでいる最中に状態が変わったりしても、そのまま追従する。
  *          奥の鏡があるときは、鏡に映った像も一緒に描く。
@@ -51,6 +51,10 @@ namespace app
 				FloorSwitchOn,	//!< 床スイッチ（押された。低くつぶして描く）
 				MistVent,		//!< 霧の吹き出し口（天井に並べる）
 				MirrorPlatform,	//!< 鏡の足場（見えるようになってから描く）
+				IndicatorOff,	//!< 合図のランプ（消灯）
+				IndicatorOn,	//!< 合図のランプ（点灯）
+				WarpGate,		//!< ワープの暗がり（通路の奥。入ると暗がりに消えるように見せる）
+				Goal,			//!< ゴール
 				Num
 			};
 
@@ -74,6 +78,10 @@ namespace app
 					"Assets/modelData/gimmick/floor_switch_on.tkm",
 					"Assets/modelData/gimmick/mist_vent.tkm",
 					"Assets/modelData/gimmick/mirror_platform.tkm",
+					"Assets/modelData/gimmick/indicator_off.tkm",
+					"Assets/modelData/gimmick/indicator_on.tkm",
+					"Assets/modelData/gimmick/warp_gate.tkm",
+					"Assets/modelData/gimmick/goal.tkm",
 				};
 				/** モデルの上方向（仮モデルは Y-up） */
 				EnModelUpAxis upAxis = enModelUpAxisY;
@@ -89,6 +97,10 @@ namespace app
 				float floorSwitchDepth = 70.0f;
 				float mistVentDepth = 80.0f;
 				float mirrorPlatformDepth = 200.0f;
+				float indicatorDepth = 40.0f;
+				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
+				float warpGateDepth = 300.0f;
+				float goalDepth = 150.0f;
 				// ---- 大きさ ----
 				/** 光源の箱の一辺 */
 				float lightSourceSize = 30.0f;

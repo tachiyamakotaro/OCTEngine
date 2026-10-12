@@ -309,5 +309,51 @@ namespace app
 			/** 再開する位置（足元） */
 			math::Vec2 GetSpawnPosition() const { return { (rect.min.x + rect.max.x) * 0.5f, rect.min.y }; }
 		};
+
+
+		/**
+		 * @brief ワープ（体の中心が入ると、別の場所へ飛ばす）
+		 * @details マリオのお城のような「間違った道を進むと最初に戻される」仕掛けや、正解の道からゴールへ運ぶのに使う。
+		 *          飛んだあとも走る勢いはそのまま残る。
+		 *          disabledBySignal に信号の名前を入れると、その信号がONの間はワープしない（謎を解くと通れる道などに使う）。
+		 */
+		struct WarpZone
+		{
+			std::string name;
+			/** 範囲（体の中心がここに入るとワープ） */
+			math::Rect rect;
+			/** 飛ぶ先（足元） */
+			math::Vec2 destination;
+			/** この信号がONの間はワープしない（空ならいつでもワープする） */
+			std::string disabledBySignal;
+		};
+
+
+		/**
+		 * @brief 合図のランプ（信号がONになると光る。見た目だけ）
+		 * @details 光の謎を解くと正解の道のランプが光る、など。signal が空のランプはずっと消えたまま（ダミー）。
+		 */
+		struct Indicator
+		{
+			std::string name;
+			/** 範囲 */
+			math::Rect rect;
+			/** 光るきっかけの信号（受光器・スイッチの名前） */
+			std::string signal;
+
+			/** 【実行時】光っているか */
+			bool isOn = false;
+		};
+
+
+		/**
+		 * @brief ゴール（体が触れるとステージクリア）
+		 */
+		struct Goal
+		{
+			std::string name;
+			/** 範囲 */
+			math::Rect rect;
+		};
 	}
 }

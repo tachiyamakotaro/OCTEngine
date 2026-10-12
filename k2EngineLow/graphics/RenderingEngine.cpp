@@ -136,6 +136,7 @@ namespace nsK2EngineLow
 		{
 			model->Draw(rc);
 		}
+		EffectEngine::GetInstance()->Draw();
 		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 
 		if (m_isEnableBloom)
@@ -192,6 +193,15 @@ namespace nsK2EngineLow
 		//g_graphicsEngine->ChangeRenderTargetToFrameBuffer(rc);
 		//m_copyToFrameBufferSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
 		//m_copyToFrameBufferSprite.Draw(rc);
+
+				// 2D の画像は、3D の絵をフレームバッファに描き終えたあとに描く
+		for (auto sprite : m_sprites2D)
+		{
+			sprite->Draw(rc);
+		}
+		m_sprites2D.clear();
+
+		m_models.clear();
 
 		m_models.clear();
 	}

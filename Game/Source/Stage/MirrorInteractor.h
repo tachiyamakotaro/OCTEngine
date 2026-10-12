@@ -53,6 +53,18 @@ namespace app
 			 */
 			inline bool IsDragging() const { return m_isDragging; }
 			/**
+			 * @brief このフレームに鏡を回したか（音や演出のきっかけに使う）
+			 */
+			inline bool IsRotatedThisFrame() const { return m_isRotatedThisFrame; }
+			/**
+			 * @brief このフレームに鏡をつかんだか（引きずり始めた瞬間）
+			 */
+			inline bool IsGrabbedThisFrame() const { return m_isGrabbedThisFrame; }
+			/**
+			 * @brief このフレームに鏡を動かした距離（引きずって実際に動いた分。動かなければ 0）
+			 */
+			inline float GetMovedDistanceThisFrame() const { return m_movedDistanceThisFrame; }
+			/**
 			 * @brief 状態を最初に戻す
 			 */
 			void Reset();
@@ -74,6 +86,12 @@ namespace app
 			bool m_isDragging;
 			/** 引きずり始めたときの、鏡の中心とキャラクターのX座標の差 */
 			float m_dragOffsetX;
+			/** このフレームに回したか */
+			bool m_isRotatedThisFrame;
+			/** このフレームにつかんだか */
+			bool m_isGrabbedThisFrame;
+			/** このフレームに動かした距離 */
+			float m_movedDistanceThisFrame;
 		};
 	}
 }

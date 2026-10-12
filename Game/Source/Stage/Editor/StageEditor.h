@@ -78,6 +78,9 @@ namespace app
 				MistEmitter,
 				MirrorPlatform,
 				Checkpoint,
+				WarpZone,
+				Indicator,
+				Goal,
 			};
 			/** 選択中の物 */
 			struct Selection
@@ -114,6 +117,8 @@ namespace app
 			void RenameSignal(Stage& stage, const std::string& oldName, const std::string& newName);
 			/** 信号（受光器・スイッチ）を消したとき、扉と霧のつながりから外す */
 			void RemoveSignal(Stage& stage, const std::string& name);
+			/** 信号（受光器・スイッチ）を選ぶコンボボックス（空も選べる） */
+			void SignalCombo(const Stage& stage, const char* label, std::string& signal);
 			/** グリッドに吸着 */
 			float Snap(float value) const;
 

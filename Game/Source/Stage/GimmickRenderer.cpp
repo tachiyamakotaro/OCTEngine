@@ -147,6 +147,27 @@ namespace app
 				}
 			}
 
+			// 合図のランプ：信号がONなら点灯モデル
+			for (const Indicator& indicator : stage.GetIndicators())
+			{
+				PutRect(indicator.isOn ? ModelKind::IndicatorOn : ModelKind::IndicatorOff, indicator.rect, m_config.indicatorDepth);
+			}
+
+			// ワープの暗がり（信号で止まっているワープは描かない）
+			for (const WarpZone& zone : stage.GetWarpZones())
+			{
+				if (zone.disabledBySignal.empty() || !stage.IsSignalOn(zone.disabledBySignal))
+				{
+					PutRect(ModelKind::WarpGate, zone.rect, m_config.warpGateDepth);
+				}
+			}
+
+			// ゴール
+			for (const Goal& goal : stage.GetGoals())
+			{
+				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
+			}
+
 			// 奥の鏡の枠
 			if (backMirror.isEnabled)
 			{

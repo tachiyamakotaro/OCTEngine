@@ -113,6 +113,36 @@ namespace app
 		}
 
 
+		WarpZone& Stage::AddWarpZone(
+			const char* name, const float x, const float y, const float width, const float height, const float destX, const float destY)
+		{
+			WarpZone zone;
+			zone.name = name;
+			zone.rect = math::Rect::FromMinSize(x, y, width, height);
+			zone.destination = { destX, destY };
+			m_warpZones.push_back(zone);
+			return m_warpZones.back();
+		}
+
+
+		Indicator& Stage::AddIndicator(const char* name, const float x, const float y, const float width, const float height, const char* signal)
+		{
+			Indicator indicator;
+			indicator.name = name;
+			indicator.rect = math::Rect::FromMinSize(x, y, width, height);
+			indicator.signal = signal;
+			m_indicators.push_back(indicator);
+			return m_indicators.back();
+		}
+
+
+		Goal& Stage::AddGoal(const char* name, const float x, const float y, const float width, const float height)
+		{
+			m_goals.push_back({ name, math::Rect::FromMinSize(x, y, width, height) });
+			return m_goals.back();
+		}
+
+
 		void Stage::SetBackMirror(const bool enabled, const float planeZ, const float x, const float y, const float width, const float height)
 		{
 			m_backMirror.isEnabled = enabled;
@@ -133,6 +163,9 @@ namespace app
 			m_mistEmitters.clear();
 			m_mirrorPlatforms.clear();
 			m_checkpoints.clear();
+			m_warpZones.clear();
+			m_indicators.clear();
+			m_goals.clear();
 			m_lightResult.Clear();
 			m_backMirror = BackMirror();
 		}
@@ -170,6 +203,10 @@ namespace app
 				platform.isRevealedThisFrame = false;
 				platform.revealedTime = 0.0f;
 			}
+			for (Indicator& indicator : m_indicators)
+			{
+				indicator.isOn = false;
+			}
 			m_lightResult.Clear();
 		}
 
@@ -202,6 +239,12 @@ namespace app
 			// 5. 霧と鏡の足場
 			UpdateMistEmitters(deltaTime);
 			UpdateMirrorPlatforms(deltaTime);
+
+			// 6. 合図のランプ（信号が空ならずっと消えたまま）
+			for (Indicator& indicator : m_indicators)
+			{
+				indicator.isOn = !indicator.signal.empty() && IsSignalOn(indicator.signal);
+			}
 		}
 
 
@@ -403,6 +446,40 @@ namespace app
 				if (body.Overlaps(checkpoint.rect))
 				{
 					return &checkpoint;
+				}
+			}
+			return nullptr;
+		}
+
+
+		const WarpZone* Stage::FindWarpZone(const math::Rect& body) const
+		{
+			const math::Vec2 center = (body.min + body.max) * 0.5f;
+			for (const WarpZone& zone : m_warpZones)
+			{
+				const bool isInside = center.x > zone.rect.min.x && center.x < zone.rect.max.x
+					&& center.y > zone.rect.min.y && center.y < zone.rect.max.y;
+				if (!isInside)
+				{
+					continue;
+				}
+				if (!zone.disabledBySignal.empty() && IsSignalOn(zone.disabledBySignal))
+				{
+					continue;
+				}
+				return &zone;
+			}
+			return nullptr;
+		}
+
+
+		const Goal* Stage::FindGoal(const math::Rect& body) const
+		{
+			for (const Goal& goal : m_goals)
+			{
+				if (body.Overlaps(goal.rect))
+				{
+					return &goal;
 				}
 			}
 			return nullptr;

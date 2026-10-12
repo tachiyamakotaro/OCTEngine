@@ -23,6 +23,15 @@ namespace nsK2EngineLow
 			m_scale = scale;
 		}
 
+		void SetMulColor(const Vector4& mulColor)
+		{
+			m_sprite.SetMulColor(mulColor);
+		}
+		void SetPivot(const Vector2& pivot)
+		{
+			m_pivot = pivot;
+		}
+
 		void Update();
 
 		void Draw(RenderContext& rc);
@@ -34,6 +43,7 @@ namespace nsK2EngineLow
 		Vector3 m_position = Vector3::Zero;
 		Quaternion m_rotation = Quaternion::Identity;
 		Vector3 m_scale = Vector3::One;
+		Vector2 m_pivot = Sprite::DEFAULT_PIVOT;
 
 	};
 }

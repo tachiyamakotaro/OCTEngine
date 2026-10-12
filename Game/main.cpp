@@ -62,11 +62,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		g_engine->ExecuteRender();	// Render all game objects (IGameObject::Render).
 		RenderingEngine::GetInstance()->Execute(g_graphicsEngine->GetRenderContext());
 
-		ImGui::ShowDemoWindow();
 		ImGui::Render();
-		auto* cmdList = g_graphicsEngine->GetCommandList();
-		cmdList->SetDescriptorHeaps(1, &g_imguiSrvHeap);
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
+		if (Game::IsImGuiVisible())
+		{
+			auto* cmdList = g_graphicsEngine->GetCommandList();
+			cmdList->SetDescriptorHeaps(1, &g_imguiSrvHeap);
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), cmdList);
+		}
 
 		g_engine->EndFrame();		// End the frame: present the back buffer.
 	}
