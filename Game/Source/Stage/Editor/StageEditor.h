@@ -12,11 +12,11 @@
  *          ImGui に日本語フォントを読み込んでいないため、画面上の表示は英語にしている。
  */
 #pragma once
+#include "imgui.h"
+#include "Source/Core/Math/Vec2.h"
 #include <string>
 #include <utility>
 #include <vector>
-#include "Source/Core/Math/Vec2.h"
-#include "imgui.h"
 
 
 namespace app
@@ -82,6 +82,14 @@ namespace app
 				Indicator,
 				Goal,
 			};
+
+			enum class GizmoAxis
+			{
+				None,
+				X,
+				Y
+			};
+
 			/** 選択中の物 */
 			struct Selection
 			{
@@ -127,6 +135,9 @@ namespace app
 			/** 見取り図の画面座標 → ワールド座標 */
 			math::Vec2 ScreenToWorld(const ImVec2& screen) const;
 
+			GizmoAxis HitTestGizmo(const Stage& stage, const ImVec2& mousePos) const;
+			void DrawGizmo(ImDrawList* drawList, const Stage& stage, GizmoAxis hovered) const;
+
 
 		private:
 			/** 選択中の物 */
@@ -152,6 +163,7 @@ namespace app
 			math::Vec2 m_dragStartAnchor;
 			/** ドラッグ開始からのマウスの移動量（ワールド） */
 			math::Vec2 m_dragAccumulated;
+			GizmoAxis m_dragAxis;
 
 			/** 表示するキャラクター */
 			std::vector<std::pair<std::string, const actor::CharacterBase*>> m_characters;

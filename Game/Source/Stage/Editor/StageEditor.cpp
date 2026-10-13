@@ -3,13 +3,13 @@
  * @brief ImGui のステージエディタ
  */
 #include "stdafx.h"
+#include "Source/Actor/Character/CharacterBase.h"
+#include "Source/Stage/Stage.h"
 #include "StageEditor.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include "Source/Actor/Character/CharacterBase.h"
-#include "Source/Stage/Stage.h"
 
 
 namespace app
@@ -29,6 +29,13 @@ namespace app
 			constexpr float MAX_ZOOM = 4.0f;
 			/** 複製したときにずらす量 */
 			constexpr float DUPLICATE_OFFSET = 50.0f;
+			/** 矢印の長さと先端の大きさ（ピクセル） */
+			constexpr float GIZMO_LENGTH_PX = 60.0f;
+			constexpr float GIZMO_HEAD_PX = 10.0f;
+
+			const ImU32 EDITOR_COLOR_GIZMO_X = IM_COL32(235, 70, 70, 255);
+			const ImU32 EDITOR_COLOR_GIZMO_Y = IM_COL32(90, 220, 90, 255);
+			const ImU32 EDITOR_COLOR_GIZMO_HOT = IM_COL32(255, 230, 60, 255);
 
 			// 色（COLOR_BACKGROUND などは Windows のヘッダー(winuser.h)がマクロで使っているので、EDITOR_ を付けている）
 			const ImU32 EDITOR_COLOR_BACKGROUND = IM_COL32(28, 30, 36, 255);
@@ -504,24 +511,24 @@ namespace app
 
 			// 1種類ぶんの一覧を出す
 			auto drawList = [this](const ObjectType type, const int count, auto getName)
-			{
-				char header[64];
-				std::snprintf(header, sizeof(header), "%s (%d)###list%d", TypeLabel(static_cast<int>(type)), count, static_cast<int>(type));
-				if (ImGui::TreeNodeEx(header, ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					for (int i = 0; i < count; ++i)
+					char header[64];
+					std::snprintf(header, sizeof(header), "%s (%d)###list%d", TypeLabel(static_cast<int>(type)), count, static_cast<int>(type));
+					if (ImGui::TreeNodeEx(header, ImGuiTreeNodeFlags_DefaultOpen))
 					{
-						ImGui::PushID(i);
-						const bool isSelected = m_selection.type == type && m_selection.index == i;
-						if (ImGui::Selectable(getName(i), isSelected))
+						for (int i = 0; i < count; ++i)
 						{
-							m_selection = { type, i };
+							ImGui::PushID(i);
+							const bool isSelected = m_selection.type == type && m_selection.index == i;
+							if (ImGui::Selectable(getName(i), isSelected))
+							{
+								m_selection = { type, i };
+							}
+							ImGui::PopID();
 						}
-						ImGui::PopID();
+						ImGui::TreePop();
 					}
-					ImGui::TreePop();
-				}
-			};
+				};
 
 			if (ImGui::Selectable("Back Mirror", m_selection.type == ObjectType::BackMirror))
 			{
@@ -633,15 +640,15 @@ namespace app
 				ImGui::Text("Open: %.0f%%", door.openAmount * 100.0f);
 				ImGui::TextUnformatted("Required signals (receivers / switches):");
 				auto signalCheckbox = [&door](const std::string& name)
-				{
-					auto it = std::find(door.requiredReceivers.begin(), door.requiredReceivers.end(), name);
-					bool isRequired = it != door.requiredReceivers.end();
-					if (ImGui::Checkbox(name.c_str(), &isRequired))
 					{
-						if (isRequired) { door.requiredReceivers.push_back(name); }
-						else { door.requiredReceivers.erase(it); }
-					}
-				};
+						auto it = std::find(door.requiredReceivers.begin(), door.requiredReceivers.end(), name);
+						bool isRequired = it != door.requiredReceivers.end();
+						if (ImGui::Checkbox(name.c_str(), &isRequired))
+						{
+							if (isRequired) { door.requiredReceivers.push_back(name); }
+							else { door.requiredReceivers.erase(it); }
+						}
+					};
 				for (const LightReceiver& receiver : stage.GetLightReceivers()) { signalCheckbox(receiver.name); }
 				for (const FloorSwitch& floorSwitch : stage.GetFloorSwitches()) { signalCheckbox(floorSwitch.name); }
 				if (stage.GetLightReceivers().empty() && stage.GetFloorSwitches().empty())
@@ -791,6 +798,7 @@ namespace app
 			const bool isActive = ImGui::IsItemActive();
 			const ImGuiIO& io = ImGui::GetIO();
 			const math::Vec2 mouseWorld = ScreenToWorld(io.MousePos);
+			const GizmoAxis hoveredAxis = (isHovered && !m_isDraggingObject) ? HitTestGizmo(stage, io.MousePos) : GizmoAxis::None;
 
 			// ---- 入力 ----
 			// ホイールで拡大縮小（マウスの位置を中心に）
@@ -809,7 +817,17 @@ namespace app
 			// 左クリックで選択
 			if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
-				m_selection = HitTest(stage, mouseWorld);
+				if (hoveredAxis != GizmoAxis::None)
+				{
+					// 矢印をつかんだ：選択はそのまま、その軸だけ動かす
+					m_dragAxis = hoveredAxis;
+				}
+				else
+				{
+					// 本体をつかんだ：今まで通り自由に動かす
+					m_selection = HitTest(stage, mouseWorld);
+					m_dragAxis = GizmoAxis::None;
+				}
 				m_isDraggingObject = m_selection.type != ObjectType::None;
 				if (m_isDraggingObject)
 				{
@@ -824,16 +842,25 @@ namespace app
 				{
 					m_dragAccumulated.x += io.MouseDelta.x / m_zoom;
 					m_dragAccumulated.y -= io.MouseDelta.y / m_zoom;
-					math::Vec2 anchor = m_dragStartAnchor + m_dragAccumulated;
+
+					// つかんだ軸以外の移動を捨てる
+					math::Vec2 delta = m_dragAccumulated;
+					if (m_dragAxis == GizmoAxis::X) { delta.y = 0.0f; }
+					if (m_dragAxis == GizmoAxis::Y) { delta.x = 0.0f; }
+
+					math::Vec2 anchor = m_dragStartAnchor + delta;
 					if (m_isSnap)
 					{
-						anchor = { Snap(anchor.x), Snap(anchor.y) };
+						// 動かしている軸だけスナップする
+						if (m_dragAxis != GizmoAxis::Y) { anchor.x = Snap(anchor.x); }
+						if (m_dragAxis != GizmoAxis::X) { anchor.y = Snap(anchor.y); }
 					}
 					SetAnchor(stage, m_selection, anchor);
 				}
 				else
 				{
 					m_isDraggingObject = false;
+					m_dragAxis = GizmoAxis::None;
 				}
 			}
 
@@ -860,21 +887,21 @@ namespace app
 
 			// 矩形を描く
 			auto drawRect = [&](const math::Rect& rect, const ImU32 fillColor, const ImU32 outlineColor)
-			{
-				const ImVec2 a = WorldToScreen({ rect.min.x, rect.max.y });
-				const ImVec2 b = WorldToScreen({ rect.max.x, rect.min.y });
-				if (fillColor != 0) { drawList->AddRectFilled(a, b, fillColor); }
-				if (outlineColor != 0) { drawList->AddRect(a, b, outlineColor, 0.0f, 0, 2.0f); }
-			};
+				{
+					const ImVec2 a = WorldToScreen({ rect.min.x, rect.max.y });
+					const ImVec2 b = WorldToScreen({ rect.max.x, rect.min.y });
+					if (fillColor != 0) { drawList->AddRectFilled(a, b, fillColor); }
+					if (outlineColor != 0) { drawList->AddRect(a, b, outlineColor, 0.0f, 0, 2.0f); }
+				};
 			auto drawLabel = [&](const math::Vec2& world, const std::string& text)
-			{
-				const ImVec2 p = WorldToScreen(world);
-				drawList->AddText(ImVec2(p.x + 3.0f, p.y + 2.0f), EDITOR_COLOR_LABEL, text.c_str());
-			};
+				{
+					const ImVec2 p = WorldToScreen(world);
+					drawList->AddText(ImVec2(p.x + 3.0f, p.y + 2.0f), EDITOR_COLOR_LABEL, text.c_str());
+				};
 			auto isSelected = [&](const ObjectType type, const size_t i)
-			{
-				return m_selection.type == type && m_selection.index == static_cast<int>(i);
-			};
+				{
+					return m_selection.type == type && m_selection.index == static_cast<int>(i);
+				};
 
 			// 奥の鏡（部屋の奥の壁。いちばん後ろに描く）
 			const BackMirror& backMirror = stage.GetBackMirror();
@@ -1035,6 +1062,12 @@ namespace app
 				drawList->AddText(ImVec2(head.x, head.y - 16.0f), EDITOR_COLOR_CHARACTER, character.first.c_str());
 			}
 
+			// 選択中の物の移動矢印（いちばん上に描く）
+			if (m_selection.type != ObjectType::None)
+			{
+				DrawGizmo(drawList, stage, hoveredAxis);
+			}
+
 			// マウス位置の座標
 			if (isHovered)
 			{
@@ -1046,6 +1079,27 @@ namespace app
 			drawList->PopClipRect();
 		}
 
+		void StageEditor::DrawGizmo(ImDrawList* drawList, const Stage& stage, const GizmoAxis hovered) const
+		{
+			const ImVec2 o = WorldToScreen(GetAnchor(stage, m_selection));
+
+			auto drawArrow = [&](const ImVec2& dir, const ImU32 baseColor, const GizmoAxis axis)
+				{
+					// つかんでいる軸・マウスが乗っている軸を黄色にする
+					const bool isHot = m_isDraggingObject ? (m_dragAxis == axis) : (hovered == axis);
+					const ImU32 color = isHot ? EDITOR_COLOR_GIZMO_HOT : baseColor;
+
+					const ImVec2 end(o.x + dir.x * GIZMO_LENGTH_PX, o.y + dir.y * GIZMO_LENGTH_PX);
+					const ImVec2 tip(end.x + dir.x * GIZMO_HEAD_PX, end.y + dir.y * GIZMO_HEAD_PX);
+					const ImVec2 side(-dir.y * GIZMO_HEAD_PX * 0.5f, dir.x * GIZMO_HEAD_PX * 0.5f);
+					drawList->AddLine(o, end, color, 3.0f);
+					drawList->AddTriangleFilled(tip, ImVec2(end.x + side.x, end.y + side.y), ImVec2(end.x - side.x, end.y - side.y), color);
+				};
+
+			drawArrow(ImVec2(1.0f, 0.0f), EDITOR_COLOR_GIZMO_X, GizmoAxis::X);
+			drawArrow(ImVec2(0.0f, -1.0f), EDITOR_COLOR_GIZMO_Y, GizmoAxis::Y);
+			drawList->AddCircleFilled(o, 3.0f, EDITOR_COLOR_LABEL);
+		}
 
 		void StageEditor::DrawExportWindow()
 		{
@@ -1391,13 +1445,13 @@ namespace app
 			}
 			// 部屋全体を覆う物（霧の範囲・奥の鏡）は、枠線の近くをクリックしたときだけ選ぶ
 			auto isOnFrame = [&](const math::Rect& frame)
-			{
-				const bool isInsideOuter = worldPos.x >= frame.min.x - pickDistance && worldPos.x <= frame.max.x + pickDistance
-					&& worldPos.y >= frame.min.y - pickDistance && worldPos.y <= frame.max.y + pickDistance;
-				const bool isInsideInner = worldPos.x > frame.min.x + pickDistance && worldPos.x < frame.max.x - pickDistance
-					&& worldPos.y > frame.min.y + pickDistance && worldPos.y < frame.max.y - pickDistance;
-				return isInsideOuter && !isInsideInner;
-			};
+				{
+					const bool isInsideOuter = worldPos.x >= frame.min.x - pickDistance && worldPos.x <= frame.max.x + pickDistance
+						&& worldPos.y >= frame.min.y - pickDistance && worldPos.y <= frame.max.y + pickDistance;
+					const bool isInsideInner = worldPos.x > frame.min.x + pickDistance && worldPos.x < frame.max.x - pickDistance
+						&& worldPos.y > frame.min.y + pickDistance && worldPos.y < frame.max.y - pickDistance;
+					return isInsideOuter && !isInsideInner;
+				};
 			for (size_t i = 0; i < stage.GetMistEmitters().size(); ++i)
 			{
 				if (isOnFrame(stage.GetMistEmitters()[i].area)) { return { ObjectType::MistEmitter, static_cast<int>(i) }; }
@@ -1415,6 +1469,22 @@ namespace app
 			return Selection();
 		}
 
+		StageEditor::GizmoAxis StageEditor::HitTestGizmo(const Stage& stage, const ImVec2& mousePos) const
+		{
+			if (m_selection.type == ObjectType::None)
+			{
+				return GizmoAxis::None;
+			}
+			const ImVec2 o = WorldToScreen(GetAnchor(stage, m_selection));
+			const math::Vec2 mouse{ mousePos.x, mousePos.y };
+			const math::Vec2 origin{ o.x, o.y };
+			const math::Vec2 xEnd{ o.x + GIZMO_LENGTH_PX + GIZMO_HEAD_PX, o.y };
+			const math::Vec2 yEnd{ o.x, o.y - GIZMO_LENGTH_PX - GIZMO_HEAD_PX };	// 画面は下が+Yなので、上向きはマイナス
+
+			if (DistanceToSegment(mouse, origin, xEnd) <= PICK_DISTANCE_PX) { return GizmoAxis::X; }
+			if (DistanceToSegment(mouse, origin, yEnd) <= PICK_DISTANCE_PX) { return GizmoAxis::Y; }
+			return GizmoAxis::None;
+		}
 
 		math::Vec2 StageEditor::GetAnchor(const Stage& stage, const Selection& selection) const
 		{
@@ -1444,11 +1514,11 @@ namespace app
 		{
 			// 矩形は大きさを保ったまま左下を動かす
 			auto moveRect = [&anchor](math::Rect& rect)
-			{
-				const math::Vec2 size{ rect.Width(), rect.Height() };
-				rect.min = anchor;
-				rect.max = anchor + size;
-			};
+				{
+					const math::Vec2 size{ rect.Width(), rect.Height() };
+					rect.min = anchor;
+					rect.max = anchor + size;
+				};
 
 			const int i = selection.index;
 			switch (selection.type)
@@ -1484,22 +1554,22 @@ namespace app
 		std::string StageEditor::MakeUniqueName(const Stage& stage, const char* prefix) const
 		{
 			auto isUsed = [&stage](const std::string& name)
-			{
-				for (const auto& o : stage.GetBlocks()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetLightSources()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetLightMirrors()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetLightReceivers()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetDoors()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetLightPlatforms()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetFloorSwitches()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetMistEmitters()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetMirrorPlatforms()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetCheckpoints()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetWarpZones()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetIndicators()) { if (o.name == name) return true; }
-				for (const auto& o : stage.GetGoals()) { if (o.name == name) return true; }
-				return false;
-			};
+				{
+					for (const auto& o : stage.GetBlocks()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetLightSources()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetLightMirrors()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetLightReceivers()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetDoors()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetLightPlatforms()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetFloorSwitches()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetMistEmitters()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetMirrorPlatforms()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetCheckpoints()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetWarpZones()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetIndicators()) { if (o.name == name) return true; }
+					for (const auto& o : stage.GetGoals()) { if (o.name == name) return true; }
+					return false;
+				};
 			for (int n = 1; ; ++n)
 			{
 				const std::string name = std::string(prefix) + std::to_string(n);
@@ -1623,6 +1693,7 @@ namespace app
 			, m_isDraggingObject(false)
 			, m_dragStartAnchor()
 			, m_dragAccumulated()
+			, m_dragAxis(GizmoAxis::None)
 			, m_exportText()
 			, m_isShowExport(false)
 			, m_functionName("BuildStage01")
