@@ -14,6 +14,7 @@
 #pragma once
 #include "imgui.h"
 #include "Source/Core/Math/Vec2.h"
+#include "Source/Stage/Stage.h"
 #include <string>
 #include <utility>
 #include <vector>
@@ -97,6 +98,26 @@ namespace app
 				int index = -1;
 			};
 
+			/** Undo/Redo 用に保存するステージの中身 */
+			struct Snapshot
+			{
+				std::string name;
+				BackMirror backMirror;
+				std::vector<StageBlock> blocks;
+				std::vector<LightSource> lightSources;
+				std::vector<LightMirror> lightMirrors;
+				std::vector<LightReceiver> lightReceivers;
+				std::vector<Door> doors;
+				std::vector<LightPlatform> lightPlatforms;
+				std::vector<FloorSwitch> floorSwitches;
+				std::vector<MistEmitter> mistEmitters;
+				std::vector<MirrorPlatform> mirrorPlatforms;
+				std::vector<Checkpoint> checkpoints;
+				std::vector<WarpZone> warpZones;
+				std::vector<Indicator> indicators;
+				std::vector<Goal> goals;
+			};
+
 
 		private:
 			void DrawToolbar(Stage& stage);
@@ -139,6 +160,16 @@ namespace app
 			void DrawGizmo(ImDrawList* drawList, const Stage& stage, GizmoAxis hovered) const;
 
 
+			/** 今のステージを保存する／保存した状態に戻す */
+			Snapshot CaptureSnapshot(const Stage& stage) const;
+			void RestoreSnapshot(Stage& stage, const Snapshot& snapshot);
+			/** 変更があったら履歴に積む（毎フレーム） */
+			void UpdateHistory(const Stage& stage);
+			void Undo(Stage& stage);
+			void Redo(Stage& stage);
+			/** Ctrl+Z / Ctrl+Y */
+			void HandleShortcuts(Stage& stage);
+
 		private:
 			/** 選択中の物 */
 			Selection m_selection;
@@ -174,6 +205,15 @@ namespace app
 			bool m_isShowExport;
 			/** 出力する関数名 */
 			char m_functionName[64];
+
+			/** 元に戻す／やり直す履歴 */
+			std::vector<Snapshot> m_undoStack;
+			std::vector<Snapshot> m_redoStack;
+			/** 最後に落ち着いた（操作が終わった）状態と、その比較用コード */
+			Snapshot m_stableSnapshot;
+			std::string m_stableCode;
+			/** 最初の状態を保存したか */
+			bool m_isHistoryReady = false;
 		};
 	}
 }

@@ -32,6 +32,8 @@ namespace app
 			/** 矢印の長さと先端の大きさ（ピクセル） */
 			constexpr float GIZMO_LENGTH_PX = 60.0f;
 			constexpr float GIZMO_HEAD_PX = 10.0f;
+			/** 覚えておく履歴の数 */
+			constexpr size_t MAX_HISTORY = 100;
 
 			const ImU32 EDITOR_COLOR_GIZMO_X = IM_COL32(235, 70, 70, 255);
 			const ImU32 EDITOR_COLOR_GIZMO_Y = IM_COL32(90, 220, 90, 255);
@@ -195,9 +197,12 @@ namespace app
 				m_selection = Selection();
 			}
 
+			UpdateHistory(stage);
+
 			ImGui::SetNextWindowSize(ImVec2(1200.0f, 680.0f), ImGuiCond_FirstUseEver);
 			if (ImGui::Begin("Stage Editor", &isOpen))
 			{
+				HandleShortcuts(stage);
 				DrawToolbar(stage);
 
 				ImGui::BeginChild("##StageEditorLeft", ImVec2(LEFT_PANE_WIDTH, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
@@ -456,6 +461,13 @@ namespace app
 			ImGui::SameLine();
 			ImGui::Checkbox("Back Mirror", &m_isShowBackMirror);
 			ImGui::SameLine();
+			ImGui::BeginDisabled(m_undoStack.empty());
+			if (ImGui::Button("Undo")) { Undo(stage); }
+			ImGui::EndDisabled();
+			ImGui::SameLine();
+			ImGui::BeginDisabled(m_redoStack.empty());
+			if (ImGui::Button("Redo")) { Redo(stage); }
+			ImGui::EndDisabled();
 			if (ImGui::Button("Fit View"))
 			{
 				// 全ての地形が見えるように（縦に長いステージでも収まるよう、幅と高さの両方で合わせる）
@@ -1650,6 +1662,147 @@ namespace app
 					if (ImGui::Selectable(floorSwitch.name.c_str(), signal == floorSwitch.name)) { signal = floorSwitch.name; }
 				}
 				ImGui::EndCombo();
+			}
+		}
+
+		StageEditor::Snapshot StageEditor::CaptureSnapshot(const Stage& stage) const
+		{
+			Snapshot s;
+			s.name = stage.GetName();
+			s.backMirror = stage.GetBackMirror();
+			s.blocks = stage.GetBlocks();
+			s.lightSources = stage.GetLightSources();
+			s.lightMirrors = stage.GetLightMirrors();
+			s.lightReceivers = stage.GetLightReceivers();
+			s.doors = stage.GetDoors();
+			s.lightPlatforms = stage.GetLightPlatforms();
+			s.floorSwitches = stage.GetFloorSwitches();
+			s.mistEmitters = stage.GetMistEmitters();
+			s.mirrorPlatforms = stage.GetMirrorPlatforms();
+			s.checkpoints = stage.GetCheckpoints();
+			s.warpZones = stage.GetWarpZones();
+			s.indicators = stage.GetIndicators();
+			s.goals = stage.GetGoals();
+			return s;
+		}
+
+
+		void StageEditor::RestoreSnapshot(Stage& stage, const Snapshot& s)
+		{
+			stage.SetName(s.name.c_str());
+			stage.GetBackMirror() = s.backMirror;
+			stage.GetBlocks() = s.blocks;
+			stage.GetLightSources() = s.lightSources;
+			stage.GetLightMirrors() = s.lightMirrors;
+			stage.GetLightReceivers() = s.lightReceivers;
+			stage.GetDoors() = s.doors;
+			stage.GetLightPlatforms() = s.lightPlatforms;
+			stage.GetFloorSwitches() = s.floorSwitches;
+			stage.GetMistEmitters() = s.mistEmitters;
+			stage.GetMirrorPlatforms() = s.mirrorPlatforms;
+			stage.GetCheckpoints() = s.checkpoints;
+			stage.GetWarpZones() = s.warpZones;
+			stage.GetIndicators() = s.indicators;
+			stage.GetGoals() = s.goals;
+
+			// 消えた物を選んでいたら選択を外す
+			if (!IsSelectionValid(stage))
+			{
+				m_selection = Selection();
+			}
+			m_isDraggingObject = false;
+			m_dragAxis = GizmoAxis::None;
+		}
+
+
+		void StageEditor::UpdateHistory(const Stage& stage)
+		{
+			// ドラッグ中・入力中は、操作が終わるまで待つ（1回のドラッグを1回の履歴にする）
+			if (ImGui::IsAnyItemActive() || m_isDraggingObject)
+			{
+				return;
+			}
+
+			const std::string code = GenerateCppCode(stage, "Snapshot");
+			if (!m_isHistoryReady)
+			{
+				// 最初のフレーム：今の状態を基準にする
+				m_stableSnapshot = CaptureSnapshot(stage);
+				m_stableCode = code;
+				m_isHistoryReady = true;
+				return;
+			}
+			if (code == m_stableCode)
+			{
+				return;
+			}
+
+			// 変わっていたら、変わる前の状態を Undo に積む
+			m_undoStack.push_back(m_stableSnapshot);
+			if (m_undoStack.size() > MAX_HISTORY)
+			{
+				m_undoStack.erase(m_undoStack.begin());
+			}
+			m_redoStack.clear();	// 新しい操作をしたら、やり直しの履歴は捨てる
+
+			m_stableSnapshot = CaptureSnapshot(stage);
+			m_stableCode = code;
+		}
+
+
+		void StageEditor::Undo(Stage& stage)
+		{
+			if (m_undoStack.empty())
+			{
+				return;
+			}
+			m_redoStack.push_back(CaptureSnapshot(stage));
+			RestoreSnapshot(stage, m_undoStack.back());
+			m_undoStack.pop_back();
+
+			// 戻した状態を新しい基準にする（これを「変更」と判定しないため）
+			m_stableSnapshot = CaptureSnapshot(stage);
+			m_stableCode = GenerateCppCode(stage, "Snapshot");
+		}
+
+
+		void StageEditor::Redo(Stage& stage)
+		{
+			if (m_redoStack.empty())
+			{
+				return;
+			}
+			m_undoStack.push_back(CaptureSnapshot(stage));
+			RestoreSnapshot(stage, m_redoStack.back());
+			m_redoStack.pop_back();
+
+			m_stableSnapshot = CaptureSnapshot(stage);
+			m_stableCode = GenerateCppCode(stage, "Snapshot");
+		}
+
+
+		void StageEditor::HandleShortcuts(Stage& stage)
+		{
+			// エディタのウィンドウを触っているときだけ（ゲーム側のキー入力とぶつけないため）
+			if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+			{
+				return;
+			}
+			// 文字入力中（Name 欄など）は、入力欄自身の Undo に任せる
+			const ImGuiIO& io = ImGui::GetIO();
+			if (io.WantTextInput || ImGui::IsAnyItemActive())
+			{
+				return;
+			}
+
+			if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z))
+			{
+				if (io.KeyShift) { Redo(stage); }	// Ctrl+Shift+Z でもやり直せるように
+				else { Undo(stage); }
+			}
+			else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Y))
+			{
+				Redo(stage);
 			}
 		}
 
