@@ -8,6 +8,9 @@
  *
  *          ポーズ：CanPause() が true のシーン（インゲーム）で -（Select）ボタンを押すとポーズする。
  *          ポーズ中はシーンの Update を呼ばず（PauseUpdate だけ）、エフェクトも止める。ポーズ画面は ui::PauseMenu。
+ *
+ *          ゲームを終わる：シーンが RequestQuit で true を返すと、画面を暗くしてからゲームを終わる（StartQuit）。
+ *          BGM のフェードアウトは、シーンを切り替えるときと同じく呼んだ側でする。
  */
 #pragma once
 #include <cstdint>
@@ -70,6 +73,7 @@ namespace app
 			FadingOut,		//!< 暗くしている
 			LoadingScene,	//!< 真っ暗な間に次のシーンを作って、読み込みが終わるのを待つ
 			FadingIn,		//!< 明るくしている（次のシーンはもう動いている）
+			Quitting,		//!< ゲームを終わるために暗くしている（暗くなりきったら終わる）
 		};
 
 
@@ -93,6 +97,8 @@ namespace app
 		void SetPause(bool isPause);
 		/** 次のシーンへの切り替えを始める */
 		void StartTransition(uint32_t nextSceneId, float fadeDuration);
+		/** 画面を暗くしてからゲームを終わる（ポーズ画面に「ゲームを終わる」を足すときもこれを呼ぶ） */
+		void StartQuit(float fadeDuration);
 
 
 	private:
@@ -108,6 +114,8 @@ namespace app
 		float m_fadeDuration = 0.0f;
 		/** ポーズ中か */
 		bool m_isPause = false;
+		/** ゲームを終わる知らせ（WM_QUIT）をもう出したか */
+		bool m_isQuitPosted = false;
 		/** ポーズ画面 */
 		ui::PauseMenu m_pauseMenu;
 

@@ -2,7 +2,7 @@
  * @file Game.h
  * @brief ゲーム本体（シーンの管理を動かすだけ）
  * @details 中身はシーンに分けている。
- *          ・TitleScene  … タイトル（A でインゲームへ）
+ *          ・TitleScene  … タイトル（START でインゲームへ、SOUND で音量の設定、QUIT でゲームを終わる）
  *          ・DebugScene  … インゲーム（ステージ・プレイヤー・エディタ・デバッグウィンドウ。ゴールでリザルトへ）
  *          ・ResultScene … クリア画面（A でタイトルへ）
  */

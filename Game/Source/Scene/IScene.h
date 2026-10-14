@@ -64,6 +64,12 @@ namespace app
 		 * @return 移りたいなら true
 		 */
 		virtual bool RequestScene(uint32_t& id, float& fadeTime) = 0;
+		/**
+		 * @brief ゲームを終わりたいか（タイトルの QUIT など）
+		 * @param fadeTime 画面を暗くする時間（秒。暗くなりきったらゲームを終わる）
+		 * @return 終わりたいなら true
+		 */
+		virtual bool RequestQuit(float& fadeTime) { (void)fadeTime; return false; }
 		/** ポーズできるシーンか（インゲームだけ true にする） */
 		virtual bool CanPause() const { return false; }
 		/** 読み込みが終わったか（時間のかかる読み込みを分けて行うシーン用。ふつうは true のまま） */

@@ -3,12 +3,12 @@
  * @brief シーンの管理
  */
 #include "stdafx.h"
-#include "SceneManager.h"
 #include "DebugScene.h"
 #include "ResultScene.h"
-#include "TitleScene.h"
+#include "SceneManager.h"
 #include "Source/Core/Fade.h"
 #include "Source/Sound/SoundManager.h"
+#include "TitleScene.h"
 
 
 namespace app
@@ -20,6 +20,7 @@ namespace app
 	{
 		/** ポーズ画面からタイトルへ戻るときのフェードの時間 */
 		constexpr float PAUSE_TO_TITLE_FADE_TIME = 1.0f;
+		constexpr float PAUSE_TO_QUIT_FADE_TIME = 0.8f;
 	}
 
 
@@ -66,6 +67,12 @@ namespace app
 					SoundManager::Get().FadeOutBGM(PAUSE_TO_TITLE_FADE_TIME);
 					StartTransition(TitleScene::ID(), PAUSE_TO_TITLE_FADE_TIME);
 				}
+				else if (result == ui::PauseMenu::Result::QuitGame)
+				{
+					// ポーズ画面を出したまま暗くして、ゲームを終わる
+					SoundManager::Get().FadeOutBGM(PAUSE_TO_QUIT_FADE_TIME);
+					StartQuit(PAUSE_TO_QUIT_FADE_TIME);
+				}
 				break;
 			}
 			// ---- -（Select）ボタンでポーズ ----
@@ -84,6 +91,11 @@ namespace app
 				if (m_currentScene->RequestScene(nextSceneId, fadeDuration))
 				{
 					StartTransition(nextSceneId, fadeDuration);
+				}
+				// ゲームを終わりたいか
+				else if (m_currentScene->RequestQuit(fadeDuration))
+				{
+					StartQuit(fadeDuration);
 				}
 			}
 			break;
@@ -130,6 +142,20 @@ namespace app
 			{
 				m_fadeDuration = 0.0f;
 				m_transitionState = TransitionState::Idle;
+			}
+			break;
+
+		case TransitionState::Quitting:
+			// 暗くしている間は操作を受け付けない（演出だけ動かす）
+			if (m_currentScene)
+			{
+				m_currentScene->PauseUpdate();
+			}
+			// 真っ暗になったら終わる（WM_QUIT を出すと main.cpp のゲームループが抜けて FinalizeGame が呼ばれる）
+			if (!m_isQuitPosted && core::Fade::Get().IsFadeOutComplete())
+			{
+				PostQuitMessage(0);
+				m_isQuitPosted = true;
 			}
 			break;
 		}
@@ -189,5 +215,14 @@ namespace app
 		m_fadeDuration = fadeDuration;
 		core::Fade::Get().FadeOut(fadeDuration);
 		m_transitionState = TransitionState::FadingOut;
+	}
+
+
+	void SceneManager::StartQuit(const float fadeDuration)
+	{
+		m_nextSceneId = INVALID_SCENE_ID;
+		m_fadeDuration = fadeDuration;
+		core::Fade::Get().FadeOut(fadeDuration);
+		m_transitionState = TransitionState::Quitting;
 	}
 }
