@@ -1,13 +1,16 @@
 ﻿/**
  * @file LightTracer.h
  * @brief 光の経路を計算する（レイを飛ばして鏡で反射させる）
- * @details 光源からまっすぐレイを飛ばし、一番近くで当たった物で処理を分ける。
- *          ・反射鏡（表）… 反射して続ける
- *          ・反射鏡（裏）/ ブロック / 閉じた扉 … 止まる
- *          ・受光器 … 止まって、その受光器を点灯させる
- *          ・光の足場 … 止まらずに通り抜け、その足場を点灯させる
+ * @details 光を出すギミック（GetEmittedRay）からまっすぐレイを飛ばし、
+ *          全ギミックの IntersectLight で一番近くに当たった物を探して、その反応で処理を分ける。
+ *          ・Reflect     … 反射して続ける（反射鏡）
+ *          ・Stop        … 止まる（ブロック・閉じた扉・鏡の裏）
+ *          ・Absorb      … 止まって、そのギミックを点灯させる（受光器）
+ *          ・PassThrough … 止まらずに通り抜け、そのギミックを点灯させる（光の足場）
+ *          光の計算はギミックの種類を知らないので、光に反応する新しいギミックを足しても、ここは書き換えなくてよい。
  */
 #pragma once
+#include <algorithm>
 #include <vector>
 #include "Source/Core/Math/Rect.h"
 
@@ -16,7 +19,8 @@ namespace app
 {
 	namespace stage
 	{
-		class Stage;
+		class GimmickBase;
+		class GimmickManager;
 
 
 		/**
@@ -40,17 +44,19 @@ namespace app
 		{
 			/** 光の線分 */
 			std::vector<LightSegment> segments;
-			/** 受光器ごとの点灯（Stage の受光器と同じ並び） */
-			std::vector<bool> litReceivers;
-			/** 光の足場ごとの点灯（Stage の光の足場と同じ並び） */
-			std::vector<bool> litPlatforms;
+			/** 光が当たって点灯したギミック（受光器・光の足場など） */
+			std::vector<const GimmickBase*> litGimmicks;
 
 
+			/** そのギミックに光が当たったか */
+			bool IsLit(const GimmickBase& gimmick) const
+			{
+				return std::find(litGimmicks.begin(), litGimmicks.end(), &gimmick) != litGimmicks.end();
+			}
 			void Clear()
 			{
 				segments.clear();
-				litReceivers.clear();
-				litPlatforms.clear();
+				litGimmicks.clear();
 			}
 		};
 
@@ -69,16 +75,16 @@ namespace app
 
 		public:
 			/**
-			 * @brief ステージの全光源について光の経路を計算する
+			 * @brief 全ギミックの光について経路を計算する
 			 */
-			void Trace(const Stage& stage, LightTraceResult& out) const;
+			void Trace(const GimmickManager& gimmicks, LightTraceResult& out) const;
 
 
 		private:
 			/**
 			 * @brief 1本の光を追いかける
 			 */
-			void TraceBeam(const Stage& stage, math::Vec2 origin, math::Vec2 direction, LightTraceResult& out) const;
+			void TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, LightTraceResult& out) const;
 		};
 
 

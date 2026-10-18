@@ -1,0 +1,29 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "Lamp", "position": [-90.0, 60.0], "angleDeg": 0.0, "isOn": true },
+		{ "type": "EmitRay", "name": "Lamp2", "position": [-90.0, 232.0], "angleDeg": 0.0, "isOn": true },
+		{ "type": "EmitRay", "name": "Lamp3", "position": [2860.0, 2060.0], "angleDeg": 0.0, "isOn": true },
+		{ "type": "LightMirror", "name": "M1", "center": [300.0, 60.0], "angleDeg": 90.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 150.0, "railMaxX": 700.0 },
+		{ "type": "LightMirror", "name": "MirrorA", "center": [3500.0, 2060.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 2900.0, "railMaxX": 3700.0 },
+		{ "type": "LightMirror", "name": "MirrorB", "center": [3100.0, 2500.0], "angleDeg": 225.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 3030.0, "railMaxX": 3650.0 },
+		{ "type": "LightMirror", "name": "MirrorC", "center": [3400.0, 2500.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 3030.0, "railMaxX": 3650.0 },
+		{ "type": "LightReceiver", "name": "R1", "position": [280.0, 500.0], "size": [40.0, 40.0] },
+		{ "type": "LightReceiver", "name": "R3", "position": [3560.0, 2960.0], "size": [40.0, 40.0] },
+		{ "type": "Door", "name": "Door1", "position": [900.0, 0.0], "size": [40.0, 300.0], "requiredReceivers": ["R1"], "openSpeed": 2.0, "isLatch": false },
+		{ "type": "LightPlatform", "name": "Step", "position": [950.0, 220.0], "size": [150.0, 25.0], "lingerTime": 0.15 },
+		{ "type": "Checkpoint", "name": "Room2Entrance", "position": [1600.0, 450.0], "size": [80.0, 200.0] },
+		{ "type": "Checkpoint", "name": "Room3Entrance", "position": [2860.0, 1950.0], "size": [120.0, 130.0] },
+		{ "type": "Indicator", "name": "LampLower", "position": [3920.0, 2105.0], "size": [40.0, 30.0], "signal": "" },
+		{ "type": "Indicator", "name": "LampMiddle", "position": [3920.0, 2505.0], "size": [40.0, 30.0], "signal": "" },
+		{ "type": "Indicator", "name": "LampUpper", "position": [3920.0, 2905.0], "size": [40.0, 30.0], "signal": "R3" },
+		{ "type": "WarpZone", "name": "WarpLower", "position": [5150.0, 1950.0], "size": [150.0, 200.0], "destination": [2920.0, 1950.0], "disabledBySignal": "" },
+		{ "type": "WarpZone", "name": "WarpMiddle", "position": [5150.0, 2350.0], "size": [150.0, 200.0], "destination": [2920.0, 1950.0], "disabledBySignal": "" },
+		{ "type": "WarpZone", "name": "WarpUpper", "position": [5150.0, 2750.0], "size": [150.0, 200.0], "destination": [6100.0, 1950.0], "disabledBySignal": "" },
+		{ "type": "Goal", "name": "Goal", "position": [6450.0, 1950.0], "size": [150.0, 250.0] },
+		{ "type": "FloorSwitch", "name": "Switch1", "position": [2600.0, 1350.0], "size": [70.0, 8.0], "isLatch": true },
+		{ "type": "MistEmitter", "name": "Mist1", "position": [1600.0, 450.0], "size": [1100.0, 1400.0], "triggerSignal": "Switch1", "fallSpeed": 500.0, "duration": 3.0, "fadeTime": 1.5, "ventSpacing": 220.0 },
+		{ "type": "InvisibleFloor", "name": "MirrorStep1", "position": [2300.0, 1400.0], "size": [150.0, 25.0], "isSolidWhenHidden": true },
+		{ "type": "InvisibleFloor", "name": "MirrorStep2", "position": [2000.0, 1480.0], "size": [150.0, 25.0], "isSolidWhenHidden": true },
+		{ "type": "InvisibleFloor", "name": "MirrorStep3", "position": [1750.0, 1560.0], "size": [150.0, 25.0], "isSolidWhenHidden": true }
+	]
+}

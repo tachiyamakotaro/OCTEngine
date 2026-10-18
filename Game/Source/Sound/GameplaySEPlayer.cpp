@@ -246,67 +246,74 @@ namespace app
 			return;
 		}
 
+		const stage::GimmickManager& gimmicks = stage.GetGimmicks();
+
 		// ---- 受光器 ----
-		const std::vector<stage::LightReceiver>& receivers = stage.GetLightReceivers();
-		for (size_t i = 0; i < receivers.size(); ++i)
+		size_t i = 0;
+		for (const stage::LightReceiver& receiver : gimmicks.View<stage::LightReceiver>())
 		{
-			if (receivers[i].isLit != m_receiverLit[i])
+			if (receiver.isLit != m_receiverLit[i])
 			{
-				Play(receivers[i].isLit ? enSoundKind_ReceiverOn : enSoundKind_ReceiverOff);
-				m_receiverLit[i] = receivers[i].isLit;
+				Play(receiver.isLit ? enSoundKind_ReceiverOn : enSoundKind_ReceiverOff);
+				m_receiverLit[i] = receiver.isLit;
 			}
+			++i;
 		}
 
 		// ---- 光の足場 ----
-		const std::vector<stage::LightPlatform>& platforms = stage.GetLightPlatforms();
-		for (size_t i = 0; i < platforms.size(); ++i)
+		i = 0;
+		for (const stage::LightPlatform& platform : gimmicks.View<stage::LightPlatform>())
 		{
-			const bool isSolid = platforms[i].IsSolid();
+			const bool isSolid = platform.IsSolid();
 			if (isSolid && !m_lightPlatformSolid[i])
 			{
 				Play(enSoundKind_LightPlatformOn);
 			}
 			m_lightPlatformSolid[i] = isSolid;
+			++i;
 		}
 
 		// ---- 合図のランプ ----
-		const std::vector<stage::Indicator>& indicators = stage.GetIndicators();
-		for (size_t i = 0; i < indicators.size(); ++i)
+		i = 0;
+		for (const stage::Indicator& indicator : gimmicks.View<stage::Indicator>())
 		{
-			if (indicators[i].isOn && !m_indicatorOn[i])
+			if (indicator.isOn && !m_indicatorOn[i])
 			{
 				Play(enSoundKind_IndicatorOn);
 			}
-			m_indicatorOn[i] = indicators[i].isOn;
+			m_indicatorOn[i] = indicator.isOn;
+			++i;
 		}
 
 		// ---- 床スイッチ ----
-		const std::vector<stage::FloorSwitch>& switches = stage.GetFloorSwitches();
-		for (size_t i = 0; i < switches.size(); ++i)
+		i = 0;
+		for (const stage::FloorSwitch& floorSwitch : gimmicks.View<stage::FloorSwitch>())
 		{
-			if (switches[i].isPressed && !m_switchPressed[i])
+			if (floorSwitch.isPressed && !m_switchPressed[i])
 			{
 				Play(enSoundKind_SwitchOn);
 			}
-			m_switchPressed[i] = switches[i].isPressed;
+			m_switchPressed[i] = floorSwitch.isPressed;
+			++i;
 		}
 
 		// ---- 扉：動く向きが変わったときに鳴らす（開き始め・閉まり始め）----
-		const std::vector<stage::Door>& doors = stage.GetDoors();
-		for (size_t i = 0; i < doors.size(); ++i)
+		i = 0;
+		for (const stage::Door& door : gimmicks.View<stage::Door>())
 		{
-			const float delta = doors[i].openAmount - m_doorOpenAmount[i];
+			const float delta = door.openAmount - m_doorOpenAmount[i];
 			const int direction = delta > DOOR_MOVE_EPSILON ? 1 : (delta < -DOOR_MOVE_EPSILON ? -1 : 0);
 			if (direction != 0 && direction != m_doorDirection[i])
 			{
 				Play(direction > 0 ? enSoundKind_DoorOpen : enSoundKind_DoorClose);
 				m_doorDirection[i] = direction;
 			}
-			m_doorOpenAmount[i] = doors[i].openAmount;
+			m_doorOpenAmount[i] = door.openAmount;
+			++i;
 		}
 
 		// ---- 霧 ----
-		for (const stage::MistEmitter& mist : stage.GetMistEmitters())
+		for (const stage::MistEmitter& mist : gimmicks.View<stage::MistEmitter>())
 		{
 			if (mist.isFiredThisFrame)
 			{
@@ -314,8 +321,8 @@ namespace app
 			}
 		}
 
-		// ---- 鏡の足場（いくつ同時に見えても1回だけ）----
-		for (const stage::MirrorPlatform& platform : stage.GetMirrorPlatforms())
+		// ---- 透明の足場（いくつ同時に見えても1回だけ）----
+		for (const stage::InvisibleFloor& platform : gimmicks.View<stage::InvisibleFloor>())
 		{
 			if (platform.isRevealedThisFrame)
 			{
@@ -365,46 +372,48 @@ namespace app
 
 	void GameplaySEPlayer::TakeStageSnapshot(const stage::Stage& stage)
 	{
+		const stage::GimmickManager& gimmicks = stage.GetGimmicks();
 		m_receiverLit.clear();
-		for (const stage::LightReceiver& receiver : stage.GetLightReceivers())
+		for (const stage::LightReceiver& receiver : gimmicks.View<stage::LightReceiver>())
 		{
 			m_receiverLit.push_back(receiver.isLit);
 		}
 		m_lightPlatformSolid.clear();
-		for (const stage::LightPlatform& platform : stage.GetLightPlatforms())
+		for (const stage::LightPlatform& platform : gimmicks.View<stage::LightPlatform>())
 		{
 			m_lightPlatformSolid.push_back(platform.IsSolid());
 		}
 		m_indicatorOn.clear();
-		for (const stage::Indicator& indicator : stage.GetIndicators())
+		for (const stage::Indicator& indicator : gimmicks.View<stage::Indicator>())
 		{
 			m_indicatorOn.push_back(indicator.isOn);
 		}
 		m_switchPressed.clear();
-		for (const stage::FloorSwitch& floorSwitch : stage.GetFloorSwitches())
+		for (const stage::FloorSwitch& floorSwitch : gimmicks.View<stage::FloorSwitch>())
 		{
 			m_switchPressed.push_back(floorSwitch.isPressed);
 		}
 		m_doorOpenAmount.clear();
 		m_doorDirection.clear();
-		for (const stage::Door& door : stage.GetDoors())
+		for (const stage::Door& door : gimmicks.View<stage::Door>())
 		{
 			m_doorOpenAmount.push_back(door.openAmount);
 			m_doorDirection.push_back(0);
 		}
-		m_mistCount = stage.GetMistEmitters().size();
-		m_mirrorPlatformCount = stage.GetMirrorPlatforms().size();
+		m_mistCount = gimmicks.View<stage::MistEmitter>().size();
+		m_mirrorPlatformCount = gimmicks.View<stage::InvisibleFloor>().size();
 	}
 
 
 	bool GameplaySEPlayer::IsSameLayout(const stage::Stage& stage) const
 	{
-		return m_receiverLit.size() == stage.GetLightReceivers().size()
-			&& m_lightPlatformSolid.size() == stage.GetLightPlatforms().size()
-			&& m_indicatorOn.size() == stage.GetIndicators().size()
-			&& m_switchPressed.size() == stage.GetFloorSwitches().size()
-			&& m_doorOpenAmount.size() == stage.GetDoors().size()
-			&& m_mistCount == stage.GetMistEmitters().size()
-			&& m_mirrorPlatformCount == stage.GetMirrorPlatforms().size();
+		const stage::GimmickManager& gimmicks = stage.GetGimmicks();
+		return m_receiverLit.size() == gimmicks.View<stage::LightReceiver>().size()
+			&& m_lightPlatformSolid.size() == gimmicks.View<stage::LightPlatform>().size()
+			&& m_indicatorOn.size() == gimmicks.View<stage::Indicator>().size()
+			&& m_switchPressed.size() == gimmicks.View<stage::FloorSwitch>().size()
+			&& m_doorOpenAmount.size() == gimmicks.View<stage::Door>().size()
+			&& m_mistCount == gimmicks.View<stage::MistEmitter>().size()
+			&& m_mirrorPlatformCount == gimmicks.View<stage::InvisibleFloor>().size();
 	}
 }

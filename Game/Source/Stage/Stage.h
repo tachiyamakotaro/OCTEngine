@@ -1,20 +1,23 @@
 ﻿/**
  * @file Stage.h
- * @brief ステージ（地形・光のギミック・スイッチと霧・鏡の世界）
+ * @brief ステージ（ギミックの入れ物・光の計算・奥の鏡）
  * @details ・ICollisionWorld を実装しているので、そのままプレイヤーの当たり判定に渡せる。
- *            当たり判定 = ブロック + 閉じた扉 + 出ている光の足場 + 鏡の足場
- *          ・Update() で スイッチ → 光 → 受光器・光の足場 → 扉 → 霧 → 鏡の足場 の順に更新する。
- *          ・信号：受光器の点灯とスイッチの押下を、名前で同じように扱う（扉や霧のきっかけに使える）。
+ *            当たり判定 = 全ギミックの GetCollision（ブロック・閉じた扉・出ている光の足場・透明の足場）
+ *          ・Update() で 踏まれる物 → 光 → 光を受ける物 → 信号を見る物 → 最後 の順に更新する（UpdatePhase）。
+ *          ・ギミックの種類ごとの処理は書かない。全部 GimmickManager と各ギミックの仮想関数に任せる。
  *          ・BackMirror はステージの奥の壁の大きな鏡。部屋とプレイヤーを映す（見た目だけ）。
  *
- *          作り方：C++ で AddBlock() などを並べて定義し（Stage01.cpp 参照）、
- *          StageEditor（ImGui）で位置を調整して、出力した C++ コードを定義に貼り戻す。
+ *          作り方：JSON ファイル（Assets/stage/StageXX_Object.json / StageXX_Gimmick.json）に書いておき、
+ *          LoadStageFromJson で読む（StageLoader.h）。StageEditor（ImGui）で位置を調整して「Save JSON」で保存する。
+ *          C++ から直接 stage.Add<StageBlock>(...) と並べて作ることもできる。
  */
 #pragma once
 #include <string>
+#include <utility>
 #include <vector>
 #include "LightTracer.h"
 #include "StageObjects.h"
+#include "Gimmick/GimmickManager.h"
 #include "Source/Physics/ICollisionWorld.h"
 
 
@@ -24,7 +27,6 @@ namespace app
 	{
 		/**
 		 * @brief ステージ
-		 * @note Add〜 が返す参照は、次に同じ種類を Add するまでの間だけ有効（vector に入れているため）
 		 */
 		class Stage : public physics::ICollisionWorld
 		{
@@ -33,32 +35,16 @@ namespace app
 			/** @brief 名前を設定 */
 			inline void SetName(const std::string& name) { m_name = name; }
 			inline const std::string& GetName() const { return m_name; }
-			/** @brief 地形ブロックを追加（x, y は左下） */
-			StageBlock& AddBlock(const char* name, float x, float y, float width, float height);
-			/** @brief 光源を追加 */
-			LightSource& AddLightSource(const char* name, float x, float y, float angleDeg);
-			/** @brief 反射鏡を追加（x, y は中心） */
-			LightMirror& AddLightMirror(const char* name, float x, float y, float angleDeg, float length);
-			/** @brief 受光器を追加（x, y は左下） */
-			LightReceiver& AddLightReceiver(const char* name, float x, float y, float width, float height);
-			/** @brief 扉を追加（x, y は左下。requiredReceivers が全部点灯すると開く） */
-			Door& AddDoor(const char* name, float x, float y, float width, float height, const std::vector<std::string>& requiredReceivers);
-			/** @brief 光の足場を追加（x, y は左下） */
-			LightPlatform& AddLightPlatform(const char* name, float x, float y, float width, float height);
-			/** @brief 床スイッチを追加（x, y は左下。台の上面に薄く置く） */
-			FloorSwitch& AddFloorSwitch(const char* name, float x, float y, float width, float height);
-			/** @brief 霧の発生装置を追加（x, y, width, height は霧が広がる範囲。上端が天井。triggerSignal がONで吹き出す） */
-			MistEmitter& AddMistEmitter(const char* name, float x, float y, float width, float height, const char* triggerSignal);
-			/** @brief 鏡の足場を追加（x, y は左下。霧に触れるまで見えない） */
-			MirrorPlatform& AddMirrorPlatform(const char* name, float x, float y, float width, float height);
-			/** @brief チェックポイントを追加（x, y は左下。下端の真ん中から再開する） */
-			Checkpoint& AddCheckpoint(const char* name, float x, float y, float width, float height);
-			/** @brief ワープを追加（x, y は左下。体の中心が入ると destX, destY（足元）へ飛ぶ） */
-			WarpZone& AddWarpZone(const char* name, float x, float y, float width, float height, float destX, float destY);
-			/** @brief 合図のランプを追加（x, y は左下。signal がONで光る。空ならずっと消えたまま） */
-			Indicator& AddIndicator(const char* name, float x, float y, float width, float height, const char* signal);
-			/** @brief ゴールを追加（x, y は左下） */
-			Goal& AddGoal(const char* name, float x, float y, float width, float height);
+			/** @brief プレイヤーの開始位置（足元） */
+			inline void SetPlayerStart(const math::Vec2& position) { m_playerStart = position; }
+			inline const math::Vec2& GetPlayerStart() const { return m_playerStart; }
+			/**
+			 * @brief ギミックを追加する
+			 * @details 例：auto& door = stage.Add<Door>("Door1", 900.0f, 0.0f, 40.0f, 300.0f);
+			 *          引数はそのクラスのコンストラクタにそのまま渡す。返す参照はそのギミックを消すまで使える。
+			 */
+			template<class T, class... Args>
+			T& Add(Args&&... args) { return m_gimmicks.Add<T>(std::forward<Args>(args)...); }
 			/**
 			 * @brief 奥の鏡を設定
 			 * @param enabled 使うか
@@ -87,14 +73,11 @@ namespace app
 
 		public:
 			// ---- 取得 ----
-			/** @brief 受光器が点灯しているか（名前で探す。見つからなければ false） */
-			bool IsReceiverLit(const std::string& name) const;
-			/** @brief 名前で受光器を探す（見つからなければ -1） */
-			int FindReceiverIndex(const std::string& name) const;
-			/** @brief スイッチが押されているか（名前で探す。見つからなければ false） */
-			bool IsSwitchPressed(const std::string& name) const;
+			/** @brief 全ギミック（種類ごとに欲しいときは GetGimmicks().View<Door>()） */
+			inline GimmickManager& GetGimmicks() { return m_gimmicks; }
+			inline const GimmickManager& GetGimmicks() const { return m_gimmicks; }
 			/** @brief 信号がONか（同じ名前の受光器が点灯している、またはスイッチが押されている） */
-			bool IsSignalOn(const std::string& name) const;
+			bool IsSignalOn(const std::string& name) const { return m_gimmicks.IsSignalOn(name); }
 			/**
 			 * @brief 霧の吹き出し口の位置（天井の面の上の点）を集める
 			 * @details 霧の範囲の上端に ventSpacing の間隔で並べ、真上に地形（天井）があるところだけ使う。
@@ -110,35 +93,8 @@ namespace app
 			inline BackMirror& GetBackMirror() { return m_backMirror; }
 			inline const BackMirror& GetBackMirror() const { return m_backMirror; }
 
-			// エディタから直接編集できるよう、非 const 版も用意している
-			inline std::vector<StageBlock>& GetBlocks() { return m_blocks; }
-			inline const std::vector<StageBlock>& GetBlocks() const { return m_blocks; }
-			inline std::vector<LightSource>& GetLightSources() { return m_lightSources; }
-			inline const std::vector<LightSource>& GetLightSources() const { return m_lightSources; }
-			inline std::vector<LightMirror>& GetLightMirrors() { return m_lightMirrors; }
-			inline const std::vector<LightMirror>& GetLightMirrors() const { return m_lightMirrors; }
-			inline std::vector<LightReceiver>& GetLightReceivers() { return m_lightReceivers; }
-			inline const std::vector<LightReceiver>& GetLightReceivers() const { return m_lightReceivers; }
-			inline std::vector<Door>& GetDoors() { return m_doors; }
-			inline const std::vector<Door>& GetDoors() const { return m_doors; }
-			inline std::vector<LightPlatform>& GetLightPlatforms() { return m_lightPlatforms; }
-			inline const std::vector<LightPlatform>& GetLightPlatforms() const { return m_lightPlatforms; }
-			inline std::vector<FloorSwitch>& GetFloorSwitches() { return m_floorSwitches; }
-			inline const std::vector<FloorSwitch>& GetFloorSwitches() const { return m_floorSwitches; }
-			inline std::vector<MistEmitter>& GetMistEmitters() { return m_mistEmitters; }
-			inline const std::vector<MistEmitter>& GetMistEmitters() const { return m_mistEmitters; }
-			inline std::vector<MirrorPlatform>& GetMirrorPlatforms() { return m_mirrorPlatforms; }
-			inline const std::vector<MirrorPlatform>& GetMirrorPlatforms() const { return m_mirrorPlatforms; }
-			inline std::vector<Checkpoint>& GetCheckpoints() { return m_checkpoints; }
-			inline const std::vector<Checkpoint>& GetCheckpoints() const { return m_checkpoints; }
 			/** @brief 体が触れているチェックポイント（なければ nullptr） */
 			const Checkpoint* FindCheckpoint(const math::Rect& body) const;
-			inline std::vector<WarpZone>& GetWarpZones() { return m_warpZones; }
-			inline const std::vector<WarpZone>& GetWarpZones() const { return m_warpZones; }
-			inline std::vector<Indicator>& GetIndicators() { return m_indicators; }
-			inline const std::vector<Indicator>& GetIndicators() const { return m_indicators; }
-			inline std::vector<Goal>& GetGoals() { return m_goals; }
-			inline const std::vector<Goal>& GetGoals() const { return m_goals; }
 			/** @brief 体の中心が入っている、今使えるワープ（なければ nullptr） */
 			const WarpZone* FindWarpZone(const math::Rect& body) const;
 			/** @brief 体が触れているゴール（なければ nullptr） */
@@ -150,10 +106,10 @@ namespace app
 			void QueryOverlap(const math::Rect& box, std::vector<math::Rect>& out) const override;
 			bool AnyOverlap(const math::Rect& box) const override;
 			/**
-			 * @brief 地形だけ（ブロック + 閉じた扉 + 鏡の足場）と重なるか
+			 * @brief 地形だけ（ブロック + 閉じた扉 + 透明の足場）と重なるか
 			 * @details 反射鏡を動かせるかの判定に使う（光の足場は含めない）
 			 */
-			bool OverlapsTerrain(const math::Rect& box) const;
+			bool OverlapsTerrain(const math::Rect& box) const { return m_gimmicks.OverlapsTerrain(box); }
 
 
 		public:
@@ -162,34 +118,12 @@ namespace app
 
 
 		private:
-			/** 光の足場の更新 */
-			void UpdateLightPlatforms(float deltaTime);
-			/** 扉の更新 */
-			void UpdateDoors(float deltaTime);
-			/** スイッチの更新 */
-			void UpdateFloorSwitches(const std::vector<math::Rect>& bodies);
-			/** 霧の更新 */
-			void UpdateMistEmitters(float deltaTime);
-			/** 鏡の足場の更新（霧に触れたら見えるようにする） */
-			void UpdateMirrorPlatforms(float deltaTime);
-
-
-		private:
 			/** ステージ名 */
 			std::string m_name;
-			std::vector<StageBlock> m_blocks;
-			std::vector<LightSource> m_lightSources;
-			std::vector<LightMirror> m_lightMirrors;
-			std::vector<LightReceiver> m_lightReceivers;
-			std::vector<Door> m_doors;
-			std::vector<LightPlatform> m_lightPlatforms;
-			std::vector<FloorSwitch> m_floorSwitches;
-			std::vector<MistEmitter> m_mistEmitters;
-			std::vector<MirrorPlatform> m_mirrorPlatforms;
-			std::vector<Checkpoint> m_checkpoints;
-			std::vector<WarpZone> m_warpZones;
-			std::vector<Indicator> m_indicators;
-			std::vector<Goal> m_goals;
+			/** プレイヤーの開始位置（足元） */
+			math::Vec2 m_playerStart;
+			/** 全ギミック */
+			GimmickManager m_gimmicks;
 
 			/** 奥の鏡 */
 			BackMirror m_backMirror;

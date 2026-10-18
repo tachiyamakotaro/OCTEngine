@@ -30,27 +30,30 @@ namespace app
 				return;
 			}
 
-			const std::vector<StageBlock>& blocks = stage.GetBlocks();
+			const auto blocks = stage.GetGimmicks().View<StageBlock>();
+			const size_t blockCount = blocks.size();
 			const BackMirror& mirror = stage.GetBackMirror();
 
 			// 本物
-			Reserve(m_models, blocks.size(), D3D12_CULL_MODE_BACK);
-			for (size_t i = 0; i < blocks.size(); ++i)
+			Reserve(m_models, blockCount, D3D12_CULL_MODE_BACK);
+			size_t i = 0;
+			for (const StageBlock& block : blocks)
 			{
-				Place(*m_models[i], blocks[i].rect, false, 0.0f);
+				Place(*m_models[i++], block.rect, false, 0.0f);
 			}
-			m_activeCount = blocks.size();
+			m_activeCount = blockCount;
 
 			// 鏡に映った像
 			m_activeReflectionCount = 0;
 			if (mirror.isEnabled)
 			{
-				Reserve(m_reflectionModels, blocks.size(), D3D12_CULL_MODE_FRONT);
-				for (size_t i = 0; i < blocks.size(); ++i)
+				Reserve(m_reflectionModels, blockCount, D3D12_CULL_MODE_FRONT);
+				i = 0;
+				for (const StageBlock& block : blocks)
 				{
-					Place(*m_reflectionModels[i], blocks[i].rect, true, mirror.planeZ);
+					Place(*m_reflectionModels[i++], block.rect, true, mirror.planeZ);
 				}
-				m_activeReflectionCount = blocks.size();
+				m_activeReflectionCount = blockCount;
 			}
 		}
 

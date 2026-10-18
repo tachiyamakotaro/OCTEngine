@@ -52,66 +52,66 @@ namespace app
 			stage.SetBackMirror(true, 150.0f, -100.0f, 0.0f, 6900.0f, 3100.0f);
 
 			// 地形ブロック
-			stage.AddBlock("Floor", -200.0f, -100.0f, 1700.0f, 100.0f);
-			stage.AddBlock("LeftWall", -200.0f, 0.0f, 100.0f, 800.0f);
-			stage.AddBlock("HighLedge", 1100.0f, 0.0f, 400.0f, 450.0f);
+			stage.Add<StageBlock>("Floor", -200.0f, -100.0f, 1700.0f, 100.0f);
+			stage.Add<StageBlock>("LeftWall", -200.0f, 0.0f, 100.0f, 800.0f);
+			stage.Add<StageBlock>("HighLedge", 1100.0f, 0.0f, 400.0f, 450.0f);
 			// 部屋1と部屋2の間の壁（高台と同じ高さ y=450 から 200 の穴を空けて、部屋2へ通れるようにする）
-			stage.AddBlock("RightWallLower", 1500.0f, -100.0f, 100.0f, 550.0f);
-			stage.AddBlock("RightWallUpper", 1500.0f, 650.0f, 100.0f, 1300.0f);
-			stage.AddBlock("ReceiverMount", 250.0f, 540.0f, 100.0f, 30.0f);
+			stage.Add<StageBlock>("RightWallLower", 1500.0f, -100.0f, 100.0f, 550.0f);
+			stage.Add<StageBlock>("RightWallUpper", 1500.0f, 650.0f, 100.0f, 1300.0f);
+			stage.Add<StageBlock>("ReceiverMount", 250.0f, 540.0f, 100.0f, 30.0f);
 
 			// ==== 部屋2（霧の部屋）====
 			// 床（上面 y=450 は部屋1の高台と同じ高さ）・右の壁・天井（左端 x 1600〜1850 は出口の穴）
-			stage.AddBlock("Floor2", 1600.0f, -100.0f, 1100.0f, 550.0f);
-			stage.AddBlock("RightWall2", 2700.0f, -100.0f, 100.0f, 2050.0f);
-			stage.AddBlock("Ceiling2", 1850.0f, 1850.0f, 950.0f, 100.0f);
+			stage.Add<StageBlock>("Floor2", 1600.0f, -100.0f, 1100.0f, 550.0f);
+			stage.Add<StageBlock>("RightWall2", 2700.0f, -100.0f, 100.0f, 2050.0f);
+			stage.Add<StageBlock>("Ceiling2", 1850.0f, 1850.0f, 950.0f, 100.0f);
 			// 左下から右上へ乗り継ぐ足場（1段目は床から立つ台、上面 600 / 750 / 900 / 1050）
-			stage.AddBlock("Step2_1", 1700.0f, 450.0f, 200.0f, 150.0f);
-			stage.AddBlock("Step2_2", 1950.0f, 710.0f, 200.0f, 40.0f);
-			stage.AddBlock("Step2_3", 2200.0f, 860.0f, 200.0f, 40.0f);
-			stage.AddBlock("Step2_4", 2450.0f, 1010.0f, 250.0f, 40.0f);
+			stage.Add<StageBlock>("Step2_1", 1700.0f, 450.0f, 200.0f, 150.0f);
+			stage.Add<StageBlock>("Step2_2", 1950.0f, 710.0f, 200.0f, 40.0f);
+			stage.Add<StageBlock>("Step2_3", 2200.0f, 860.0f, 200.0f, 40.0f);
+			stage.Add<StageBlock>("Step2_4", 2450.0f, 1010.0f, 250.0f, 40.0f);
 			// スイッチの棚（上面 1350。Step2_4 から真上にジャンプして崖をつかむ）
-			stage.AddBlock("SwitchLedge", 2560.0f, 1310.0f, 140.0f, 40.0f);
+			stage.Add<StageBlock>("SwitchLedge", 2560.0f, 1310.0f, 140.0f, 40.0f);
 			// 出口の棚（上面 1680。この上の天井の穴が次の部屋への出口）
-			stage.AddBlock("ExitLedge", 1600.0f, 1640.0f, 120.0f, 40.0f);
+			stage.Add<StageBlock>("ExitLedge", 1600.0f, 1640.0f, 120.0f, 40.0f);
 
 			// ==== 部屋3（最後の部屋）====
 			// 床（上面 1950 は部屋2の天井の上面と同じ高さ）と、入口の壁（下 130 が入口）・広間の天井
-			stage.AddBlock("Floor3", 2800.0f, 1850.0f, 4000.0f, 100.0f);
-			stage.AddBlock("Gate3", 2800.0f, 2080.0f, 50.0f, 1020.0f);
-			stage.AddBlock("HallCeiling", 2800.0f, 3000.0f, 1100.0f, 100.0f);
+			stage.Add<StageBlock>("Floor3", 2800.0f, 1850.0f, 4000.0f, 100.0f);
+			stage.Add<StageBlock>("Gate3", 2800.0f, 2080.0f, 50.0f, 1020.0f);
+			stage.Add<StageBlock>("HallCeiling", 2800.0f, 3000.0f, 1100.0f, 100.0f);
 			// 広間：バルコニーへ上がる浮き足場、バルコニー（x 3240〜3280 は光が通るすき間）、上段へ上がる浮き足場
-			stage.AddBlock("HallStep", 2880.0f, 2125.0f, 110.0f, 25.0f);
-			stage.AddBlock("BalconyL", 3000.0f, 2310.0f, 240.0f, 40.0f);
-			stage.AddBlock("BalconyR", 3280.0f, 2310.0f, 620.0f, 40.0f);
-			stage.AddBlock("FloatStep", 3700.0f, 2475.0f, 150.0f, 50.0f);
+			stage.Add<StageBlock>("HallStep", 2880.0f, 2125.0f, 110.0f, 25.0f);
+			stage.Add<StageBlock>("BalconyL", 3000.0f, 2310.0f, 240.0f, 40.0f);
+			stage.Add<StageBlock>("BalconyR", 3280.0f, 2310.0f, 620.0f, 40.0f);
+			stage.Add<StageBlock>("FloatStep", 3700.0f, 2475.0f, 150.0f, 50.0f);
 			// 三つの通路（床の高さ 下段 1950 / 中段 2350 / 上段 2750、高さはどれも 200）と、通路の奥の壁
-			stage.AddBlock("Slab1", 3900.0f, 2150.0f, 1400.0f, 200.0f);
-			stage.AddBlock("Slab2", 3900.0f, 2550.0f, 1400.0f, 200.0f);
-			stage.AddBlock("Slab3", 3900.0f, 2950.0f, 1400.0f, 150.0f);
-			stage.AddBlock("CorridorEnd", 5300.0f, 1950.0f, 700.0f, 1150.0f);
+			stage.Add<StageBlock>("Slab1", 3900.0f, 2150.0f, 1400.0f, 200.0f);
+			stage.Add<StageBlock>("Slab2", 3900.0f, 2550.0f, 1400.0f, 200.0f);
+			stage.Add<StageBlock>("Slab3", 3900.0f, 2950.0f, 1400.0f, 150.0f);
+			stage.Add<StageBlock>("CorridorEnd", 5300.0f, 1950.0f, 700.0f, 1150.0f);
 			// ゴールの部屋（正解の通路のワープで来る）
-			stage.AddBlock("GoalCeiling", 6000.0f, 2600.0f, 800.0f, 100.0f);
-			stage.AddBlock("GoalRightWall", 6700.0f, 1950.0f, 100.0f, 650.0f);
+			stage.Add<StageBlock>("GoalCeiling", 6000.0f, 2600.0f, 800.0f, 100.0f);
+			stage.Add<StageBlock>("GoalRightWall", 6700.0f, 1950.0f, 100.0f, 650.0f);
 
 			// 光源
 			{
-				auto& source = stage.AddLightSource("Lamp", -90.0f, 60.0f, 0.0f);
+				auto& source = stage.Add<EmitRay>("Lamp", -90.0f, 60.0f, 0.0f);
 				source.isOn = true;
 			}
 			{
-				auto& source = stage.AddLightSource("Lamp2", -90.0f, 232.0f, 0.0f);
+				auto& source = stage.Add<EmitRay>("Lamp2", -90.0f, 232.0f, 0.0f);
 				source.isOn = true;
 			}
 			{
 				// 部屋3：入口の壁の右下から右へ（床から 110 の高さ）
-				auto& source = stage.AddLightSource("Lamp3", 2860.0f, 2060.0f, 0.0f);
+				auto& source = stage.Add<EmitRay>("Lamp3", 2860.0f, 2060.0f, 0.0f);
 				source.isOn = true;
 			}
 
 			// 反射鏡
 			{
-				auto& mirror = stage.AddLightMirror("M1", 300.0f, 60.0f, 90.0f, 80.0f);
+				auto& mirror = stage.Add<LightMirror>("M1", 300.0f, 60.0f, 90.0f, 80.0f);
 				mirror.isDoubleSided = false;
 				mirror.isRotatable = true;
 				mirror.rotationStepDeg = 45.0f;
@@ -124,7 +124,7 @@ namespace app
 			// 部屋3の鏡（回せない・動かすだけ。最初はどれもずれた位置）
 			{
 				// 床の鏡：右から来た光を上へ（正解は x 3260 = すき間の真下）
-				auto& mirror = stage.AddLightMirror("MirrorA", 3500.0f, 2060.0f, 45.0f, 80.0f);
+				auto& mirror = stage.Add<LightMirror>("MirrorA", 3500.0f, 2060.0f, 45.0f, 80.0f);
 				mirror.isDoubleSided = false;
 				mirror.isRotatable = false;
 				mirror.rotationStepDeg = 45.0f;
@@ -135,7 +135,7 @@ namespace app
 			}
 			{
 				// バルコニーの鏡：下から来た光を右へ（正解は x 3260 = すき間の真上）
-				auto& mirror = stage.AddLightMirror("MirrorB", 3100.0f, 2500.0f, 225.0f, 80.0f);
+				auto& mirror = stage.Add<LightMirror>("MirrorB", 3100.0f, 2500.0f, 225.0f, 80.0f);
 				mirror.isDoubleSided = false;
 				mirror.isRotatable = false;
 				mirror.rotationStepDeg = 45.0f;
@@ -146,7 +146,7 @@ namespace app
 			}
 			{
 				// バルコニーの鏡：左から来た光を上へ（正解は x 3580 = 受光器 R3 の真下）
-				auto& mirror = stage.AddLightMirror("MirrorC", 3400.0f, 2500.0f, 45.0f, 80.0f);
+				auto& mirror = stage.Add<LightMirror>("MirrorC", 3400.0f, 2500.0f, 45.0f, 80.0f);
 				mirror.isDoubleSided = false;
 				mirror.isRotatable = false;
 				mirror.rotationStepDeg = 45.0f;
@@ -157,67 +157,68 @@ namespace app
 			}
 
 			// 受光器
-			stage.AddLightReceiver("R1", 280.0f, 500.0f, 40.0f, 40.0f);
+			stage.Add<LightReceiver>("R1", 280.0f, 500.0f, 40.0f, 40.0f);
 			// 部屋3：広間の天井（3回反射させた光が当たると、正解の通路のランプが光る）
-			stage.AddLightReceiver("R3", 3560.0f, 2960.0f, 40.0f, 40.0f);
+			stage.Add<LightReceiver>("R3", 3560.0f, 2960.0f, 40.0f, 40.0f);
 
 			// 扉
 			{
-				auto& door = stage.AddDoor("Door1", 900.0f, 0.0f, 40.0f, 300.0f, { "R1" });
+				auto& door = stage.Add<Door>("Door1", 900.0f, 0.0f, 40.0f, 300.0f);
+				door.requiredReceivers = { "R1" };
 				door.openSpeed = 2.0f;
 				door.isLatch = false;
 			}
 
 			// 光の足場
 			{
-				auto& platform = stage.AddLightPlatform("Step", 950.0f, 220.0f, 150.0f, 25.0f);
+				auto& platform = stage.Add<LightPlatform>("Step", 950.0f, 220.0f, 150.0f, 25.0f);
 				platform.lingerTime = 0.15f;
 			}
 
 			// チェックポイント（部屋2の入口。部屋2で落ちて死んだらここから再開）
-			stage.AddCheckpoint("Room2Entrance", 1600.0f, 450.0f, 80.0f, 200.0f);
+			stage.Add<Checkpoint>("Room2Entrance", 1600.0f, 450.0f, 80.0f, 200.0f);
 			// チェックポイント（部屋3の入口）
-			stage.AddCheckpoint("Room3Entrance", 2860.0f, 1950.0f, 120.0f, 130.0f);
+			stage.Add<Checkpoint>("Room3Entrance", 2860.0f, 1950.0f, 120.0f, 130.0f);
 
 			// 部屋3：通路の入口のランプ（上段だけ R3 で光る。下段・中段はダミー）
-			stage.AddIndicator("LampLower", 3920.0f, 2105.0f, 40.0f, 30.0f, "");
-			stage.AddIndicator("LampMiddle", 3920.0f, 2505.0f, 40.0f, 30.0f, "");
-			stage.AddIndicator("LampUpper", 3920.0f, 2905.0f, 40.0f, 30.0f, "R3");
+			stage.Add<Indicator>("LampLower", 3920.0f, 2105.0f, 40.0f, 30.0f, "");
+			stage.Add<Indicator>("LampMiddle", 3920.0f, 2505.0f, 40.0f, 30.0f, "");
+			stage.Add<Indicator>("LampUpper", 3920.0f, 2905.0f, 40.0f, 30.0f, "R3");
 
 			// 部屋3：通路の奥のワープ（はずれは広間の入口へ戻す、正解はゴールの部屋へ）
-			stage.AddWarpZone("WarpLower", 5150.0f, 1950.0f, 150.0f, 200.0f, 2920.0f, 1950.0f);
-			stage.AddWarpZone("WarpMiddle", 5150.0f, 2350.0f, 150.0f, 200.0f, 2920.0f, 1950.0f);
-			stage.AddWarpZone("WarpUpper", 5150.0f, 2750.0f, 150.0f, 200.0f, 6100.0f, 1950.0f);
+			stage.Add<WarpZone>("WarpLower", 5150.0f, 1950.0f, 150.0f, 200.0f, 2920.0f, 1950.0f);
+			stage.Add<WarpZone>("WarpMiddle", 5150.0f, 2350.0f, 150.0f, 200.0f, 2920.0f, 1950.0f);
+			stage.Add<WarpZone>("WarpUpper", 5150.0f, 2750.0f, 150.0f, 200.0f, 6100.0f, 1950.0f);
 
 			// ゴール
-			stage.AddGoal("Goal", 6450.0f, 1950.0f, 150.0f, 250.0f);
+			stage.Add<Goal>("Goal", 6450.0f, 1950.0f, 150.0f, 250.0f);
 
 			// 床スイッチ（棚の上面に薄く置く。踏んだら押されたまま）
 			{
-				auto& floorSwitch = stage.AddFloorSwitch("Switch1", 2600.0f, 1350.0f, 70.0f, 8.0f);
+				auto& floorSwitch = stage.Add<FloorSwitch>("Switch1", 2600.0f, 1350.0f, 70.0f, 8.0f);
 				floorSwitch.isLatch = true;
 			}
 
 			// 霧の発生装置（部屋2全体。Switch1 で天井から吹き出す）
 			{
-				auto& mist = stage.AddMistEmitter("Mist1", 1600.0f, 450.0f, 1100.0f, 1400.0f, "Switch1");
+				auto& mist = stage.Add<MistEmitter>("Mist1", 1600.0f, 450.0f, 1100.0f, 1400.0f, "Switch1");
 				mist.fallSpeed = 500.0f;
 				mist.duration = 3.0f;
 				mist.fadeTime = 1.5f;
 				mist.ventSpacing = 220.0f;
 			}
 
-			// 鏡の足場（スイッチの棚から左上へ。下の足場からのジャンプで頭をぶつけないよう、下面を y 1400 より上にしている）
+			// 透明の足場（スイッチの棚から左上へ。下の足場からのジャンプで頭をぶつけないよう、下面を y 1400 より上にしている）
 			{
-				auto& platform = stage.AddMirrorPlatform("MirrorStep1", 2300.0f, 1400.0f, 150.0f, 25.0f);
+				auto& platform = stage.Add<InvisibleFloor>("MirrorStep1", 2300.0f, 1400.0f, 150.0f, 25.0f);
 				platform.isSolidWhenHidden = true;
 			}
 			{
-				auto& platform = stage.AddMirrorPlatform("MirrorStep2", 2000.0f, 1480.0f, 150.0f, 25.0f);
+				auto& platform = stage.Add<InvisibleFloor>("MirrorStep2", 2000.0f, 1480.0f, 150.0f, 25.0f);
 				platform.isSolidWhenHidden = true;
 			}
 			{
-				auto& platform = stage.AddMirrorPlatform("MirrorStep3", 1750.0f, 1560.0f, 150.0f, 25.0f);
+				auto& platform = stage.Add<InvisibleFloor>("MirrorStep3", 1750.0f, 1560.0f, 150.0f, 25.0f);
 				platform.isSolidWhenHidden = true;
 			}
 		}

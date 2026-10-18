@@ -52,6 +52,9 @@
     <Filter Include="Source\Sound">
       <UniqueIdentifier>{a6033862-b9dc-46ad-afd1-b2e2a8282f24}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Stage\Gimmick">
+      <UniqueIdentifier>{a7e29f0b-8f26-4d51-9bfe-795177aed30a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -176,6 +179,72 @@
     </ClCompile>
     <ClCompile Include="Source\UI\TitleMenu.cpp">
       <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene\InGameScene.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Checkpoint.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Door.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\EmitRay.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\FloorSwitch.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\GimmickBase.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\GimmickEditTools.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\GimmickManager.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\GimmickRegistry.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Goal.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Indicator.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\InvisibleFloor.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\LightMirror.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\LightPlatform.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\LightReceiver.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\MistEmitter.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\RectGimmick.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\StageBlock.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\WarpZone.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\StageCatalog.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\StageLoader.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\GimmickArchive.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -330,6 +399,75 @@
     </ClInclude>
     <ClInclude Include="Source\UI\UISprite.h">
       <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\InGameScene.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Checkpoint.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Door.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\EmitRay.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\FloorSwitch.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\GimmickBase.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\GimmickEditTools.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\GimmickManager.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\GimmickRegistry.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\GimmickView.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Goal.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Indicator.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\InvisibleFloor.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\LightMirror.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\LightPlatform.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\LightReceiver.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\MistEmitter.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\RectGimmick.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\StageBlock.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\WarpZone.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\StageCatalog.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\StageLoader.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\GimmickArchive.h">
+      <Filter>Source\Stage\Gimmick</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

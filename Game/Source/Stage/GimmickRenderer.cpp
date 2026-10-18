@@ -73,7 +73,7 @@ namespace app
 			m_mirrorPlaneZ = backMirror.planeZ;
 
 			// 扉：今開いている分だけ下から縮んでいく（上に引っ込むシャッター）
-			for (const Door& door : stage.GetDoors())
+			for (const Door& door : stage.GetGimmicks().View<Door>())
 			{
 				if (door.IsSolid())
 				{
@@ -82,13 +82,13 @@ namespace app
 			}
 
 			// 受光器：点灯と消灯でモデルを切り替える
-			for (const LightReceiver& receiver : stage.GetLightReceivers())
+			for (const LightReceiver& receiver : stage.GetGimmicks().View<LightReceiver>())
 			{
 				PutRect(receiver.isLit ? ModelKind::ReceiverOn : ModelKind::ReceiverOff, receiver.rect, m_config.receiverDepth);
 			}
 
 			// 光の足場：出ているときだけ
-			for (const LightPlatform& platform : stage.GetLightPlatforms())
+			for (const LightPlatform& platform : stage.GetGimmicks().View<LightPlatform>())
 			{
 				if (platform.IsSolid())
 				{
@@ -97,14 +97,14 @@ namespace app
 			}
 
 			// 光源：光の出る面(+X)を光の向きに回す
-			for (const LightSource& source : stage.GetLightSources())
+			for (const EmitRay& source : stage.GetGimmicks().View<EmitRay>())
 			{
 				const float size = m_config.lightSourceSize;
 				Put(ModelKind::LightSource, source.position, 0.0f, source.angleDeg, Vector3(size, size, m_config.lightSourceDepth));
 			}
 
 			// 反射鏡：表(+Y)が鏡の法線を向くように回す
-			for (const LightMirror& mirror : stage.GetLightMirrors())
+			for (const LightMirror& mirror : stage.GetGimmicks().View<LightMirror>())
 			{
 				Put(ModelKind::LightMirror, mirror.center, 0.0f, mirror.angleDeg,
 					Vector3(mirror.length, m_config.lightMirrorThickness, m_config.lightMirrorDepth));
@@ -125,7 +125,7 @@ namespace app
 			}
 
 			// 床スイッチ：押されると低くつぶれて色が変わる（下端はそのまま）
-			for (const FloorSwitch& floorSwitch : stage.GetFloorSwitches())
+			for (const FloorSwitch& floorSwitch : stage.GetGimmicks().View<FloorSwitch>())
 			{
 				math::Rect rect = floorSwitch.rect;
 				if (floorSwitch.isPressed)
@@ -139,7 +139,7 @@ namespace app
 			PutMistVents(stage);
 
 			// 鏡の足場：霧に触れて見えるようになってから（見えないうちは風景を映しているので描かない）
-			for (const MirrorPlatform& platform : stage.GetMirrorPlatforms())
+			for (const InvisibleFloor& platform : stage.GetGimmicks().View<InvisibleFloor>())
 			{
 				if (platform.isRevealed)
 				{
@@ -148,13 +148,13 @@ namespace app
 			}
 
 			// 合図のランプ：信号がONなら点灯モデル
-			for (const Indicator& indicator : stage.GetIndicators())
+			for (const Indicator& indicator : stage.GetGimmicks().View<Indicator>())
 			{
 				PutRect(indicator.isOn ? ModelKind::IndicatorOn : ModelKind::IndicatorOff, indicator.rect, m_config.indicatorDepth);
 			}
 
 			// ワープの暗がり（信号で止まっているワープは描かない）
-			for (const WarpZone& zone : stage.GetWarpZones())
+			for (const WarpZone& zone : stage.GetGimmicks().View<WarpZone>())
 			{
 				if (zone.disabledBySignal.empty() || !stage.IsSignalOn(zone.disabledBySignal))
 				{
@@ -163,7 +163,7 @@ namespace app
 			}
 
 			// ゴール
-			for (const Goal& goal : stage.GetGoals())
+			for (const Goal& goal : stage.GetGimmicks().View<Goal>())
 			{
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
 			}
@@ -259,7 +259,7 @@ namespace app
 		{
 			const float width = m_config.mistVentWidth;
 			const float height = m_config.mistVentHeight;
-			for (const MistEmitter& emitter : stage.GetMistEmitters())
+			for (const MistEmitter& emitter : stage.GetGimmicks().View<MistEmitter>())
 			{
 				// 天井の面から下にぶら下げる（位置は Stage が天井のあるところだけ選ぶ）
 				stage.GetMistVentPositions(emitter, m_ventPositions);

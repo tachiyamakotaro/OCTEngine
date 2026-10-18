@@ -14,7 +14,7 @@ namespace app
 	{
 		void MirrorInteractor::Update(Stage& stage, const actor::CharacterBase& character)
 		{
-			std::vector<LightMirror>& mirrors = stage.GetLightMirrors();
+			GimmickManager& gimmicks = stage.GetGimmicks();
 			const actor::CharacterCommand& command = character.GetCommand();
 			const math::Vec2& position = character.GetPosition();
 			m_isRotatedThisFrame = false;
@@ -24,7 +24,7 @@ namespace app
 			// 引きずり中：つかむを離した・地面から離れた・鏡が消えた ならやめる
 			if (m_isDragging)
 			{
-				const bool isValid = m_focusedIndex >= 0 && m_focusedIndex < static_cast<int>(mirrors.size());
+				const bool isValid = dynamic_cast<LightMirror*>(gimmicks.Get(static_cast<size_t>(m_focusedIndex))) != nullptr;
 				if (!isValid || !command.grabHold || !character.GetController().IsOnGround())
 				{
 					m_isDragging = false;
@@ -40,7 +40,7 @@ namespace app
 				return;
 			}
 
-			LightMirror& mirror = mirrors[m_focusedIndex];
+			LightMirror& mirror = static_cast<LightMirror&>(*gimmicks.Get(static_cast<size_t>(m_focusedIndex)));
 
 			// 回転
 			if (command.actionTrigger && mirror.isRotatable)
@@ -85,14 +85,13 @@ namespace app
 
 		int MirrorInteractor::FindNearestMirror(const Stage& stage, const actor::CharacterBase& character) const
 		{
-			const std::vector<LightMirror>& mirrors = stage.GetLightMirrors();
+			const GimmickManager& gimmicks = stage.GetGimmicks();
 			const math::Vec2& position = character.GetPosition();
 
 			int nearestIndex = -1;
 			float nearestDistance = interactRangeX;
-			for (size_t i = 0; i < mirrors.size(); ++i)
+			for (const LightMirror& mirror : gimmicks.View<LightMirror>())
 			{
-				const LightMirror& mirror = mirrors[i];
 				if (!mirror.isRotatable && !mirror.isMovable)
 				{
 					continue;
@@ -102,7 +101,7 @@ namespace app
 				if (dx <= nearestDistance && dy >= -interactRangeY * 0.25f && dy <= interactRangeY)
 				{
 					nearestDistance = dx;
-					nearestIndex = static_cast<int>(i);
+					nearestIndex = gimmicks.FindIndex(&mirror);
 				}
 			}
 			return nearestIndex;

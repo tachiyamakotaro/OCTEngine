@@ -6,8 +6,9 @@
  *          ・右：ステージの見取り図
  *              左ドラッグ … 選択して動かす（Snap ON ならグリッドに吸着）
  *              右/中ドラッグ … 画面の移動、ホイール … 拡大縮小
- *          ・「Export C++」… 今の配置を C++ コードにしてクリップボードにコピーする。
- *              ステージ定義（Stage01.cpp など）の関数に貼り戻せば、調整結果がコードに残る。
+ *          ・「Save JSON」… 今の配置を JSON ファイル（StageCatalog.h の地形のファイル・ギミックのファイル）に保存する。
+ *          ・「Load JSON」… JSON ファイルから読み直す（保存していない変更は消えるが、Undo で戻せる）。
+ *          ・何も選んでいないときは、ステージの設定（名前・プレイヤーの開始位置）を変えられる。
  *
  *          ImGui に日本語フォントを読み込んでいないため、画面上の表示は英語にしている。
  */
@@ -15,6 +16,9 @@
 #include "imgui.h"
 #include "Source/Core/Math/Vec2.h"
 #include "Source/Stage/Stage.h"
+#include "Source/Stage/StageCatalog.h"
+#include "Source/Stage/Gimmick/GimmickEditTools.h"
+#include "Source/Stage/Gimmick/GimmickRegistry.h"
 #include <string>
 #include <utility>
 #include <vector>
@@ -53,10 +57,9 @@ namespace app
 			 */
 			void AddCharacter(const char* label, const actor::CharacterBase* character);
 			/**
-			 * @brief 今のステージを C++ のステージ定義コードにする
-			 * @param functionName 関数名
+			 * @brief 保存・読み込みに使うファイルを決める（DebugScene が今のステージの情報を渡す）
 			 */
-			std::string GenerateCppCode(const Stage& stage, const char* functionName) const;
+			void SetStageInfo(const StageInfo* info) { m_stageInfo = info; }
 
 
 		public:
@@ -64,24 +67,12 @@ namespace app
 
 
 		private:
-			/** 選択できる物の種類 */
-			enum class ObjectType
+			/** 選択している物の種類 */
+			enum class SelectionType
 			{
 				None,
-				Block,
-				LightSource,
-				LightMirror,
-				LightReceiver,
-				Door,
-				LightPlatform,
-				BackMirror,
-				FloorSwitch,
-				MistEmitter,
-				MirrorPlatform,
-				Checkpoint,
-				WarpZone,
-				Indicator,
-				Goal,
+				BackMirror,	//!< 奥の鏡（ステージに1つ）
+				Gimmick,	//!< ギミック（index は全ギミックの何番目か）
 			};
 
 			enum class GizmoAxis
@@ -94,28 +85,17 @@ namespace app
 			/** 選択中の物 */
 			struct Selection
 			{
-				ObjectType type = ObjectType::None;
+				SelectionType type = SelectionType::None;
 				int index = -1;
 			};
 
-			/** Undo/Redo 用に保存するステージの中身 */
+			/** Undo/Redo 用に保存するステージの中身（GimmickManager はコピーすると中身も全部コピーされる） */
 			struct Snapshot
 			{
 				std::string name;
+				math::Vec2 playerStart;
 				BackMirror backMirror;
-				std::vector<StageBlock> blocks;
-				std::vector<LightSource> lightSources;
-				std::vector<LightMirror> lightMirrors;
-				std::vector<LightReceiver> lightReceivers;
-				std::vector<Door> doors;
-				std::vector<LightPlatform> lightPlatforms;
-				std::vector<FloorSwitch> floorSwitches;
-				std::vector<MistEmitter> mistEmitters;
-				std::vector<MirrorPlatform> mirrorPlatforms;
-				std::vector<Checkpoint> checkpoints;
-				std::vector<WarpZone> warpZones;
-				std::vector<Indicator> indicators;
-				std::vector<Goal> goals;
+				GimmickManager gimmicks;
 			};
 
 
@@ -124,10 +104,11 @@ namespace app
 			void DrawObjectList(Stage& stage);
 			void DrawProperties(Stage& stage);
 			void DrawCanvas(Stage& stage);
-			void DrawExportWindow();
+			/** 保存・読み込みの結果を出す */
+			void DrawFileMessages();
 
-			/** 新しい物を見取り図の中心に追加して選択する */
-			void AddObject(Stage& stage, ObjectType type);
+			/** 新しいギミックを見取り図の中心に追加して選択する */
+			void AddGimmick(Stage& stage, const GimmickRegistryEntry& entry);
 			/** 選択中の物を複製する */
 			void DuplicateSelected(Stage& stage);
 			/** 選択中の物を消す */
@@ -140,14 +121,8 @@ namespace app
 			math::Vec2 GetAnchor(const Stage& stage, const Selection& selection) const;
 			/** 選択中の物の基準点を動かす */
 			void SetAnchor(Stage& stage, const Selection& selection, const math::Vec2& anchor);
-			/** 重ならない名前を作る（"Block3" など） */
-			std::string MakeUniqueName(const Stage& stage, const char* prefix) const;
-			/** 信号（受光器・スイッチ）の名前を変えたとき、扉と霧のつながりも付け替える */
-			void RenameSignal(Stage& stage, const std::string& oldName, const std::string& newName);
-			/** 信号（受光器・スイッチ）を消したとき、扉と霧のつながりから外す */
-			void RemoveSignal(Stage& stage, const std::string& name);
-			/** 信号（受光器・スイッチ）を選ぶコンボボックス（空も選べる） */
-			void SignalCombo(const Stage& stage, const char* label, std::string& signal);
+			/** 選択中のギミック（ギミックを選んでいなければ nullptr） */
+			GimmickBase* GetSelectedGimmick(Stage& stage) const;
 			/** グリッドに吸着 */
 			float Snap(float value) const;
 
@@ -173,6 +148,8 @@ namespace app
 		private:
 			/** 選択中の物 */
 			Selection m_selection;
+			/** プロパティ欄の入力欄（信号の名前の一覧を毎フレーム入れ直す） */
+			GimmickInspector m_inspector;
 			/** 見取り図の中心に映すワールド座標 */
 			math::Vec2 m_viewCenter;
 			/** 見取り図の拡大率（1ワールド単位あたりのピクセル） */
@@ -199,17 +176,17 @@ namespace app
 			/** 表示するキャラクター */
 			std::vector<std::pair<std::string, const actor::CharacterBase*>> m_characters;
 
-			/** 出力したコード */
-			std::string m_exportText;
-			/** 出力ウィンドウを表示するか */
-			bool m_isShowExport;
-			/** 出力する関数名 */
-			char m_functionName[64];
+			/** 保存・読み込みに使うファイル（DebugScene が渡す） */
+			const StageInfo* m_stageInfo = nullptr;
+			/** 保存・読み込みの結果のメッセージ */
+			std::vector<std::string> m_fileMessages;
+			/** 保存・読み込みに成功したか */
+			bool m_isFileSucceeded = true;
 
 			/** 元に戻す／やり直す履歴 */
 			std::vector<Snapshot> m_undoStack;
 			std::vector<Snapshot> m_redoStack;
-			/** 最後に落ち着いた（操作が終わった）状態と、その比較用コード */
+			/** 最後に落ち着いた（操作が終わった）状態と、その比較用の JSON */
 			Snapshot m_stableSnapshot;
 			std::string m_stableCode;
 			/** 最初の状態を保存したか */

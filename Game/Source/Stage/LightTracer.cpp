@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "LightTracer.h"
 #include <cfloat>
-#include "Stage.h"
+#include "Gimmick/GimmickManager.h"
 
 
 namespace app
@@ -18,16 +18,6 @@ namespace app
 			constexpr float RAY_EPSILON = 0.01f;
 			/** 平行とみなす値 */
 			constexpr float PARALLEL_EPSILON = 1e-6f;
-
-
-			/** 当たった物の種類 */
-			enum class HitKind
-			{
-				None,
-				Block,		//!< ブロック・閉じた扉（光が止まる）
-				Mirror,		//!< 反射鏡
-				Receiver,	//!< 受光器
-			};
 		}
 
 
@@ -94,115 +84,77 @@ namespace app
 		}
 
 
-		void LightTracer::Trace(const Stage& stage, LightTraceResult& out) const
+		void LightTracer::Trace(const GimmickManager& gimmicks, LightTraceResult& out) const
 		{
 			out.Clear();
-			out.litReceivers.assign(stage.GetLightReceivers().size(), false);
-			out.litPlatforms.assign(stage.GetLightPlatforms().size(), false);
-
-			for (const LightSource& source : stage.GetLightSources())
+			for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
 			{
-				if (source.isOn)
+				math::Vec2 origin;
+				math::Vec2 direction;
+				if (gimmick->GetEmittedRay(origin, direction))
 				{
-					TraceBeam(stage, source.position, math::DirectionFromDeg(source.angleDeg), out);
+					TraceBeam(gimmicks, origin, direction, out);
 				}
 			}
 		}
 
 
-		void LightTracer::TraceBeam(const Stage& stage, math::Vec2 origin, math::Vec2 direction, LightTraceResult& out) const
+		void LightTracer::TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, LightTraceResult& out) const
 		{
 			for (int bounce = 0; bounce <= maxBounces; ++bounce)
 			{
-				float nearestT = maxDistance;
-				HitKind hitKind = HitKind::None;
-				int hitIndex = -1;
-				float t = 0.0f;
-
-				// 地形ブロック
-				for (const StageBlock& block : stage.GetBlocks())
+				// 光が止まる・反射する物のうち、一番近い物を探す（通り抜ける物は飛ばす）
+				float nearestDistance = maxDistance;
+				const GimmickBase* nearestGimmick = nullptr;
+				LightHit nearestHit;
+				for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
 				{
-					if (RayIntersectRect(origin, direction, block.rect, t) && t < nearestT)
+					LightHit hit;
+					if (gimmick->IntersectLight(origin, direction, hit)
+						&& hit.response != LightResponse::PassThrough
+						&& hit.distance < nearestDistance)
 					{
-						nearestT = t;
-						hitKind = HitKind::Block;
-					}
-				}
-				// 閉じている扉
-				for (const Door& door : stage.GetDoors())
-				{
-					if (door.IsSolid() && RayIntersectRect(origin, direction, door.GetCurrentRect(), t) && t < nearestT)
-					{
-						nearestT = t;
-						hitKind = HitKind::Block;
-					}
-				}
-				// 受光器
-				const std::vector<LightReceiver>& receivers = stage.GetLightReceivers();
-				for (size_t i = 0; i < receivers.size(); ++i)
-				{
-					if (RayIntersectRect(origin, direction, receivers[i].rect, t) && t < nearestT)
-					{
-						nearestT = t;
-						hitKind = HitKind::Receiver;
-						hitIndex = static_cast<int>(i);
-					}
-				}
-				// 反射鏡
-				const std::vector<LightMirror>& mirrors = stage.GetLightMirrors();
-				for (size_t i = 0; i < mirrors.size(); ++i)
-				{
-					if (RayIntersectSegment(origin, direction, mirrors[i].GetStart(), mirrors[i].GetEnd(), t) && t < nearestT)
-					{
-						nearestT = t;
-						hitKind = HitKind::Mirror;
-						hitIndex = static_cast<int>(i);
+						nearestDistance = hit.distance;
+						nearestGimmick = gimmick.get();
+						nearestHit = hit;
 					}
 				}
 
 				// この線分を記録
-				const math::Vec2 hitPoint = origin + direction * nearestT;
+				const math::Vec2 hitPoint = origin + direction * nearestDistance;
 				out.segments.push_back({ origin, hitPoint, bounce });
 
-				// 線分が通り抜けた光の足場を点灯
-				const std::vector<LightPlatform>& platforms = stage.GetLightPlatforms();
-				for (size_t i = 0; i < platforms.size(); ++i)
+				// 線分が通り抜けた物（光の足場など）を点灯
+				for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
 				{
-					if (RayIntersectRect(origin, direction, platforms[i].rect, t) && t <= nearestT)
+					LightHit hit;
+					if (gimmick->IntersectLight(origin, direction, hit)
+						&& hit.response == LightResponse::PassThrough
+						&& hit.distance <= nearestDistance)
 					{
-						out.litPlatforms[i] = true;
+						out.litGimmicks.push_back(gimmick.get());
 					}
 				}
 
-				switch (hitKind)
+				if (nearestGimmick == nullptr)
 				{
-				case HitKind::Receiver:
-					out.litReceivers[hitIndex] = true;
+					// 何にも当たらず最大距離まで進んだ
+					return;
+				}
+
+				switch (nearestHit.response)
+				{
+				case LightResponse::Absorb:
+					out.litGimmicks.push_back(nearestGimmick);
 					return;
 
-				case HitKind::Mirror:
-				{
-					const LightMirror& mirror = mirrors[hitIndex];
-					math::Vec2 normal = mirror.GetNormal();
-					const bool isFront = math::Dot(direction, normal) < 0.0f;
-					if (!isFront)
-					{
-						if (!mirror.isDoubleSided)
-						{
-							// 裏側に当たった
-							return;
-						}
-						normal = normal * -1.0f;
-					}
-					direction = math::Normalize(math::Reflect(direction, normal));
+				case LightResponse::Reflect:
+					direction = math::Normalize(math::Reflect(direction, nearestHit.normal));
 					origin = hitPoint + direction * RAY_EPSILON;
 					break;
-				}
 
-				case HitKind::Block:
-				case HitKind::None:
+				case LightResponse::Stop:
 				default:
-					// 止まった、または何にも当たらず最大距離まで進んだ
 					return;
 				}
 			}

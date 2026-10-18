@@ -307,31 +307,32 @@ void DebugScene::UpdateStageEvents(const float deltaTime)
 	// ---- 霧：吹いている間、吹き出し口ごとに煙を出し続ける ----
 	// Mist.efk は「横に広がりながら薄れていく煙」（約2秒で消える）なので、
 	// 霧の先端あたりに少しずつ重ねて出すと、霧の層が天井から下りてくるように見える
-	const std::vector<app::stage::MistEmitter>& mists = m_stage.GetMistEmitters();
+	const auto mists = m_stage.GetGimmicks().View<app::stage::MistEmitter>();
 	m_mistPuffTimers.resize(mists.size(), 0.0f);
-	for (size_t i = 0; i < mists.size(); ++i)
+	size_t i = 0;
+	for (const app::stage::MistEmitter& mist : mists)
 	{
-		const app::stage::MistEmitter& mist = mists[i];
+		const size_t index = i++;
 		// 吹き出した瞬間にすぐ出す
 		if (mist.isFiredThisFrame)
 		{
-			m_mistPuffTimers[i] = 0.0f;
+			m_mistPuffTimers[index] = 0.0f;
 		}
 		// 吹いている間だけ出す（吹き終わったら、出ている煙が自然に消えて霧が晴れる）
 		if (!mist.hasFired || mist.timer > mist.duration)
 		{
 			continue;
 		}
-		m_mistPuffTimers[i] -= deltaTime;
-		if (m_mistPuffTimers[i] > 0.0f)
+		m_mistPuffTimers[index] -= deltaTime;
+		if (m_mistPuffTimers[index] > 0.0f)
 		{
 			continue;
 		}
-		m_mistPuffTimers[i] += app::math::Max(m_mistPuffInterval, 0.02f);
+		m_mistPuffTimers[index] += app::math::Max(m_mistPuffInterval, 0.02f);
 
 		const float frontY = mist.GetFrontY();
 		m_stage.GetMistVentPositions(mist, m_ventPositions);
-		const float pitch = m_ventPositions.size() > 1 ? m_ventPositions[1].x - m_ventPositions[0].x : mist.area.Width();
+		const float pitch = m_ventPositions.size() > 1 ? m_ventPositions[1].x - m_ventPositions[0].x : mist.rect.Width();
 		for (const app::math::Vec2& vent : m_ventPositions)
 		{
 			// ① 霧の先端：先端から上へ band の間に出す（下りてくる霧の層）。横は吹き出し口の間隔の半分までずらす
@@ -345,14 +346,14 @@ void DebugScene::UpdateStageEvents(const float deltaTime)
 			if (Random01() < m_mistFillRate && vent.y - frontY > m_mistPuffBand)
 			{
 				const float y = frontY + m_mistPuffBand + (vent.y - frontY - m_mistPuffBand) * Random01();
-				const float x = mist.area.min.x + mist.area.Width() * Random01();
+				const float x = mist.rect.min.x + mist.rect.Width() * Random01();
 				PlayMistPuff(Vector3(x, y, RandomSigned() * m_mistPuffDepth), m_mistPuffScale);
 			}
 		}
 	}
 
-	// ---- 鏡の足場が見えた瞬間：足場に霧がまとわりつく小さな煙を出す ----
-	for (const app::stage::MirrorPlatform& platform : m_stage.GetMirrorPlatforms())
+	// ---- 透明の足場が見えた瞬間：足場に霧がまとわりつく小さな煙を出す ----
+	for (const app::stage::InvisibleFloor& platform : m_stage.GetGimmicks().View<app::stage::InvisibleFloor>())
 	{
 		if (!platform.isRevealedThisFrame)
 		{
@@ -544,7 +545,7 @@ void DebugScene::DrawDebugWindow()
 	ImGui::Text("Warps: %d   %s", m_warpCount, m_isCleared ? "CLEARED!" : "");
 
 	// チェックポイントへワープ（部屋2などを最初から確かめたいとき）
-	if (!m_stage.GetCheckpoints().empty())
+	if (!m_stage.GetGimmicks().View<app::stage::Checkpoint>().empty())
 	{
 		ImGui::TextUnformatted("Warp:");
 		if (ImGui::SmallButton("Start"))
@@ -553,7 +554,7 @@ void DebugScene::DrawDebugWindow()
 			m_respawnName.clear();
 			RestartPlayers();
 		}
-		for (const app::stage::Checkpoint& checkpoint : m_stage.GetCheckpoints())
+		for (const app::stage::Checkpoint& checkpoint : m_stage.GetGimmicks().View<app::stage::Checkpoint>())
 		{
 			ImGui::SameLine();
 			ImGui::PushID(&checkpoint);

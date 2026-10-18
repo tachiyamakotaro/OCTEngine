@@ -156,7 +156,7 @@ namespace app
 			void DrawLayer(const LayerPainter& painter, const Stage& stage, const bool isFillBlocks, const bool isDrawGimmicks, const bool isDrawLight)
 			{
 				// 地形ブロック
-				for (const StageBlock& block : stage.GetBlocks())
+				for (const StageBlock& block : stage.GetGimmicks().View<StageBlock>())
 				{
 					painter.Rect(block.rect, isFillBlocks ? OVERLAY_COLOR_BLOCK_FILL : 0, OVERLAY_COLOR_BLOCK_LINE);
 				}
@@ -164,43 +164,43 @@ namespace app
 				if (isDrawGimmicks)
 				{
 					// 光の足場（出ているときは塗り、消えているときは枠だけ）
-					for (const LightPlatform& platform : stage.GetLightPlatforms())
+					for (const LightPlatform& platform : stage.GetGimmicks().View<LightPlatform>())
 					{
 						painter.Rect(platform.rect, platform.IsSolid() ? OVERLAY_COLOR_PLATFORM_ON : 0, OVERLAY_COLOR_PLATFORM_OFF, platform.IsSolid() ? 2.0f : 1.0f);
 					}
 
 					// 扉（今の範囲を塗り、閉じたときの範囲を枠で）
-					for (const Door& door : stage.GetDoors())
+					for (const Door& door : stage.GetGimmicks().View<Door>())
 					{
 						if (door.IsSolid()) { painter.Rect(door.GetCurrentRect(), OVERLAY_COLOR_DOOR_FILL, 0); }
-						painter.Rect(door.closedRect, 0, OVERLAY_COLOR_DOOR_LINE, 1.0f);
+						painter.Rect(door.rect, 0, OVERLAY_COLOR_DOOR_LINE, 1.0f);
 					}
 
 					// 受光器
-					for (const LightReceiver& receiver : stage.GetLightReceivers())
+					for (const LightReceiver& receiver : stage.GetGimmicks().View<LightReceiver>())
 					{
 						painter.Rect(receiver.rect, receiver.isLit ? OVERLAY_COLOR_RECEIVER_ON : OVERLAY_COLOR_RECEIVER_OFF, OVERLAY_COLOR_TEXT, 1.0f);
 					}
 
 					// 床スイッチ（押されると緑）
-					for (const FloorSwitch& floorSwitch : stage.GetFloorSwitches())
+					for (const FloorSwitch& floorSwitch : stage.GetGimmicks().View<FloorSwitch>())
 					{
 						painter.Rect(floorSwitch.rect, floorSwitch.isPressed ? OVERLAY_COLOR_SWITCH_ON : OVERLAY_COLOR_SWITCH_OFF, 0);
 					}
 
 					// 霧の範囲（枠）と霧の先端（出ている間だけ）
-					for (const MistEmitter& emitter : stage.GetMistEmitters())
+					for (const MistEmitter& emitter : stage.GetGimmicks().View<MistEmitter>())
 					{
-						painter.Rect(emitter.area, 0, OVERLAY_COLOR_MIST_AREA, 1.0f);
+						painter.Rect(emitter.rect, 0, OVERLAY_COLOR_MIST_AREA, 1.0f);
 						if (emitter.IsActive())
 						{
 							const float frontY = emitter.GetFrontY();
-							painter.Line({ emitter.area.min.x, frontY }, { emitter.area.max.x, frontY }, OVERLAY_COLOR_MIST_FRONT, 2.0f);
+							painter.Line({ emitter.rect.min.x, frontY }, { emitter.rect.max.x, frontY }, OVERLAY_COLOR_MIST_FRONT, 2.0f);
 						}
 					}
 
 					// 鏡の足場（見えるようになったら塗り、見えないうちは点線）
-					for (const MirrorPlatform& platform : stage.GetMirrorPlatforms())
+					for (const InvisibleFloor& platform : stage.GetGimmicks().View<InvisibleFloor>())
 					{
 						if (platform.isRevealed)
 						{
@@ -213,24 +213,24 @@ namespace app
 					}
 
 					// チェックポイント（点線）
-					for (const Checkpoint& checkpoint : stage.GetCheckpoints())
+					for (const Checkpoint& checkpoint : stage.GetGimmicks().View<Checkpoint>())
 					{
 						painter.DashedRect(checkpoint.rect, OVERLAY_COLOR_CHECKPOINT, 10.0f);
 					}
 
 					// ワープ（点線と、行き先への線）
-					for (const WarpZone& zone : stage.GetWarpZones())
+					for (const WarpZone& zone : stage.GetGimmicks().View<WarpZone>())
 					{
 						painter.DashedRect(zone.rect, OVERLAY_COLOR_WARP, 10.0f);
 						painter.Line((zone.rect.min + zone.rect.max) * 0.5f, zone.destination, OVERLAY_COLOR_WARP, 1.0f);
 					}
 
 					// 合図のランプとゴール
-					for (const Indicator& indicator : stage.GetIndicators())
+					for (const Indicator& indicator : stage.GetGimmicks().View<Indicator>())
 					{
 						painter.Rect(indicator.rect, indicator.isOn ? OVERLAY_COLOR_INDICATOR_ON : OVERLAY_COLOR_INDICATOR_OFF, 0);
 					}
-					for (const Goal& goal : stage.GetGoals())
+					for (const Goal& goal : stage.GetGimmicks().View<Goal>())
 					{
 						painter.Rect(goal.rect, 0, OVERLAY_COLOR_GOAL, 2.0f);
 					}
@@ -249,7 +249,7 @@ namespace app
 				if (isDrawGimmicks)
 				{
 					// 反射鏡（表を明るく、裏を暗く。表側に短い線）
-					for (const LightMirror& lightMirror : stage.GetLightMirrors())
+					for (const LightMirror& lightMirror : stage.GetGimmicks().View<LightMirror>())
 					{
 						const math::Vec2 backOffset = lightMirror.GetNormal() * -3.0f;
 						painter.Line(lightMirror.GetStart() + backOffset, lightMirror.GetEnd() + backOffset,
@@ -259,7 +259,7 @@ namespace app
 					}
 
 					// 光源
-					for (const LightSource& source : stage.GetLightSources())
+					for (const EmitRay& source : stage.GetGimmicks().View<EmitRay>())
 					{
 						painter.Dot(source.position, 7.0f, source.isOn ? OVERLAY_COLOR_SOURCE : OVERLAY_COLOR_MIRROR_BACK);
 					}
@@ -325,9 +325,10 @@ namespace app
 			if (interactor != nullptr)
 			{
 				const int index = interactor->GetFocusedMirrorIndex();
-				if (index >= 0 && index < static_cast<int>(stage.GetLightMirrors().size()))
+				const GimmickBase* focused = index >= 0 ? stage.GetGimmicks().Get(static_cast<size_t>(index)) : nullptr;
+				if (const LightMirror* focusedMirror = dynamic_cast<const LightMirror*>(focused))
 				{
-					const LightMirror& lightMirror = stage.GetLightMirrors()[index];
+					const LightMirror& lightMirror = *focusedMirror;
 					std::string prompt;
 					if (lightMirror.isRotatable) { prompt += "[B] Rotate"; }
 					if (lightMirror.isMovable) { prompt += prompt.empty() ? "[RB] Drag" : "   [RB] Drag"; }

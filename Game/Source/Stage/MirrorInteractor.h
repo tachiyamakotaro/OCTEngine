@@ -45,7 +45,8 @@ namespace app
 			 */
 			void Update(Stage& stage, const actor::CharacterBase& character);
 			/**
-			 * @brief 操作対象の鏡（なければ -1）。UI で「Bで回転」などを出すときに使う
+			 * @brief 操作対象の鏡が、全ギミックの何番目か（なければ -1）。UI で「Bで回転」などを出すときに使う
+			 * @details stage.GetGimmicks().Get(index) で取り出し、LightMirror に dynamic_cast して使う
 			 */
 			inline int GetFocusedMirrorIndex() const { return m_focusedIndex; }
 			/**
@@ -80,7 +81,7 @@ namespace app
 
 
 		private:
-			/** 操作対象の鏡 */
+			/** 操作対象の鏡（全ギミックの何番目か） */
 			int m_focusedIndex;
 			/** 引きずっているか */
 			bool m_isDragging;
