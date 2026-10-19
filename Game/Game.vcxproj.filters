@@ -116,9 +116,6 @@
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp">
       <Filter>Source\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Stage\MirrorInteractor.cpp">
-      <Filter>Source\Stage</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Actor\Character\CharacterBase.cpp">
       <Filter>Source\Actor\Character</Filter>
     </ClCompile>
@@ -246,17 +243,11 @@
     <ClCompile Include="Source\Stage\Gimmick\GimmickArchive.cpp">
       <Filter>Source\Stage\Gimmick</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Render\FakeWallRenderer.cpp">
+    <ClCompile Include="Source\Render\LightBeamRenderer.cpp">
       <Filter>Source\Render</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Stage\HandMirrorInteractor.cpp">
+    <ClCompile Include="Source\Stage\MirrorInteractor.cpp">
       <Filter>Source\Stage</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Stage\Gimmick\FakeWall.cpp">
-      <Filter>Source\Stage\Gimmick</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Stage\Gimmick\HandMirror.cpp">
-      <Filter>Source\Stage\Gimmick</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -326,9 +317,6 @@
     </ClInclude>
     <ClInclude Include="Source\Physics\SimpleCollisionWorld.h">
       <Filter>Source\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Stage\MirrorInteractor.h">
-      <Filter>Source\Stage</Filter>
     </ClInclude>
     <ClInclude Include="Source\Stage\Stages\Stage01.h">
       <Filter>Source\Stage\Stages</Filter>
@@ -481,17 +469,11 @@
     <ClInclude Include="Source\Stage\Gimmick\GimmickArchive.h">
       <Filter>Source\Stage\Gimmick</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Render\FakeWallRenderer.h">
+    <ClInclude Include="Source\Render\LightBeamRenderer.h">
       <Filter>Source\Render</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Stage\HandMirrorInteractor.h">
+    <ClInclude Include="Source\Stage\MirrorInteractor.h">
       <Filter>Source\Stage</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Stage\Gimmick\FakeWall.h">
-      <Filter>Source\Stage\Gimmick</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Stage\Gimmick\HandMirror.h">
-      <Filter>Source\Stage\Gimmick</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

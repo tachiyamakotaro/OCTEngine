@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file IInputDevice.h
  * @brief 入力デバイスのインターフェース
  * @details PlayerController は g_pad を直接触らず、このインターフェース越しに入力を読む。
@@ -26,7 +26,6 @@ namespace app
 			Jump,		//!< ジャンプ
 			Grab,		//!< つかむ（自動つかまりOFFのとき使う）
 			Action,		//!< 調べる・鏡を動かすなど
-			HandMirror,	//!< 手鏡を構える（押している間）
 			Num
 		};
 

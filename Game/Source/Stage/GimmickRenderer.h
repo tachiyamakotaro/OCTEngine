@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file GimmickRenderer.h
  * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・ゴール）をモデルで描く
  * @details ギミックの位置・大きさ・状態（扉の開き具合、受光器の点灯など）は毎フレーム Stage から読むので、
@@ -101,13 +101,12 @@ namespace app
 				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
 				float warpGateDepth = 300.0f;
 				float goalDepth = 150.0f;
-				float handMirrorDepth = 40.0f;
 				// ---- 大きさ ----
 				/** 光源の箱の一辺 */
 				float lightSourceSize = 30.0f;
 				/** 反射鏡の板の厚さ */
 				float lightMirrorThickness = 10.0f;
-				/** 光の太さ */
+				/** 光の太さ（今は使っていない。光は LightBeamRenderer が半透明で描き、細い光の太さはそちらの Config の thinBeamWidth） */
 				float lightBeamThickness = 8.0f;
 				/** 奥の鏡の枠の太さ */
 				float mirrorFrameThickness = 20.0f;
@@ -116,10 +115,6 @@ namespace app
 				/** 霧の吹き出し口の大きさ（幅・高さ） */
 				float mistVentWidth = 60.0f;
 				float mistVentHeight = 30.0f;
-				/** 手鏡の長さ（反射鏡のモデルを使い回す） */
-				float handMirrorLength = 60.0f;
-				/** 構えた手鏡を置く奥行き（プレイヤーより少し手前） */
-				float handMirrorHeldZ = -30.0f;
 
 				/** 鏡に映った像も描くか */
 				bool isDrawReflection = true;

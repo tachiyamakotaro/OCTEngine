@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file GamePadInputDevice.cpp
  * @brief OCTEngine(k2EngineLow) の g_pad を読む入力デバイス
  */
@@ -36,7 +36,6 @@ namespace app
 			case InputAction::Jump:		return pad->IsPress(enButtonA);
 			case InputAction::Grab:		return pad->IsPress(enButtonRB1);
 			case InputAction::Action:	return pad->IsPress(enButtonB);
-			case InputAction::HandMirror:	return pad->IsPress(enButtonLB1);
 			default:					return false;
 			}
 		}

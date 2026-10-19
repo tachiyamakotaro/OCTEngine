@@ -103,7 +103,7 @@ namespace app
 					Vector3(mirror.length, m_config.lightMirrorThickness, m_config.lightMirrorDepth));
 			}
 
-			// 光は半透明にするため、FakeWallRenderer が描く（ここでは描かない）
+			// 光は半透明にするため、LightBeamRenderer が描く（ここでは描かない）
 
 			// 床スイッチ：押されると低くつぶれて色が変わる（下端はそのまま）
 			for (const FloorSwitch& floorSwitch : stage.GetGimmicks().View<FloorSwitch>())
@@ -140,21 +140,6 @@ namespace app
 				if (zone.disabledBySignal.empty() || !stage.IsSignalOn(zone.disabledBySignal))
 				{
 					PutRect(ModelKind::WarpGate, zone.rect, m_config.warpGateDepth);
-				}
-			}
-
-			// 手鏡：拾う前は置き場所に立てておき、拾ったあとは構えている間だけ手元に出す
-			// （反射鏡のモデルを使い回す。鏡面(+Y)を手鏡の向きに回す）
-			for (const HandMirror& handMirror : stage.GetGimmicks().View<HandMirror>())
-			{
-				const Vector3 size(m_config.handMirrorLength, m_config.lightMirrorThickness, m_config.handMirrorDepth);
-				if (!handMirror.isCollected)
-				{
-					Put(ModelKind::LightMirror, (handMirror.rect.min + handMirror.rect.max) * 0.5f, 0.0f, -90.0f, size);
-				}
-				else if (handMirror.isRaised)
-				{
-					Put(ModelKind::LightMirror, handMirror.holdPosition, m_config.handMirrorHeldZ, handMirror.GetAimDeg() - 90.0f, size);
 				}
 			}
 

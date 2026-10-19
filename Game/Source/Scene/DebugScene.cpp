@@ -98,14 +98,8 @@ namespace app
 		rendererConfig.isPivotAtBottom = true;
 		m_stageRenderer.Init(rendererConfig);
 
-		// 偽物の壁（本物の地形と見分けがつかないように、地形と同じモデル・置き方にする）と、手鏡の視界
-		app::render::FakeWallRenderer::Config fakeWallConfig;
-		fakeWallConfig.wallModelPath = rendererConfig.modelPath;
-		fakeWallConfig.wallUpAxis = rendererConfig.upAxis;
-		fakeWallConfig.wallModelSize = rendererConfig.modelSize;
-		fakeWallConfig.isWallPivotAtBottom = rendererConfig.isPivotAtBottom;
-		fakeWallConfig.wallDepth = rendererConfig.depth;
-		m_fakeWallRenderer.Init(fakeWallConfig);
+		// 光（半透明。Assets/shader/lightBeam.fx）
+		m_lightBeamRenderer.Init(app::render::LightBeamRenderer::Config());
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
@@ -165,9 +159,6 @@ namespace app
 		}
 		m_player.Update();
 		m_mirrorInteractor.Update(m_stage, m_player);
-		// 手鏡：構える・傾ける（プレイヤーの更新のあと）。拾っていれば、手鏡のボタンが使えるようにする
-		m_handMirrorInteractor.Update(m_stage, m_player, deltaTime);
-		m_player.GetPlayerController().SetHandMirrorUsable(m_handMirrorInteractor.HasHandMirror());
 
 		UpdateWarpAndGoal();
 		UpdateCheckpoint();
@@ -182,7 +173,7 @@ namespace app
 
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
-		m_fakeWallRenderer.Update(m_stage);
+		m_lightBeamRenderer.Update(m_stage);
 		UpdateCamera(deltaTime, false);
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
 		m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
@@ -198,13 +189,12 @@ namespace app
 	void DebugScene::Render(RenderContext& rc)
 	{
 		m_stageRenderer.Draw(rc);
-		m_fakeWallRenderer.DrawWalls(rc);
 		m_gimmickRenderer.Draw(rc);
 		m_player.Render(rc);
 		// 半透明のガラスは、ほかのモデルを全部登録したあとに登録する（エンジンは登録した順に描く）
 		m_mirrorGlass.Draw(rc);
-		// 手鏡の視界の扇形（半透明。いちばん手前にあるので最後）
-		m_fakeWallRenderer.DrawFan(rc);
+		// 光（半透明。最後に登録する）
+		m_lightBeamRenderer.Draw(rc);
 	}
 
 
@@ -277,7 +267,6 @@ namespace app
 	{
 		m_stage.ResetRuntimeState();
 		m_mirrorInteractor.Reset();
-		m_handMirrorInteractor.Reset();
 
 		m_player.SetPosition(m_respawnPosition);
 		m_player.SetFacing(1);
@@ -590,7 +579,6 @@ namespace app
 		ImGui::Text("Vel   : (%.1f, %.1f)", controller.GetVelocity().x, controller.GetVelocity().y);
 		ImGui::Text("Ground: %s  Wall L/R: %s/%s", controller.IsOnGround() ? "yes" : "no",
 			controller.IsTouchingWall(-1) ? "yes" : "no", controller.IsTouchingWall(1) ? "yes" : "no");
-		ImGui::Text("Hand Mirror: %s", !m_handMirrorInteractor.HasHandMirror() ? "none" : (m_handMirrorInteractor.IsRaised() ? "raised (LB)" : "have"));
 
 		if (ImGui::Button("Restart (F5)"))
 		{

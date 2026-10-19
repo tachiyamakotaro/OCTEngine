@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file GimmickRegistry.cpp
  * @brief エディタで置けるギミックの一覧
  */
@@ -38,8 +38,6 @@ namespace app
 				{ "Warp", "Warp", [](const math::Vec2& p) { return std::make_unique<WarpZone>("", p.x, p.y, 150.0f, 200.0f, p.x - 300.0f, p.y); } },
 				{ "Lamp", "Lamp", [](const math::Vec2& p) { return std::make_unique<Indicator>("", p.x, p.y, 40.0f, 30.0f, ""); } },
 				{ "Goal", "Goal", [](const math::Vec2& p) { return std::make_unique<Goal>("", p.x, p.y, 150.0f, 250.0f); } },
-				{ "Hand Mirror", "HandMirror", [](const math::Vec2& p) { return std::make_unique<HandMirror>("", p.x, p.y, 50.0f, 80.0f); } },
-				{ "Fake Wall", "FakeWall", [](const math::Vec2& p) { return std::make_unique<FakeWall>("", p.x, p.y, 100.0f, 300.0f); } },
 			};
 			return REGISTRY;
 		}

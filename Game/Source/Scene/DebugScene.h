@@ -1,14 +1,13 @@
 #pragma once
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Input/GamePadInputDevice.h"
-#include "Source/Render/FakeWallRenderer.h"
+#include "Source/Render/LightBeamRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Scene/IScene.h"
 #include "Source/Sound/GameplaySEPlayer.h"
 #include "Source/Stage/Editor/StageDebugOverlay.h"
 #include "Source/Stage/Editor/StageEditor.h"
 #include "Source/Stage/GimmickRenderer.h"
-#include "Source/Stage/HandMirrorInteractor.h"
 #include "Source/Stage/MirrorInteractor.h"
 #include "Source/Stage/Stage.h"
 #include "Source/Stage/StageRenderer.h"
@@ -28,7 +27,8 @@
   *          ・Player           … プレイヤー（奥の鏡に映った姿も一緒に描く）
   *          ・MirrorInteractor … 反射鏡の回転・移動
   *          ・StageRenderer    … 地形をモデル（Box.tkm）で描く（鏡に映った床も）
-  *          ・GimmickRenderer  … 扉・受光器・光の足場・光源・反射鏡・光・鏡の枠をモデルで描く
+  *          ・GimmickRenderer  … 扉・受光器・光の足場・光源・反射鏡・鏡の枠をモデルで描く
+  *          ・LightBeamRenderer… 光源から出る光を半透明で描く（Assets/shader/lightBeam.fx）
   *          ・MirrorGlass      … 本物の世界と鏡の中の世界の境目（奥の鏡の面）に置く、ステージ全体ほどの半透明のガラス
   *          ・霧のエフェクト   … 霧が吹いている間、Effekseer の煙（Assets/effect/Mist.efk）を霧の先端あたりに出し続ける
   *          ・StageDebugOverlay… 当たり判定などを画面に重ねて描く（デバッグ用）
@@ -110,16 +110,14 @@ namespace app
 		app::actor::Player m_player;
 		/** 反射鏡の操作 */
 		app::stage::MirrorInteractor m_mirrorInteractor;
-		/** 手鏡の操作 */
-		app::stage::HandMirrorInteractor m_handMirrorInteractor;
 		/** 地形の描画 */
 		app::stage::StageRenderer m_stageRenderer;
 		/** ギミックの描画 */
 		app::stage::GimmickRenderer m_gimmickRenderer;
 		/** 鏡の境目の半透明ガラス */
 		app::render::MirrorGlass m_mirrorGlass;
-		/** 偽物の壁と、手鏡の視界の扇形の描画 */
-		app::render::FakeWallRenderer m_fakeWallRenderer;
+		/** 光の描画（半透明） */
+		app::render::LightBeamRenderer m_lightBeamRenderer;
 		/** デバッグ表示 */
 		app::stage::StageDebugOverlay m_overlay;
 		/** ステージエディタ */

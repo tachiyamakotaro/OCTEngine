@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file PlayerController.cpp
  * @brief プレイヤーの入力をキャラクターコマンドに変換するクラス
  */
@@ -34,15 +34,6 @@ namespace app
 				outCommand.jumpHold = isJumpPressed;
 				outCommand.grabHold = m_device->IsPress(InputAction::Grab);
 				outCommand.actionTrigger = isActionPressed && !m_wasActionPressed;
-
-				// 手鏡を構えている間は、上下で手鏡を傾ける（しゃがむ・崖を登る・手を離すには使わない）
-				outCommand.handMirrorHold = m_isHandMirrorUsable && m_device->IsPress(InputAction::HandMirror);
-				if (outCommand.handMirrorHold)
-				{
-					outCommand.handMirrorAim = (outCommand.up ? 1.0f : 0.0f) - (outCommand.down ? 1.0f : 0.0f);
-					outCommand.up = false;
-					outCommand.down = false;
-				}
 			}
 
 			// 受付停止中も前フレームの状態は更新する（再開した瞬間に「押した」と誤判定しないため）
@@ -55,7 +46,6 @@ namespace app
 			: m_device(device)
 			, m_isMirrorX(false)
 			, m_isEnabled(true)
-			, m_isHandMirrorUsable(false)
 			, m_wasJumpPressed(false)
 			, m_wasActionPressed(false)
 		{}
