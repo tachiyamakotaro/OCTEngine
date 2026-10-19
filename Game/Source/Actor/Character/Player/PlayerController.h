@@ -40,6 +40,11 @@ namespace app
 			 */
 			inline void SetEnabled(const bool isEnabled) { m_isEnabled = isEnabled; }
 			inline bool IsEnabled() const { return m_isEnabled; }
+			/**
+			 * @brief 手鏡を使えるか（手鏡を拾ったら true。DebugScene が毎フレーム入れる）
+			 * @details 使える間は、手鏡のボタンを押している間だけ、上下の入力が手鏡の傾きになる
+			 */
+			inline void SetHandMirrorUsable(const bool isUsable) { m_isHandMirrorUsable = isUsable; }
 
 
 		public:
@@ -61,6 +66,8 @@ namespace app
 			bool m_isMirrorX;
 			/** 入力を受け付けるか */
 			bool m_isEnabled;
+			/** 手鏡を使えるか */
+			bool m_isHandMirrorUsable;
 			/** 前フレームにジャンプを押していたか */
 			bool m_wasJumpPressed;
 			/** 前フレームにアクションを押していたか */

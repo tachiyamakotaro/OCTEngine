@@ -246,6 +246,18 @@
     <ClCompile Include="Source\Stage\Gimmick\GimmickArchive.cpp">
       <Filter>Source\Stage\Gimmick</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Render\FakeWallRenderer.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\HandMirrorInteractor.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\FakeWall.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\HandMirror.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -467,6 +479,18 @@
       <Filter>Source\Stage</Filter>
     </ClInclude>
     <ClInclude Include="Source\Stage\Gimmick\GimmickArchive.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\FakeWallRenderer.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\HandMirrorInteractor.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\FakeWall.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\HandMirror.h">
       <Filter>Source\Stage\Gimmick</Filter>
     </ClInclude>
   </ItemGroup>

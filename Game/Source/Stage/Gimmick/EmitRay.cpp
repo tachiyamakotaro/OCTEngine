@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file EmitRay.cpp
  * @brief 光を出すギミック
  */
@@ -70,6 +70,12 @@ namespace app
 			ImGui::DragFloat2("Position", &position.x, 1.0f, 0.0f, 0.0f, "%.1f");
 			inspector.EditAngle("Angle", angleDeg, 45.0f);
 			ImGui::Checkbox("On", &isOn);
+			ImGui::Checkbox("Wide Beam", &isWideBeam);
+			ImGui::SetItemTooltip("ON: a thick beam. With a Band fake wall, the wall disappears as wide as the beam.");
+			if (isWideBeam)
+			{
+				ImGui::DragFloat("Wide Beam Width", &wideBeamWidth, 1.0f, 1.0f, 1000.0f, "%.0f");
+			}
 		}
 
 
@@ -78,6 +84,8 @@ namespace app
 			archive.Field("position", position);
 			archive.Field("angleDeg", angleDeg);
 			archive.Field("isOn", isOn);
+			archive.Field("isWideBeam", isWideBeam);
+			archive.Field("wideBeamWidth", wideBeamWidth);
 		}
 	}
 }

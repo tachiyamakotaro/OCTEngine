@@ -56,8 +56,12 @@ cbuffer DirectionLightCb : register(b1)
     float  shadowBias;
     float4x4 mLVP;
 
-    PointLight ptLights[4];
+        PointLight ptLights[4];
     int        numPtLights;
+#ifdef MODEL_CB_EXTRA
+    // model.fx を include して、この後ろに値を足すシェーダー用（fakeWall.fx など）。ふつうのモデルでは何も足さない
+    MODEL_CB_EXTRA
+#endif
 }
 
 ///////////////////////////////////////

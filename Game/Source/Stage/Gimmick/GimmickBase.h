@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file GimmickBase.h
  * @brief ステージに置く物（ギミック）の基底クラス
  * @details ステージに置く物は、地形ブロックもふくめて全部このクラスを継承する。
@@ -15,10 +15,10 @@
  *          「= 0」の付いた関数だけは、必ず override する。
  */
 #pragma once
+#include "Source/Core/Math/Rect.h"
 #include <memory>
 #include <string>
 #include <vector>
-#include "Source/Core/Math/Rect.h"
 
 
 namespace app
@@ -153,6 +153,26 @@ namespace app
 			 * @param outRect 当たり判定の範囲（判定があるときだけ書き込む）
 			 */
 			virtual CollisionKind GetCollision(math::Rect& outRect) const { return CollisionKind::None; }
+			/**
+			 * @brief box と重なる当たり判定を out に足す
+			 * @details ふつうは GetCollision の矩形1つ。当たり判定が1つの矩形で表せない物（偽物の壁）だけ override する
+			 * @param out 足す先（nullptr なら、重なるかどうかだけ調べる）
+			 * @return 重なった当たり判定の種類（重ならなければ None）
+			 */
+			virtual CollisionKind QueryCollision(const math::Rect& box, std::vector<math::Rect>* out) const
+			{
+				math::Rect collision;
+				const CollisionKind kind = GetCollision(collision);
+				if (kind == CollisionKind::None || !box.Overlaps(collision))
+				{
+					return CollisionKind::None;
+				}
+				if (out != nullptr)
+				{
+					out->push_back(collision);
+				}
+				return kind;
+			}
 
 
 		public:
@@ -163,6 +183,8 @@ namespace app
 			 * @param outDirection 光の向き（長さ1）
 			 */
 			virtual bool GetEmittedRay(math::Vec2& outOrigin, math::Vec2& outDirection) const { return false; }
+			/** @brief 出している光の太さ（0 ならふつうの細い光。光源だけ override する） */
+			virtual float GetEmittedBeamWidth() const { return 0.0f; }
 			/**
 			 * @brief 光が当たるか調べる（光に反応する物だけ override する）
 			 * @param origin 光の始点

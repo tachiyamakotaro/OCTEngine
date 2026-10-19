@@ -285,6 +285,7 @@
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
+    <ClCompile Include="Source\Render\FakeWallRenderer.cpp" />
     <ClCompile Include="Source\Render\MirrorGlass.cpp" />
     <ClCompile Include="Source\Scene\DebugScene.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
@@ -299,6 +300,7 @@
     <ClCompile Include="Source\Stage\Gimmick\Checkpoint.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Door.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\EmitRay.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\FakeWall.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\FloorSwitch.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickArchive.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickBase.cpp" />
@@ -306,6 +308,7 @@
     <ClCompile Include="Source\Stage\Gimmick\GimmickManager.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickRegistry.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Goal.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\HandMirror.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Indicator.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\InvisibleFloor.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\LightMirror.cpp" />
@@ -315,6 +318,7 @@
     <ClCompile Include="Source\Stage\Gimmick\RectGimmick.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\StageBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\WarpZone.cpp" />
+    <ClCompile Include="Source\Stage\HandMirrorInteractor.cpp" />
     <ClCompile Include="Source\Stage\LightTracer.cpp" />
     <ClCompile Include="Source\Stage\MirrorInteractor.cpp" />
     <ClCompile Include="Source\Stage\Stage.cpp" />
@@ -359,6 +363,7 @@
     <ClInclude Include="Source\Physics\ICollisionWorld.h" />
     <ClInclude Include="Source\Physics\MirroredCollisionWorld.h" />
     <ClInclude Include="Source\Physics\SimpleCollisionWorld.h" />
+    <ClInclude Include="Source\Render\FakeWallRenderer.h" />
     <ClInclude Include="Source\Render\MirrorGlass.h" />
     <ClInclude Include="Source\Render\MirrorReflection.h" />
     <ClInclude Include="Source\Scene\DebugScene.h" />
@@ -377,6 +382,7 @@
     <ClInclude Include="Source\Stage\Gimmick\Checkpoint.h" />
     <ClInclude Include="Source\Stage\Gimmick\Door.h" />
     <ClInclude Include="Source\Stage\Gimmick\EmitRay.h" />
+    <ClInclude Include="Source\Stage\Gimmick\FakeWall.h" />
     <ClInclude Include="Source\Stage\Gimmick\FloorSwitch.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickArchive.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickBase.h" />
@@ -385,6 +391,7 @@
     <ClInclude Include="Source\Stage\Gimmick\GimmickRegistry.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickView.h" />
     <ClInclude Include="Source\Stage\Gimmick\Goal.h" />
+    <ClInclude Include="Source\Stage\Gimmick\HandMirror.h" />
     <ClInclude Include="Source\Stage\Gimmick\Indicator.h" />
     <ClInclude Include="Source\Stage\Gimmick\InvisibleFloor.h" />
     <ClInclude Include="Source\Stage\Gimmick\LightMirror.h" />
@@ -394,6 +401,7 @@
     <ClInclude Include="Source\Stage\Gimmick\RectGimmick.h" />
     <ClInclude Include="Source\Stage\Gimmick\StageBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\WarpZone.h" />
+    <ClInclude Include="Source\Stage\HandMirrorInteractor.h" />
     <ClInclude Include="Source\Stage\LightTracer.h" />
     <ClInclude Include="Source\Stage\MirrorInteractor.h" />
     <ClInclude Include="Source\Stage\Stage.h" />

@@ -6,21 +6,23 @@
  *          「信号」= 受光器の点灯 または スイッチが押されていること。名前で指定する。
  */
 #pragma once
-#include "Source/Core/Math/Rect.h"
-#include "Gimmick/GimmickBase.h"
-#include "Gimmick/StageBlock.h"
-#include "Gimmick/EmitRay.h"
-#include "Gimmick/LightMirror.h"
-#include "Gimmick/LightReceiver.h"
-#include "Gimmick/Door.h"
-#include "Gimmick/LightPlatform.h"
-#include "Gimmick/FloorSwitch.h"
-#include "Gimmick/MistEmitter.h"
-#include "Gimmick/InvisibleFloor.h"
 #include "Gimmick/Checkpoint.h"
-#include "Gimmick/WarpZone.h"
-#include "Gimmick/Indicator.h"
+#include "Gimmick/Door.h"
+#include "Gimmick/EmitRay.h"
+#include "Gimmick/FakeWall.h"
+#include "Gimmick/FloorSwitch.h"
+#include "Gimmick/GimmickBase.h"
 #include "Gimmick/Goal.h"
+#include "Gimmick/HandMirror.h"
+#include "Gimmick/Indicator.h"
+#include "Gimmick/InvisibleFloor.h"
+#include "Gimmick/LightMirror.h"
+#include "Gimmick/LightPlatform.h"
+#include "Gimmick/LightReceiver.h"
+#include "Gimmick/MistEmitter.h"
+#include "Gimmick/StageBlock.h"
+#include "Gimmick/WarpZone.h"
+#include "Source/Core/Math/Rect.h"
 
 
 namespace app

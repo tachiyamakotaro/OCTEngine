@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file LightTracer.cpp
  * @brief 光の経路を計算する（レイを飛ばして鏡で反射させる）
  */
@@ -93,14 +93,16 @@ namespace app
 				math::Vec2 direction;
 				if (gimmick->GetEmittedRay(origin, direction))
 				{
-					TraceBeam(gimmicks, origin, direction, out);
+					TraceBeam(gimmicks, origin, direction, gimmick->GetEmittedBeamWidth(), out);
 				}
 			}
 		}
 
 
-		void LightTracer::TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, LightTraceResult& out) const
+		void LightTracer::TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, const float width, LightTraceResult& out) const
 		{
+			// 今の線分の始点で反射した鏡の面の向き（光源から出た最初の線分は 0）
+			math::Vec2 startNormal = math::Vec2::Zero();
 			for (int bounce = 0; bounce <= maxBounces; ++bounce)
 			{
 				// 光が止まる・反射する物のうち、一番近い物を探す（通り抜ける物は飛ばす）
@@ -120,9 +122,11 @@ namespace app
 					}
 				}
 
-				// この線分を記録
+				// この線分を記録（鏡で反射するなら、描くときに光の端を鏡の面に沿って切れるように、面の向きも残す）
 				const math::Vec2 hitPoint = origin + direction * nearestDistance;
-				out.segments.push_back({ origin, hitPoint, bounce });
+				const bool isReflect = nearestGimmick != nullptr && nearestHit.response == LightResponse::Reflect;
+				const math::Vec2 endNormal = isReflect ? nearestHit.normal : math::Vec2::Zero();
+				out.segments.push_back({ origin, hitPoint, bounce, width, startNormal, endNormal });
 
 				// 線分が通り抜けた物（光の足場など）を点灯
 				for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
@@ -151,6 +155,7 @@ namespace app
 				case LightResponse::Reflect:
 					direction = math::Normalize(math::Reflect(direction, nearestHit.normal));
 					origin = hitPoint + direction * RAY_EPSILON;
+					startNormal = nearestHit.normal;
 					break;
 
 				case LightResponse::Stop:

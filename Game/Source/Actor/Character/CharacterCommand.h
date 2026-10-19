@@ -37,6 +37,10 @@ namespace app
 			bool grabHold = false;
 			/** アクションを押した瞬間 */
 			bool actionTrigger = false;
+			/** 手鏡を構えている（押している間） */
+			bool handMirrorHold = false;
+			/** 手鏡を傾ける入力（上 = 1、下 = -1。構えている間だけ） */
+			float handMirrorAim = 0.0f;
 
 
 			/**

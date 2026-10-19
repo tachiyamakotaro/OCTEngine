@@ -1,0 +1,11 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "Light1", "position": [350.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": true, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [350.0, 70.0], "angleDeg": 0.0, "length": 196.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false },
+		{ "type": "FakeWall", "name": "FakeWall1", "position": [800.0, 0.0], "size": [100.0, 600.0], "passRevealRate": 0.5, "collisionCellSize": 10.0, "lightMode": "Band", "isReflectedLightOnly": true, "lightBandRadius": 20.0 },
+		{ "type": "EmitRay", "name": "Light2", "position": [1700.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": true, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [1700.0, 370.0], "angleDeg": 0.0, "length": 196.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false },
+		{ "type": "FakeWall", "name": "FakeWall2", "position": [2000.0, 300.0], "size": [100.0, 300.0], "passRevealRate": 0.5, "collisionCellSize": 10.0, "lightMode": "Band", "isReflectedLightOnly": true, "lightBandRadius": 20.0 },
+		{ "type": "Goal", "name": "Goal", "position": [2650.0, 0.0], "size": [150.0, 250.0] }
+	]
+}

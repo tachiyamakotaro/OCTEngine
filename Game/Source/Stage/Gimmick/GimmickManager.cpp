@@ -145,11 +145,7 @@ namespace app
 		{
 			for (const std::unique_ptr<GimmickBase>& gimmick : m_gimmicks)
 			{
-				math::Rect rect;
-				if (gimmick->GetCollision(rect) != CollisionKind::None && box.Overlaps(rect))
-				{
-					out.push_back(rect);
-				}
+				gimmick->QueryCollision(box, &out);
 			}
 		}
 
@@ -158,8 +154,7 @@ namespace app
 		{
 			for (const std::unique_ptr<GimmickBase>& gimmick : m_gimmicks)
 			{
-				math::Rect rect;
-				if (gimmick->GetCollision(rect) != CollisionKind::None && box.Overlaps(rect))
+				if (gimmick->QueryCollision(box, nullptr) != CollisionKind::None)
 				{
 					return true;
 				}
@@ -172,8 +167,7 @@ namespace app
 		{
 			for (const std::unique_ptr<GimmickBase>& gimmick : m_gimmicks)
 			{
-				math::Rect rect;
-				if (gimmick->GetCollision(rect) == CollisionKind::Terrain && box.Overlaps(rect))
+				if (gimmick->QueryCollision(box, nullptr) == CollisionKind::Terrain)
 				{
 					return true;
 				}

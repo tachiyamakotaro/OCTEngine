@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file LightTracer.h
  * @brief 光の経路を計算する（レイを飛ばして鏡で反射させる）
  * @details 光を出すギミック（GetEmittedRay）からまっすぐレイを飛ばし、
@@ -34,6 +34,12 @@ namespace app
 			math::Vec2 end;
 			/** 何回反射したあとの線分か（0=光源から直接） */
 			int bounce = 0;
+			/** 光の太さ（0 ならふつうの細い光。反射しても光源と同じ太さ） */
+			float width = 0.0f;
+			/** 始点で反射した鏡の面の向き（光が出ていく側を向く。光源から出た線分は 0） */
+			math::Vec2 startNormal;
+			/** 終点で反射する鏡の面の向き（光が来た側を向く。鏡で終わらない線分は 0） */
+			math::Vec2 endNormal;
 		};
 
 
@@ -83,8 +89,9 @@ namespace app
 		private:
 			/**
 			 * @brief 1本の光を追いかける
+			 * @param width 光の太さ（線分に記録するだけ。光の進み方には関係しない）
 			 */
-			void TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, LightTraceResult& out) const;
+			void TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, float width, LightTraceResult& out) const;
 		};
 
 

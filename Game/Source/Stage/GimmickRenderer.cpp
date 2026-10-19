@@ -1,25 +1,18 @@
-﻿/**
+/**
  * @file GimmickRenderer.cpp
  * @brief ステージのギミックをモデルで描く
  */
 #include "stdafx.h"
 #include "GimmickRenderer.h"
-#include <cmath>
-#include "Stage.h"
 #include "Source/Render/MirrorReflection.h"
+#include "Stage.h"
+#include <cmath>
 
 
 namespace app
 {
 	namespace stage
 	{
-		namespace
-		{
-			/** これより短い光の線分は描かない */
-			constexpr float MIN_BEAM_LENGTH = 0.5f;
-		}
-
-
 		ModelRender& GimmickRenderer::ModelPool::Acquire()
 		{
 			if (usedCount >= models.size())
@@ -110,19 +103,7 @@ namespace app
 					Vector3(mirror.length, m_config.lightMirrorThickness, m_config.lightMirrorDepth));
 			}
 
-			// 光：線分ごとに、中点に置いて長さまで伸ばす
-			const float beam = m_config.lightBeamThickness;
-			for (const LightSegment& segment : stage.GetLightResult().segments)
-			{
-				const math::Vec2 delta = segment.end - segment.start;
-				const float length = delta.Length();
-				if (length < MIN_BEAM_LENGTH)
-				{
-					continue;
-				}
-				const float angleDeg = math::RadToDeg(std::atan2(delta.y, delta.x));
-				Put(ModelKind::LightBeam, (segment.start + segment.end) * 0.5f, 0.0f, angleDeg, Vector3(length, beam, beam));
-			}
+			// 光は半透明にするため、FakeWallRenderer が描く（ここでは描かない）
 
 			// 床スイッチ：押されると低くつぶれて色が変わる（下端はそのまま）
 			for (const FloorSwitch& floorSwitch : stage.GetGimmicks().View<FloorSwitch>())
@@ -159,6 +140,21 @@ namespace app
 				if (zone.disabledBySignal.empty() || !stage.IsSignalOn(zone.disabledBySignal))
 				{
 					PutRect(ModelKind::WarpGate, zone.rect, m_config.warpGateDepth);
+				}
+			}
+
+			// 手鏡：拾う前は置き場所に立てておき、拾ったあとは構えている間だけ手元に出す
+			// （反射鏡のモデルを使い回す。鏡面(+Y)を手鏡の向きに回す）
+			for (const HandMirror& handMirror : stage.GetGimmicks().View<HandMirror>())
+			{
+				const Vector3 size(m_config.handMirrorLength, m_config.lightMirrorThickness, m_config.handMirrorDepth);
+				if (!handMirror.isCollected)
+				{
+					Put(ModelKind::LightMirror, (handMirror.rect.min + handMirror.rect.max) * 0.5f, 0.0f, -90.0f, size);
+				}
+				else if (handMirror.isRaised)
+				{
+					Put(ModelKind::LightMirror, handMirror.holdPosition, m_config.handMirrorHeldZ, handMirror.GetAimDeg() - 90.0f, size);
 				}
 			}
 

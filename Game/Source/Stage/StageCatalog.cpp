@@ -13,7 +13,7 @@ namespace app
 		namespace
 		{
 			/** 今遊ぶステージの番号 */
-			int s_currentStageIndex = 0;
+			int s_currentStageIndex = FIRST_STAGE_INDEX;
 		}
 
 

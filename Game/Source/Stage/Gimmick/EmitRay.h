@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file EmitRay.h
  * @brief 光を出すギミック（向いている方向にまっすぐ光を出す）
  */
@@ -22,6 +22,10 @@ namespace app
 			float angleDeg = 0.0f;
 			/** 光を出しているか */
 			bool isOn = true;
+			/** 太い光を出すか（false ならふつうの細い光） */
+			bool isWideBeam = false;
+			/** 太い光の太さ（偽物の壁を Band にすると、この太さで壁が消える。プレイヤーが通るなら体の高さより少し大きく） */
+			float wideBeamWidth = 140.0f;
 
 
 		public:
@@ -29,6 +33,7 @@ namespace app
 			std::unique_ptr<GimmickBase> Clone() const override { return std::make_unique<EmitRay>(*this); }
 
 			bool GetEmittedRay(math::Vec2& outOrigin, math::Vec2& outDirection) const override;
+			float GetEmittedBeamWidth() const override { return isWideBeam ? wideBeamWidth : 0.0f; }
 
 			math::Vec2 GetAnchor() const override { return position; }
 			void SetAnchor(const math::Vec2& anchor) override { position = anchor; }

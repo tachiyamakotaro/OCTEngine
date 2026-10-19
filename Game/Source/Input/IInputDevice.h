@@ -26,6 +26,7 @@ namespace app
 			Jump,		//!< ジャンプ
 			Grab,		//!< つかむ（自動つかまりOFFのとき使う）
 			Action,		//!< 調べる・鏡を動かすなど
+			HandMirror,	//!< 手鏡を構える（押している間）
 			Num
 		};
 

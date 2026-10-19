@@ -3,9 +3,10 @@
  * @brief タイトルシーン
  */
 #include "stdafx.h"
-#include "TitleScene.h"
 #include "DebugScene.h"
 #include "Source/Sound/SoundManager.h"
+#include "Source/Stage/StageCatalog.h"
+#include "TitleScene.h"
 
 
 namespace
@@ -50,6 +51,8 @@ namespace app
 		switch (m_menu.Update())
 		{
 		case ui::TitleMenu::Result::StartGame:
+			// 最初のステージから遊ぶ（ゲームクリアやポーズからタイトルに戻ったあとも）
+			stage::SetCurrentStageIndex(stage::FIRST_STAGE_INDEX);
 			SoundManager::Get().FadeOutBGM(NEXT_SCENE_FADE_TIME);
 			m_isNextScene = true;
 			break;

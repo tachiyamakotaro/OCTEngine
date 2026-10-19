@@ -15,10 +15,10 @@
  *          霧と露のエフェクトはここでは描かない（Game::UpdateStageEvents で出す）。
  */
 #pragma once
+#include "Source/Core/Math/Rect.h"
 #include <memory>
 #include <string>
 #include <vector>
-#include "Source/Core/Math/Rect.h"
 
 
 namespace app
@@ -101,6 +101,7 @@ namespace app
 				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
 				float warpGateDepth = 300.0f;
 				float goalDepth = 150.0f;
+				float handMirrorDepth = 40.0f;
 				// ---- 大きさ ----
 				/** 光源の箱の一辺 */
 				float lightSourceSize = 30.0f;
@@ -115,6 +116,10 @@ namespace app
 				/** 霧の吹き出し口の大きさ（幅・高さ） */
 				float mistVentWidth = 60.0f;
 				float mistVentHeight = 30.0f;
+				/** 手鏡の長さ（反射鏡のモデルを使い回す） */
+				float handMirrorLength = 60.0f;
+				/** 構えた手鏡を置く奥行き（プレイヤーより少し手前） */
+				float handMirrorHeldZ = -30.0f;
 
 				/** 鏡に映った像も描くか */
 				bool isDrawReflection = true;

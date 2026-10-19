@@ -1,8 +1,8 @@
 {
 	"gimmicks": [
-		{ "type": "EmitRay", "name": "Lamp", "position": [-90.0, 60.0], "angleDeg": 0.0, "isOn": true },
-		{ "type": "EmitRay", "name": "Lamp2", "position": [-90.0, 232.0], "angleDeg": 0.0, "isOn": true },
-		{ "type": "EmitRay", "name": "Lamp3", "position": [2860.0, 2060.0], "angleDeg": 0.0, "isOn": true },
+		{ "type": "EmitRay", "name": "Lamp", "position": [-90.0, 60.0], "angleDeg": 0.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "EmitRay", "name": "Lamp2", "position": [-90.0, 232.0], "angleDeg": 0.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "EmitRay", "name": "Lamp3", "position": [2860.0, 2060.0], "angleDeg": 0.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
 		{ "type": "LightMirror", "name": "M1", "center": [300.0, 60.0], "angleDeg": 90.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 150.0, "railMaxX": 700.0 },
 		{ "type": "LightMirror", "name": "MirrorA", "center": [3500.0, 2060.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 2900.0, "railMaxX": 3700.0 },
 		{ "type": "LightMirror", "name": "MirrorB", "center": [3100.0, 2500.0], "angleDeg": 225.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 3030.0, "railMaxX": 3650.0 },
