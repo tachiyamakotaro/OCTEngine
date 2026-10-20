@@ -96,6 +96,8 @@ namespace app
 		private:
 			/** 設定 */
 			Config m_config;
+			/** 今フレーム描く範囲（地形ブロック + 動く床・動く壁。毎回メモリ確保しないよう持っておく） */
+			std::vector<math::Rect> m_blockRects;
 			/** モデル（ブロックの数だけ使う） */
 			std::vector<std::unique_ptr<ModelRender>> m_models;
 			/** 鏡に映ったモデル（ブロックの数だけ使う） */

@@ -173,6 +173,14 @@ namespace app
 				}
 				return kind;
 			}
+			/**
+			 * @brief このフレームで、足元の床がどれだけ動いたか（動く床だけ override する）
+			 * @details キャラクターは、乗っている床が動いた分だけ一緒に動く（CharacterController::Move）。
+			 * @param groundProbe キャラクターの足元のすぐ下の薄い箱（前のフレームの位置）
+			 * @param outDelta 床が動いた量
+			 * @return この床の上に立っていたら true
+			 */
+			virtual bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const { return false; }
 
 
 		public:

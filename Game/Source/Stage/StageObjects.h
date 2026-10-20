@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file StageObjects.h
  * @brief ステージに置く物（奥の鏡と、全ギミック）
  * @details ギミックは1クラス1ファイルで Gimmick フォルダにある。ここではまとめて include するだけ。
@@ -18,6 +18,8 @@
 #include "Gimmick/LightPlatform.h"
 #include "Gimmick/LightReceiver.h"
 #include "Gimmick/MistEmitter.h"
+#include "Gimmick/MovingBlock.h"
+#include "Gimmick/SolarPanel.h"
 #include "Gimmick/StageBlock.h"
 #include "Gimmick/WarpZone.h"
 #include "Source/Core/Math/Rect.h"

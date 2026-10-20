@@ -161,6 +161,8 @@ namespace app
 			void ResolvePenetration();
 			/** 接地・壁の状態を更新 */
 			void UpdateContacts();
+			/** 足元のすぐ下の薄い箱（接地の判定と、乗っている動く床を探すのに使う） */
+			math::Rect GetGroundProbe() const;
 
 
 		private:

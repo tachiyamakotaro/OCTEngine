@@ -66,6 +66,19 @@ namespace app
 				return;
 			}
 
+			// 前のフレームで地面の上にいたら、乗っている動く床が動いた分だけ一緒に動く
+			// （ステージの更新で床はもう動いているので、めり込みを押し出すより先に運んでおく）
+			if (wasOnGround)
+			{
+				math::Vec2 carry = math::Vec2::Zero();
+				if (m_collisionWorld->GetCarryDelta(GetGroundProbe(), carry))
+				{
+					// 縦を先に動かす（床が上がったとき、足が床にめり込んだまま横に動かすと、床の横へはじき出されてしまう）
+					MoveAxisY(carry.y);
+					MoveAxisX(carry.x);
+				}
+			}
+
 			// 地形の方が動いてめり込んでいたら先に押し出す
 			ResolvePenetration();
 
@@ -220,13 +233,9 @@ namespace app
 
 			const math::Rect body = GetBounds();
 
-			// 足元のすぐ下を調べる（横幅を少し削って、壁に触れているだけで接地扱いにならないようにする）
-			const math::Rect groundProbe{
-				{ body.min.x + SKIN, body.min.y - CONTACT_PROBE },
-				{ body.max.x - SKIN, body.min.y }
-			};
+			// 足元のすぐ下を調べる
 			// 上昇中は接地していない扱い（ジャンプした瞬間に地面判定が残らないように）
-			m_isOnGround = (m_velocity.y <= 0.0f) && m_collisionWorld->AnyOverlap(groundProbe);
+			m_isOnGround = (m_velocity.y <= 0.0f) && m_collisionWorld->AnyOverlap(GetGroundProbe());
 
 			// 左右の壁（上下を少し削って、床や天井を壁と誤判定しないようにする）
 			const math::Rect rightProbe{
@@ -245,6 +254,17 @@ namespace app
 		math::Rect CharacterController::GetBounds() const
 		{
 			return GetBoundsAt(m_position);
+		}
+
+
+		math::Rect CharacterController::GetGroundProbe() const
+		{
+			// 足元のすぐ下の薄い箱（横幅を少し削って、壁に触れているだけで接地扱いにならないようにする）
+			const math::Rect body = GetBounds();
+			return {
+				{ body.min.x + SKIN, body.min.y - CONTACT_PROBE },
+				{ body.max.x - SKIN, body.min.y }
+			};
 		}
 
 

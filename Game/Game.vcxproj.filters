@@ -255,6 +255,15 @@
     <ClCompile Include="Source\Camera\GameCamera.cpp">
       <Filter>Source\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\MovePath.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\MovingBlock.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\SolarPanel.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -486,6 +495,15 @@
     </ClInclude>
     <ClInclude Include="Source\Camera\GameCamera.h">
       <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\MovePath.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\MovingBlock.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\SolarPanel.h">
+      <Filter>Source\Stage\Gimmick</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

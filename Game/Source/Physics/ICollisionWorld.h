@@ -43,6 +43,18 @@ namespace app
 			}
 
 			/**
+			 * @brief このフレームで、足元の床（動く床）がどれだけ動いたか
+			 * @details 動く床がないワールドでは何もしない（false を返す）。
+			 * @param groundProbe 足元のすぐ下の薄い箱（前のフレームの位置で調べる）
+			 * @param outDelta 床が動いた量
+			 * @return 動く床の上に立っていたら true
+			 */
+			virtual bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const
+			{
+				return false;
+			}
+
+			/**
 			 * @brief box の範囲に地形がないか
 			 */
 			bool IsBoxFree(const math::Rect& box) const

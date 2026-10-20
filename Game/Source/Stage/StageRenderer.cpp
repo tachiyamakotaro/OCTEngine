@@ -30,16 +30,24 @@ namespace app
 				return;
 			}
 
-			const auto blocks = stage.GetGimmicks().View<StageBlock>();
-			const size_t blockCount = blocks.size();
+			// 描く範囲を集める（地形ブロック + 動く床・動く壁の今の位置）
+			m_blockRects.clear();
+			for (const StageBlock& block : stage.GetGimmicks().View<StageBlock>())
+			{
+				m_blockRects.push_back(block.rect);
+			}
+			for (const MovingBlock& block : stage.GetGimmicks().View<MovingBlock>())
+			{
+				m_blockRects.push_back(block.GetCurrentRect());
+			}
+			const size_t blockCount = m_blockRects.size();
 			const BackMirror& mirror = stage.GetBackMirror();
 
 			// 本物
 			Reserve(m_models, blockCount, D3D12_CULL_MODE_BACK);
-			size_t i = 0;
-			for (const StageBlock& block : blocks)
+			for (size_t i = 0; i < blockCount; ++i)
 			{
-				Place(*m_models[i++], block.rect, false, 0.0f);
+				Place(*m_models[i], m_blockRects[i], false, 0.0f);
 			}
 			m_activeCount = blockCount;
 
@@ -48,10 +56,9 @@ namespace app
 			if (mirror.isEnabled)
 			{
 				Reserve(m_reflectionModels, blockCount, D3D12_CULL_MODE_FRONT);
-				i = 0;
-				for (const StageBlock& block : blocks)
+				for (size_t i = 0; i < blockCount; ++i)
 				{
-					Place(*m_reflectionModels[i++], block.rect, true, mirror.planeZ);
+					Place(*m_reflectionModels[i], m_blockRects[i], true, mirror.planeZ);
 				}
 				m_activeReflectionCount = blockCount;
 			}
