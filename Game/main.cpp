@@ -56,6 +56,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
+		{
+			// ウィンドウの中の大きさとフレームバッファ（FRAME_BUFFER_W x FRAME_BUFFER_H）が違うと、
+			// ImGui がフレームバッファの左上の一部にだけ描かれ、それが画面に引き伸ばされるので、絵とマウスの位置がずれる。
+			// ウィンドウの中の大きさ（DisplaySize）からフレームバッファへの倍率を渡して、フレームバッファ全体に描かせる。
+			ImGuiIO& io = ImGui::GetIO();
+			if (io.DisplaySize.x > 0.0f && io.DisplaySize.y > 0.0f)
+			{
+				io.DisplayFramebufferScale = ImVec2(
+					static_cast<float>(FRAME_BUFFER_W) / io.DisplaySize.x,
+					static_cast<float>(FRAME_BUFFER_H) / io.DisplaySize.y);
+			}
+		}
 		ImGui::NewFrame();
 
 		g_engine->ExecuteUpdate();	// Update all game objects (IGameObject::Update).
