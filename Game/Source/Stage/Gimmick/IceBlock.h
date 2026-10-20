@@ -21,14 +21,15 @@ namespace app
 
 
 		/**
-		 * @brief 氷が溶けていく面
+		 * @brief 氷の面（溶けた厚さ・光が当たっている面の配列の番号に使う）
 		 */
 		enum class IceMeltSide
 		{
-			Top,	//!< 上から低くなる（上から光が当たった足場など）
-			Bottom,	//!< 下から縮む
-			Left,	//!< 左から薄くなる（左から光が当たった壁など）
-			Right,	//!< 右から薄くなる
+			Top,	//!< 上の面（上から光が当たると、上から低くなる）
+			Bottom,	//!< 下の面（下から光が当たると、下から縮む）
+			Left,	//!< 左の面（左から光が当たると、左から薄くなる）
+			Right,	//!< 右の面（右から光が当たると、右から薄くなる）
+			Num
 		};
 
 
@@ -36,9 +37,10 @@ namespace app
 		 * @brief 氷
 		 * @details ・光が当たっている間だけ溶けていき、meltTime 秒当たり続けると溶けきって消える。
 		 *          ・日陰（光が届かない所）にある間は溶けない。溶けた分は元に戻らない（リスタートで戻る）。
-		 *          ・最初に光が当たった面から溶けていく（左から光が当たった壁は左から薄くなり、
-		 *            上から光が当たった足場は上から低くなる）。当たり判定も光を止める範囲も今の大きさに合わせる。
-		 *            ※ いつも上から低くしていくと、横から当たる低い光が途中で氷の上を通り抜けてしまい、溶けきらないため
+		 *          ・光が当たっている面から溶けていく。左から当たれば左から薄くなり、下から当たれば下から縮む。
+		 *            途中で光の向きが変わったら、そのときに当たっている面から溶ける（2方向から当たれば両方から溶ける）。
+		 *            当たり判定も光を止める範囲も今の大きさに合わせる。
+		 *          ・どの面から溶かしても、meltTime 秒当たり続けると溶けきる（幅の分も高さの分も同じ時間で溶ける速さ）。
 		 *          ・氷は光を止める（Absorb）。氷の後ろにある物は、氷が溶けるまで日陰になる。
 		 */
 		class IceBlock : public RectGimmick
@@ -49,14 +51,14 @@ namespace app
 			/** 光が当たり続けて溶けきるまでの時間（秒） */
 			float meltTime = 2.0f;
 
-			/** 【実行時】溶けた割合（0=元の大きさ 〜 1=溶けきった） */
-			float meltAmount = 0.0f;
+			/** 【実行時】それぞれの面から溶けた厚さ（IceMeltSide の順。rect からこの分だけ削った大きさが今の大きさ） */
+			float meltedDepth[static_cast<int>(IceMeltSide::Num)] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			/** 【実行時】今フレーム光が当たっている面（IceMeltSide の順） */
+			bool litSides[static_cast<int>(IceMeltSide::Num)] = { false, false, false, false };
 			/** 【実行時】今フレーム光が当たっているか（溶けている最中か） */
 			bool isLit = false;
 			/** 【実行時】このフレームに溶けきったか（湯気のエフェクトや音を出すきっかけに使う） */
 			bool isMeltedThisFrame = false;
-			/** 【実行時】溶けていく面（最初に光が当たったときに決まる） */
-			IceMeltSide meltSide = IceMeltSide::Top;
 
 
 		public:
@@ -77,15 +79,17 @@ namespace app
 
 
 		public:
-			/** 溶けきったか */
-			bool IsMelted() const { return meltAmount >= 1.0f; }
-			/** 今の大きさ（溶けた分だけ、溶けていく面のほうから縮む） */
+			/** 溶けきったか（幅か高さがほとんど 0 になった） */
+			bool IsMelted() const;
+			/** 今の大きさ（rect から、それぞれの面で溶けた厚さを削った大きさ） */
 			math::Rect GetCurrentRect() const;
+			/** 溶けた割合（0=元の大きさ 〜 1=溶けきった。面積で数える。表示用） */
+			float GetMeltAmount() const;
 
 
 		private:
-			/** 光の線分の終わりの点を見て、今の大きさのどの面に光が当たっているかを調べる */
-			IceMeltSide FindLitSide(const LightTraceResult& light) const;
+			/** 光の線分の終わりの点を見て、今の大きさのどの面に光が当たっているかを litSides に入れる（1つでも見つかれば true） */
+			bool FindLitSides(const LightTraceResult& light);
 
 
 		public:
