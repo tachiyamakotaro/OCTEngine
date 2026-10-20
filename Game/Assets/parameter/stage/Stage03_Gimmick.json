@@ -1,12 +1,16 @@
 {
 	"gimmicks": [
 		{ "type": "EmitRay", "name": "Lamp1", "position": [400.0, 690.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
-		{ "type": "LightMirror", "name": "M1", "center": [400.0, 80.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "LightMirror", "name": "M1", "center": [400.0, 80.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
 		{ "type": "IceBlock", "name": "IceWall", "position": [1000.0, 0.0], "size": [80.0, 450.0], "kind": "Melt", "meltTime": 2.0 },
 		{ "type": "Checkpoint", "name": "Room2Entrance", "position": [1100.0, 0.0], "size": [80.0, 200.0] },
-		{ "type": "FloorSwitch", "name": "SunSwitch", "position": [1200.0, 0.0], "size": [70.0, 8.0], "isLatch": true },
-		{ "type": "Goal", "name": "Goal", "position": [3030.0, 0.0], "size": [150.0, 250.0] },
-		{ "type": "LightMirror", "name": "M2", "center": [1336.54, 75.0], "angleDeg": 180.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": false, "railMinX": -400.0, "railMaxX": -400.0 },
-		{ "type": "IceBlock", "name": "IceWall1", "position": [1750.0, 325.0], "size": [80.0, 300.0], "kind": "Melt", "meltTime": 2.0 }
+		{ "type": "Goal", "name": "Goal", "position": [1900.0, -400.0], "size": [150.0, 250.0] },
+		{ "type": "LightMirror", "name": "M2", "center": [1625.0, 75.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": false, "railMinX": -399.055, "railMaxX": -399.055 },
+		{ "type": "IceBlock", "name": "IceWall2", "position": [1500.0, 375.0], "size": [300.0, 80.0], "kind": "Melt", "meltTime": 2.0 },
+		{ "type": "IceBlock", "name": "IceWall3", "position": [2800.0, 375.0], "size": [399.0, 80.0], "kind": "Melt", "meltTime": 2.0 },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [1625.0, 575.0], "angleDeg": 225.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": false, "railMinX": -399.055, "railMaxX": -399.055 },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [2975.0, 575.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": false, "railMinX": 950.945, "railMaxX": 950.945 },
+		{ "type": "LightMirror", "name": "Mirror3", "center": [3125.0, 75.0], "angleDeg": 270.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": false, "railMinX": 1100.945, "railMaxX": 1100.945 },
+		{ "type": "IceBlock", "name": "IceWall4", "position": [2450.0, 0.0], "size": [80.0, 375.0], "kind": "Melt", "meltTime": 2.0 }
 	]
 }
