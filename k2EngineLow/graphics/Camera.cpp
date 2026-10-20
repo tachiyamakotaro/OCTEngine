@@ -10,7 +10,7 @@ namespace nsK2EngineLow {
 		//アスペクト比を計算する。
 		m_aspect = (float)g_graphicsEngine->GetFrameBufferWidth() / (float)g_graphicsEngine->GetFrameBufferHeight();
 		if (m_isNeedUpdateProjectionMatrix) {
-			if (m_updateProjMatrixFunc == enUpdateProjMatrixFunc_Ortho) {
+			if (m_updateProjMatrixFunc == enUpdateProjMatrixFunc_Perspective) {
 				//透視変換行列を計算。
 				m_projectionMatrix.MakeProjectionMatrix(
 					m_viewAngle,
