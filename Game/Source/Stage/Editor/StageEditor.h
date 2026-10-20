@@ -113,6 +113,8 @@ namespace app
 			void DuplicateSelected(Stage& stage);
 			/** 選択中の物を消す */
 			void DeleteSelected(Stage& stage);
+			/** 選択中の物を90度ずつ回す（+1 で反時計回り、-1 で時計回り） */
+			void RotateSelected(Stage& stage, int quarterTurns);
 			/** 選択が有効か（消された物を指していないか） */
 			bool IsSelectionValid(const Stage& stage) const;
 			/** 指定した位置にある物を探す */

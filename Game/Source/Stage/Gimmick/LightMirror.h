@@ -56,6 +56,8 @@ namespace app
 			void DrawEditor(const EditorCanvas& canvas, bool isSelected) const override;
 			void DrawInspector(GimmickInspector& inspector) override;
 			void Serialize(GimmickArchive& archive) override;
+			/** 鏡の傾きを中心のまわりに90度ずつ回す（プレイヤーが回す Rotate とは別。エディタ用） */
+			void Rotate90(const int quarterTurns) override { angleDeg = math::NormalizeDeg(angleDeg + 90.0f * static_cast<float>(quarterTurns)); }
 
 
 		public:

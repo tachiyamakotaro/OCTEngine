@@ -31,6 +31,8 @@ namespace app
 			void DrawInspector(GimmickInspector& inspector) override;
 			/** JSON の "position": [x, y] と "size": [幅, 高さ] */
 			void Serialize(GimmickArchive& archive) override;
+			/** 中心を軸に90度回す（幅と高さを入れ替える） */
+			void Rotate90(int quarterTurns) override;
 
 
 		protected:
