@@ -1,6 +1,6 @@
 ﻿/**
  * @file DarkZone.h
- * @brief 暗がり（矩形の範囲を暗くする。光の近くとプレイヤーのまわりだけ明るく見える）
+ * @brief 暗がり（ステージ全体か、矩形の範囲を暗くする。光の近くとプレイヤーのまわりだけ明るく見える）
  */
 #pragma once
 #include "RectGimmick.h"
@@ -13,28 +13,35 @@ namespace app
 		/**
 		 * @brief 暗がり
 		 * @details ・見た目だけのギミック。当たり判定はなく、光も止めない。
-		 *          ・範囲の手前に黒い半透明の板を置いて暗くする（DarknessRenderer が描く）。
-		 *            光の線分から lightRadius の中・プレイヤーのまわり playerLightRadius の中・
-		 *            見えるようになった「暗がりの足場（HiddenFloor）」の上は、暗さが抜けて見える。
+		 *          ・isWholeStage が true なら、ステージ全体を暗くする（範囲 rect は、エディタで選ぶための枠として残すだけ）。
+		 *            false なら範囲 rect の中だけを暗くする（範囲の端は edgeFeather でぼかす）。
+		 *          ・手前に黒い半透明の板を置いて暗くする（DarknessRenderer が描く）。
+		 *            光の線分のまわり（lightRadius）・プレイヤーのまわり（playerLightRadius）・見えた暗がりの足場（HiddenFloor）の上は、
+		 *            暗さが抜けて見える。明るい所と暗い所の境目は、ぼかしの幅（lightSoftWidth / playerLightSoftWidth）で
+		 *            少しずつ暗くなるので、くっきり分かれない。
 		 *          ・プレイヤーのまわりは、マリオの暗闇ステージのように、いつも丸く見えている。
 		 *            isPlayerRevealingFloors が true なら、その丸の中に入った暗がりの足場も見えるようになる。
-		 *          ・暗がりの中にある HiddenFloor は、光から lightRadius の中に入ると見えるようになる
-		 *            （見た目の明るい範囲と、足場が見える範囲を同じにするため、半径はこのクラスが持つ）。
+		 *          ・暗がりの足場の見え具合は、足場の場所の明るさと同じ計算（Glow）で決める（見た目の明るさと、足場が見えるかがずれない）。
+		 *            光が離れたら、その場ですぐ暗くなる（明るいまま残らない）。
 		 */
 		class DarkZone : public RectGimmick
 		{
 		public:
+			/** ステージ全体を暗くするか（false なら範囲 rect の中だけ） */
+			bool isWholeStage = true;
 			/** 暗さ（0=暗くしない 〜 1=真っ黒） */
 			float darkness = 0.93f;
-			/** 光が照らす半径（光の線分からこの距離までが明るくなり、暗がりの足場が見える） */
-			float lightRadius = 120.0f;
-			/** プレイヤーのまわりの明るい丸の半径（この中はいつも見える） */
-			float playerLightRadius = 260.0f;
-			/** プレイヤーのまわりの丸の端のぼかし（半径に対する割合。0 ならくっきり、1 なら真ん中から少しずつ暗くなる） */
-			float playerLightSoftness = 0.25f;
+			/** 光が照らす半径（光の線分からこの距離のあたりが、明るい所と暗い所の境目の真ん中） */
+			float lightRadius = 90.0f;
+			/** 光のまわりの境目のぼかしの幅（境目の真ん中から内側と外側に半分ずつ、少しずつ暗くなる） */
+			float lightSoftWidth = 100.0f;
+			/** プレイヤーのまわりの明るい丸の半径（境目の真ん中） */
+			float playerLightRadius = 200.0f;
+			/** プレイヤーのまわりの丸の境目のぼかしの幅 */
+			float playerLightSoftWidth = 100.0f;
 			/** プレイヤーのまわりの丸の中に入った暗がりの足場も見えるようにするか（false なら光で照らさないと見えない） */
 			bool isPlayerRevealingFloors = true;
-			/** 範囲の端をぼかす幅（0 ならくっきり） */
+			/** 範囲の端をぼかす幅（isWholeStage が false のときだけ使う。0 ならくっきり） */
 			float edgeFeather = 40.0f;
 
 
@@ -52,8 +59,19 @@ namespace app
 
 
 		public:
-			/** プレイヤーのまわりで、暗がりの足場が見える距離（丸の、ぼかしの真ん中まで） */
-			float GetPlayerRevealDistance() const { return playerLightRadius * (1.0f - math::Clamp01(playerLightSoftness) * 0.5f); }
+			/**
+			 * @brief 明るさ（1 = 明るい 〜 0 = 暗い）：境目の真ん中 radius から内側と外側に softWidth の半分ずつ、なめらかに変わる
+			 * @details シェーダー（darkness.fx の DarkGlow）と同じ計算
+			 */
+			static float Glow(float distance, float radius, float softWidth);
+			/** 光の線分から distance 離れた所の明るさ */
+			float GetLightGlow(float distance) const { return Glow(distance, lightRadius, lightSoftWidth); }
+			/** プレイヤーから distance 離れた所の明るさ */
+			float GetPlayerGlow(float distance) const { return Glow(distance, playerLightRadius, playerLightSoftWidth); }
+			/** 光が届く一番遠い距離（ここより遠いと、まったく明るくならない） */
+			float GetLightReach() const { return lightRadius + math::Max(lightSoftWidth, 0.0f) * 0.5f; }
+			/** 点が暗がりの中か（ステージ全体なら、いつも中） */
+			bool Contains(const math::Vec2& point) const;
 
 
 		public:

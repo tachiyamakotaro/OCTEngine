@@ -22,8 +22,10 @@ namespace app
 			const ImU32 EDITOR_COLOR_VISIBLE = IM_COL32(230, 210, 140, 220);
 			const ImU32 EDITOR_COLOR_LIT = IM_COL32(255, 245, 160, 255);
 
-			/** 時間の下限（0 で割らないように） */
-			constexpr float MIN_TIME = 0.01f;
+			/** 見え具合がこれより小さければ、見えていないことにする（暗がりでほとんど見えないのに描かないように） */
+			constexpr float MIN_VISIBILITY = 0.01f;
+			/** 体の下の端と足場の上の面が、これより近ければ「乗っている」とみなす */
+			constexpr float STAND_TOLERANCE = 3.0f;
 
 
 			/** 点と線分の距離 */
@@ -91,16 +93,24 @@ namespace app
 		const DarkZone* HiddenFloor::FindZone(const GimmickManager& gimmicks) const
 		{
 			const math::Vec2 center = (rect.min + rect.max) * 0.5f;
+			// 範囲の中に足場の真ん中がある暗がりを先に探す（ステージ全体の暗がりは、どの足場も中にある）
+			const DarkZone* wholeStage = nullptr;
 			for (const DarkZone& zone : gimmicks.View<DarkZone>())
 			{
-				const bool isInside = center.x >= zone.rect.min.x && center.x <= zone.rect.max.x
-					&& center.y >= zone.rect.min.y && center.y <= zone.rect.max.y;
-				if (isInside)
+				if (zone.isWholeStage)
+				{
+					if (wholeStage == nullptr)
+					{
+						wholeStage = &zone;
+					}
+					continue;
+				}
+				if (zone.Contains(center))
 				{
 					return &zone;
 				}
 			}
-			return nullptr;
+			return wholeStage;
 		}
 
 
@@ -113,48 +123,51 @@ namespace app
 
 		void HiddenFloor::Update(const GimmickUpdateContext& context)
 		{
-			// 光の線分のどれかが、見える距離より近くを通っているか
+			const bool wasVisible = IsVisible();
 			const DarkZone* zone = FindZone(context.gimmicks);
-			const float distance = zone != nullptr ? zone->lightRadius : revealDistance;
+			const float radius = zone != nullptr ? zone->lightRadius : revealDistance;
+			const float softWidth = zone != nullptr ? zone->lightSoftWidth : revealSoftWidth;
+
+			// 足場のいちばん近い所の明るさを、光の線分ごとに足し合わせる（暗がりのシェーダーと同じ合わせ方：1 −（1 − 明るさ）の積）
+			float darkness = 1.0f;
 			isLitNow = false;
 			for (const LightSegment& segment : context.light.segments)
 			{
-				if (DistanceSegmentToRect(segment.start, segment.end, rect) <= distance)
+				const float distance = DistanceSegmentToRect(segment.start, segment.end, rect);
+				darkness *= 1.0f - DarkZone::Glow(distance, radius, softWidth);
+				if (distance <= radius)
 				{
 					isLitNow = true;
-					break;
 				}
 			}
-			// プレイヤーのまわりの丸の中に入っているか（暗がりで「プレイヤーのまわりでも見える」にしているときだけ）
-			if (!isLitNow && zone != nullptr && zone->isPlayerRevealingFloors)
+			// プレイヤーのまわりの丸（暗がりで「プレイヤーのまわりでも見える」にしているときだけ）
+			if (zone != nullptr && zone->isPlayerRevealingFloors)
 			{
-				const float playerDistance = zone->GetPlayerRevealDistance();
 				for (const math::Rect& body : context.bodies)
 				{
 					const math::Vec2 bodyCenter = (body.min + body.max) * 0.5f;
-					if (DistanceSegmentToRect(bodyCenter, bodyCenter, rect) <= playerDistance)
-					{
-						isLitNow = true;
-						break;
-					}
+					darkness *= 1.0f - zone->GetPlayerGlow(DistanceSegmentToRect(bodyCenter, bodyCenter, rect));
 				}
 			}
 
-			const bool wasVisible = IsVisible();
-			if (isLitNow)
+			// プレイヤーが上に乗っているか（体の下の端が足場の上の面にあり、横に重なっている）
+			isPlayerOn = false;
+			for (const math::Rect& body : context.bodies)
 			{
-				// 照らされている間：すぐに見えるようになり、見えたまま
-				darkTimer = 0.0f;
-				visibility = math::Min(visibility + context.deltaTime / math::Max(appearTime, MIN_TIME), 1.0f);
-			}
-			else if (visibility > 0.0f)
-			{
-				// 光が離れたら：stayTime 秒は見えたまま、そのあと fadeTime 秒で消える
-				darkTimer += context.deltaTime;
-				if (darkTimer > stayTime)
+				const bool isOnTop = math::Abs(body.min.y - rect.max.y) <= STAND_TOLERANCE;
+				const bool isOverlapX = body.max.x > rect.min.x && body.min.x < rect.max.x;
+				if (isOnTop && isOverlapX)
 				{
-					visibility = math::Max(visibility - context.deltaTime / math::Max(fadeTime, MIN_TIME), 0.0f);
+					isPlayerOn = true;
+					break;
 				}
+			}
+
+			// 今の明るさが、そのまま見え具合（光が離れたら、その場ですぐ暗くなる）
+			visibility = math::Clamp01(1.0f - darkness);
+			if (visibility < MIN_VISIBILITY)
+			{
+				visibility = 0.0f;
 			}
 			isRevealedThisFrame = !wasVisible && IsVisible();
 		}
@@ -164,7 +177,7 @@ namespace app
 		{
 			visibility = 0.0f;
 			isLitNow = false;
-			darkTimer = 0.0f;
+			isPlayerOn = false;
 			isRevealedThisFrame = false;
 		}
 
@@ -193,14 +206,12 @@ namespace app
 		{
 			RectGimmick::DrawInspector(inspector);
 			ImGui::Checkbox("Solid when hidden", &isSolidWhenHidden);
-			ImGui::SetItemTooltip("ON: you can stand on it even while it is hidden.\nOFF: you can stand on it only while it is visible.");
-			ImGui::DragFloat("Stay Time", &stayTime, 0.05f, 0.0f, 30.0f, "%.2f s");
-			ImGui::SetItemTooltip("Seconds it stays visible after the light leaves.");
-			ImGui::DragFloat("Fade Time", &fadeTime, 0.05f, MIN_TIME, 10.0f, "%.2f s");
-			ImGui::DragFloat("Appear Time", &appearTime, 0.01f, MIN_TIME, 5.0f, "%.2f s");
+			ImGui::SetItemTooltip("ON: you can stand on it even while it is hidden.\nOFF: you can stand on it only while it is half visible or more.");
 			ImGui::DragFloat("Reveal Distance", &revealDistance, 1.0f, 0.0f, 2000.0f, "%.0f");
 			ImGui::SetItemTooltip("Used only outside a Dark Zone. Inside a zone, the zone's Light Radius is used.");
-			ImGui::Text("Lit: %s   Visible: %.2f", isLitNow ? "YES" : "no", visibility);
+			ImGui::DragFloat("Reveal Soft Width", &revealSoftWidth, 1.0f, 0.0f, 2000.0f, "%.0f");
+			ImGui::SetItemTooltip("Used only outside a Dark Zone. Inside a zone, the zone's Light Soft Width is used.");
+			ImGui::Text("Lit: %s   Visible: %.2f   Player On: %s", isLitNow ? "YES" : "no", visibility, isPlayerOn ? "YES" : "no");
 		}
 
 
@@ -208,10 +219,8 @@ namespace app
 		{
 			RectGimmick::Serialize(archive);
 			archive.Field("isSolidWhenHidden", isSolidWhenHidden);
-			archive.Field("stayTime", stayTime);
-			archive.Field("fadeTime", fadeTime);
-			archive.Field("appearTime", appearTime);
 			archive.Field("revealDistance", revealDistance);
+			archive.Field("revealSoftWidth", revealSoftWidth);
 		}
 	}
 }

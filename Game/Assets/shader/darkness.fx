@@ -5,6 +5,10 @@
  * 暗がりの値は、model.fx の DirectionLightCb（b1）の最後に足す（MODEL_CB_EXTRA）。
  * C++ 側は DarknessRenderer::Constants（ライトの値の後ろに暗がりの値をつなげた構造体）。
  *
+ * 明るい所と暗い所の境目は、ぼかしの幅で少しずつ暗くなる（くっきり分かれない）。
+ * いくつもの明るい所が重なる所は「1 −（1 − 明るさ）の積」で合わせる（max で合わせると、重なりの所に筋が出る）。
+ * C++ の DarkZone::Glow / HiddenFloor::Update も同じ計算をしているので、画面で明るく見える所の足場が見える。
+ *
  * エントリーポイント
  *   PSMainDarkness : 黒く塗る。光の線分の近く・プレイヤーのまわり・見えた足場の上は透明にする
  */
@@ -14,12 +18,12 @@
 #define DARK_MAX_RECTS 16
 
 // model.fx の DirectionLightCb の最後に足す値（C++ の DarknessRenderer::Constants と同じ並び）
-//   darkParam          : x = 暗さ, y = 光の半径, z = プレイヤーの光の半径, w = 範囲の端のぼかし
+//   darkParam          : x = 暗さ, y = 光の半径（境目の真ん中）, z = 光の境目のぼかしの幅, w = 範囲の端のぼかし
 //   darkView           : xyz = カメラの前の向き, w = 平行投影なら 1
 //   darkPlayer         : xy = プレイヤーの体の中心, z = 線分の数, w = 足場の数
 //   darkZone           : xy = 暗がりの左下, zw = 右上
-//   darkColor          : rgb = 暗がりの色, a = 明るい所の端のぼかし（半径に対する割合）
-//   darkPlayerLight    : x = プレイヤーのまわりの丸の半径, y = 丸の端のぼかし（半径に対する割合）
+//   darkColor          : rgb = 暗がりの色, a = 見えた足場のまわりのぼかしの幅（C++ の Config::rectSoftWidth）
+//   darkPlayerLight    : x = プレイヤーのまわりの丸の半径（境目の真ん中）, y = 丸の境目のぼかしの幅, z = ステージ全体なら 1
 //   darkSegments[]     : xy = 光の線分の始点, zw = 終点
 //   darkRects[]        : xy = 見えた足場の左下, zw = 右上
 //   darkRectVisibility[] : x = 見え具合
@@ -39,26 +43,20 @@ float DarkDistanceToSegment(float2 p, float2 a, float2 b)
 }
 
 
-// 半径 radius の中なら 1、外へ向かってなめらかに 0 になる（softness = 端のぼかしの割合）
-float DarkGlowSoft(float distance, float radius, float softness)
+// 明るさ（1 = 明るい 〜 0 = 暗い）：境目の真ん中 radius から、内側と外側に softWidth の半分ずつ、なめらかに変わる
+// （C++ の DarkZone::Glow と同じ計算）
+float DarkGlow(float distance, float radius, float softWidth)
 {
-    if (radius <= 0.0f)
+    if (radius <= 0.0f && softWidth <= 0.0f)
     {
         return 0.0f;
     }
-    float inner = radius * (1.0f - softness);
-    if (inner >= radius)
+    float half = max(softWidth, 0.0f) * 0.5f;
+    if (half <= 0.0f)
     {
         return distance <= radius ? 1.0f : 0.0f;
     }
-    return 1.0f - smoothstep(inner, radius, distance);
-}
-
-
-// 光の線分のまわりの明るさ
-float DarkGlow(float distance, float radius)
-{
-    return DarkGlowSoft(distance, radius, darkColor.a);
+    return 1.0f - smoothstep(radius - half, radius + half, distance);
 }
 
 
@@ -73,17 +71,21 @@ float4 PSMainDarkness(SPSIn In) : SV_Target0
         p = In.worldPos.xy - viewDir.xy * (In.worldPos.z / viewDir.z);
     }
 
-    // 暗がりの範囲の端をぼかす（内側ほど正の値）
-    float2 fromMin = p - darkZone.xy;
-    float2 fromMax = darkZone.zw - p;
-    float  inside = min(min(fromMin.x, fromMin.y), min(fromMax.x, fromMax.y));
-    float  feather = darkParam.w;
-    float  edge = feather > 0.0f ? smoothstep(-feather, feather, inside) : (inside >= 0.0f ? 1.0f : 0.0f);
-    clip(edge - 0.001f);
+    // 暗がりの範囲の端をぼかす（内側ほど正の値）。ステージ全体の暗がりなら、どこも暗がりの中
+    float edge = 1.0f;
+    if (darkPlayerLight.z < 0.5f)
+    {
+        float2 fromMin = p - darkZone.xy;
+        float2 fromMax = darkZone.zw - p;
+        float  inside = min(min(fromMin.x, fromMin.y), min(fromMax.x, fromMax.y));
+        float  feather = darkParam.w;
+        edge = feather > 0.0f ? smoothstep(-feather, feather, inside) : (inside >= 0.0f ? 1.0f : 0.0f);
+        clip(edge - 0.001f);
+    }
 
-    // 明るさ（プレイヤーのまわり・光の線分の近く・見えた足場の上のうち、一番明るいもの）
-    // プレイヤーのまわりは、マリオの暗闇ステージのように、いつもはっきり見える丸にする
-    float light = DarkGlowSoft(length(p - darkPlayer.xy), darkPlayerLight.x, darkPlayerLight.y);
+    // 暗さの残り（1 = まったく明るくない）。明るい所ごとに（1 − 明るさ）をかけていく
+    // プレイヤーのまわりは、マリオの暗闇ステージのように、いつも見える丸にする
+    float dark = 1.0f - DarkGlow(length(p - darkPlayer.xy), darkPlayerLight.x, darkPlayerLight.y);
 
     int segmentCount = (int)darkPlayer.z;
     [loop]
@@ -94,9 +96,10 @@ float4 PSMainDarkness(SPSIn In) : SV_Target0
             break;
         }
         float d = DarkDistanceToSegment(p, darkSegments[i].xy, darkSegments[i].zw);
-        light = max(light, DarkGlow(d, darkParam.y));
+        dark *= 1.0f - DarkGlow(d, darkParam.y, darkParam.z);
     }
 
+    // 見えた暗がりの足場の上（足場のまわりを rectMargin だけ広げた四角。その外側を rectSoftWidth でぼかす）
     int rectCount = (int)darkPlayer.w;
     [loop]
     for (int r = 0; r < DARK_MAX_RECTS; r++)
@@ -107,9 +110,10 @@ float4 PSMainDarkness(SPSIn In) : SV_Target0
         }
         float2 outside = max(max(darkRects[r].xy - p, p - darkRects[r].zw), 0.0f);
         float  d = length(outside);
-        light = max(light, darkRectVisibility[r].x * (1.0f - smoothstep(0.0f, 20.0f, d)));
+        float  soft = max(darkColor.a, 1.0f);
+        dark *= 1.0f - darkRectVisibility[r].x * (1.0f - smoothstep(0.0f, soft, d));
     }
 
-    float alpha = darkParam.x * (1.0f - saturate(light)) * edge;
+    float alpha = darkParam.x * saturate(dark) * edge;
     return float4(darkColor.rgb, alpha);
 }

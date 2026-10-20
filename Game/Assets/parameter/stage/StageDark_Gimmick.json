@@ -1,13 +1,13 @@
 {
 	"gimmicks": [
-		{ "type": "EmitRay", "name": "Lamp1", "position": [700.0, 690.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
-		{ "type": "LightMirror", "name": "M1", "center": [700.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "EmitRay", "name": "Lamp1", "position": [425.0, 690.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "M1", "center": [425.0, 50.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": -275.0, "railMaxX": -275.0 },
 		{ "type": "Checkpoint", "name": "DarkEntrance", "position": [500.0, 0.0], "size": [80.0, 200.0] },
-		{ "type": "DarkZone", "name": "Dark1", "position": [820.0, -400.0], "size": [1290.0, 1100.0], "darkness": 0.93, "lightRadius": 120.0, "playerLightRadius": 260.0, "playerLightSoftness": 0.25, "isPlayerRevealingFloors": true, "edgeFeather": 40.0 },
-		{ "type": "HiddenFloor", "name": "Stone1", "position": [950.0, -25.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "stayTime": 1.5, "fadeTime": 0.5, "appearTime": 0.15, "revealDistance": 120.0 },
-		{ "type": "HiddenFloor", "name": "Stone2", "position": [1240.0, 115.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "stayTime": 1.5, "fadeTime": 0.5, "appearTime": 0.15, "revealDistance": 120.0 },
-		{ "type": "HiddenFloor", "name": "Stone3", "position": [1530.0, 5.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "stayTime": 1.5, "fadeTime": 0.5, "appearTime": 0.15, "revealDistance": 120.0 },
-		{ "type": "HiddenFloor", "name": "Stone4", "position": [1820.0, 135.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "stayTime": 1.5, "fadeTime": 0.5, "appearTime": 0.15, "revealDistance": 120.0 },
+		{ "type": "DarkZone", "name": "Dark1", "position": [820.0, -400.0], "size": [1290.0, 1100.0], "isWholeStage": true, "darkness": 0.93, "lightRadius": 39.0, "lightSoftWidth": 169.0, "playerLightRadius": 70.0, "playerLightSoftWidth": 68.0, "isPlayerRevealingFloors": true, "edgeFeather": 40.0 },
+		{ "type": "HiddenFloor", "name": "Stone1", "position": [950.0, -25.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
+		{ "type": "HiddenFloor", "name": "Stone2", "position": [1240.0, 115.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
+		{ "type": "HiddenFloor", "name": "Stone3", "position": [1530.0, 5.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
+		{ "type": "HiddenFloor", "name": "Stone4", "position": [1820.0, 135.0], "size": [140.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
 		{ "type": "Goal", "name": "Goal", "position": [2600.0, 0.0], "size": [150.0, 250.0] }
 	]
 }

@@ -76,17 +76,25 @@ namespace app
 				Constants& k = model.constants;
 
 				// 暗がりの値
-				Set4(k.param, math::Clamp01(zone.darkness), math::Max(zone.lightRadius, 0.0f), math::Max(zone.playerLightRadius, 0.0f), math::Max(zone.edgeFeather, 0.0f));
+				const float softWidth = math::Max(zone.lightSoftWidth, 0.0f);
+				Set4(k.param, math::Clamp01(zone.darkness), math::Max(zone.lightRadius, 0.0f), softWidth, math::Max(zone.edgeFeather, 0.0f));
 				Set4(k.view, forward.x, forward.y, forward.z, isOrtho ? 1.0f : 0.0f);
 				Set4(k.zone, zone.rect.min.x, zone.rect.min.y, zone.rect.max.x, zone.rect.max.y);
-				Set4(k.color, c.color[0], c.color[1], c.color[2], math::Clamp01(c.softness));
-				Set4(k.playerLight, math::Max(zone.playerLightRadius, 0.0f), math::Clamp01(zone.playerLightSoftness), 0.0f, 0.0f);
+				Set4(k.color, c.color[0], c.color[1], c.color[2], math::Max(c.rectSoftWidth, 0.0f));
+				Set4(k.playerLight, math::Max(zone.playerLightRadius, 0.0f), math::Max(zone.playerLightSoftWidth, 0.0f), zone.isWholeStage ? 1.0f : 0.0f, 0.0f);
 
-				// 光の線分（暗がりのまわり＝光の半径ぶん広げた範囲に入っているものだけ渡す）
-				const float radius = math::Max(zone.lightRadius, 0.0f);
+				// 暗くする範囲（ステージ全体なら、プレイヤーを真ん中にした大きな四角）
 				math::Rect area = zone.rect;
-				area.min = area.min - math::Vec2(radius, radius);
-				area.max = area.max + math::Vec2(radius, radius);
+				if (zone.isWholeStage)
+				{
+					const float half = math::Max(c.wholeStageSize, 1.0f) * 0.5f;
+					area = math::Rect::FromCenter(playerCenter, math::Vec2(half * 2.0f, half * 2.0f));
+				}
+
+				// 光の線分（暗くする範囲のまわり＝光が届く距離ぶん広げた範囲に入っているものだけ渡す）
+				const float reach = zone.GetLightReach();
+				area.min = area.min - math::Vec2(reach, reach);
+				area.max = area.max + math::Vec2(reach, reach);
 				int segmentCount = 0;
 				for (const stage::LightSegment& segment : segments)
 				{
@@ -113,7 +121,7 @@ namespace app
 					{
 						break;
 					}
-					if (!floor.IsVisible() || !Touches(floor.rect, zone.rect))
+					if (!floor.IsVisible() || (!zone.isWholeStage && !Touches(floor.rect, zone.rect)))
 					{
 						continue;
 					}
@@ -126,11 +134,11 @@ namespace app
 
 				Set4(k.player, playerCenter.x, playerCenter.y, static_cast<float>(segmentCount), static_cast<float>(rectCount));
 
-				// 暗がりの範囲の手前に、薄い板を置く（板は端のぼかしの分だけ広くしておく）
-				const float feather = math::Max(zone.edgeFeather, 0.0f);
-				const math::Vec2 center = (zone.rect.min + zone.rect.max) * 0.5f;
-				const float width = zone.rect.Width() + feather * 2.0f;
-				const float height = zone.rect.Height() + feather * 2.0f;
+				// 暗がりの範囲の手前に、薄い板を置く（板は端のぼかしの分だけ広くしておく。ステージ全体なら、プレイヤーを真ん中にした大きな板）
+				const float feather = zone.isWholeStage ? 0.0f : math::Max(zone.edgeFeather, 0.0f);
+				const math::Vec2 center = zone.isWholeStage ? playerCenter : (zone.rect.min + zone.rect.max) * 0.5f;
+				const float width = zone.isWholeStage ? math::Max(c.wholeStageSize, 1.0f) : zone.rect.Width() + feather * 2.0f;
+				const float height = zone.isWholeStage ? math::Max(c.wholeStageSize, 1.0f) : zone.rect.Height() + feather * 2.0f;
 				model.model.UpdateWorldMatrix(
 					Vector3(center.x, center.y, c.planeZ),
 					g_quatIdentity,

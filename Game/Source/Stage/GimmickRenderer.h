@@ -55,8 +55,8 @@ namespace app
 				IndicatorOn,	//!< 合図のランプ（点灯）
 				WarpGate,		//!< ワープの暗がり（通路の奥。入ると暗がりに消えるように見せる）
 				Goal,			//!< ゴール
-				HiddenFloor,	//!< 暗がりの足場（見えているとき）
-				HiddenFloorDim,	//!< 暗がりの足場（消えかけ。見え具合が半分より小さいとき）
+				HiddenFloor,	//!< 暗がりの足場（プレイヤーが乗っているとき。明るい石）
+				HiddenFloorDim,	//!< 暗がりの足場（ふだん見えているとき。暗い石）
 				Num
 			};
 

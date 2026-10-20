@@ -149,12 +149,13 @@ namespace app
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
 			}
 
-			// 暗がりの足場：見えている間だけ描く（消えかけのときは暗い色のモデル）
+			// 暗がりの足場：見えている間だけ描く。ふだんは暗い石のモデル、プレイヤーが乗っている間だけ明るい石のモデル
+			// （光に近いだけで明るくすると特別な床に見えるので、明るさは暗がりの透け具合だけで見せる）
 			for (const HiddenFloor& floor : stage.GetGimmicks().View<HiddenFloor>())
 			{
 				if (floor.IsVisible())
 				{
-					PutRect(floor.visibility >= 0.5f ? ModelKind::HiddenFloor : ModelKind::HiddenFloorDim, floor.rect, m_config.hiddenFloorDepth);
+					PutRect(floor.isPlayerOn ? ModelKind::HiddenFloor : ModelKind::HiddenFloorDim, floor.rect, m_config.hiddenFloorDepth);
 				}
 			}
 
