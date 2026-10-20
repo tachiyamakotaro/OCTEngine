@@ -10,6 +10,7 @@
 #include "Source/Stage/Editor/StageEditor.h"
 #include "Source/Stage/GimmickRenderer.h"
 #include "Source/Stage/MirrorInteractor.h"
+#include "Source/Stage/ShadeInteractor.h"
 #include "Source/Stage/Stage.h"
 #include "Source/Stage/StageRenderer.h"
 #include <random>
@@ -111,6 +112,8 @@ namespace app
 		app::actor::Player m_player;
 		/** 反射鏡の操作 */
 		app::stage::MirrorInteractor m_mirrorInteractor;
+		/** 日よけ板の操作 */
+		app::stage::ShadeInteractor m_shadeInteractor;
 		/** 地形の描画 */
 		app::stage::StageRenderer m_stageRenderer;
 		/** ギミックの描画 */

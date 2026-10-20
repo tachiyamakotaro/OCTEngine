@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GimmickRenderer.cpp
  * @brief ステージのギミックをモデルで描く
  */
@@ -147,6 +147,34 @@ namespace app
 			for (const Goal& goal : stage.GetGimmicks().View<Goal>())
 			{
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
+			}
+
+			// 氷：溶けた分だけ縮む（光が当たった面から）。光が当たっている間は「溶けている最中」のモデルにする
+			for (const IceBlock& ice : stage.GetGimmicks().View<IceBlock>())
+			{
+				if (ice.IsMelted())
+				{
+					continue;
+				}
+				ModelKind kind = ice.isLit ? ModelKind::IceMeltLit : ModelKind::IceMelt;
+				if (ice.kind == IceKind::Keep)
+				{
+					kind = ice.isLit ? ModelKind::IceKeepLit : ModelKind::IceKeep;
+				}
+				PutRect(kind, ice.GetCurrentRect(), m_config.iceDepth);
+			}
+
+			// 日よけ板
+			for (const ShadeBoard& board : stage.GetGimmicks().View<ShadeBoard>())
+			{
+				PutRect(ModelKind::ShadeBoard, board.rect, m_config.shadeBoardDepth);
+			}
+
+			// 日光の窓：窓の線に沿った細長い板（モデルの +X を窓の向きに回す）。光は LightBeamRenderer が描く
+			for (const SunLight& sun : stage.GetGimmicks().View<SunLight>())
+			{
+				Put(ModelKind::SunWindow, sun.center, 0.0f, sun.windowAngleDeg,
+					Vector3(sun.width, m_config.sunWindowThickness, m_config.sunWindowDepth));
 			}
 
 			// 奥の鏡の枠

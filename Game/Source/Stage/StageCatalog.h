@@ -32,15 +32,16 @@ namespace app
 		constexpr StageInfo STAGE_INFO_TABLE[] = {
 			{ "Stage01", "Assets/parameter/stage/Stage01_Object.json", "Assets/parameter/stage/Stage01_Gimmick.json" },
 			{ "Stage02", "Assets/parameter/stage/Stage02_Object.json", "Assets/parameter/stage/Stage02_Gimmick.json" },
+			{ "Stage03_Ice", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json" },
 		};
 
 		/** ステージの数 */
 		constexpr int STAGE_COUNT = static_cast<int>(std::size(STAGE_INFO_TABLE));
 		/**
 		 * @brief タイトルから START したときに遊ぶステージ（STAGE_INFO_TABLE の番号）
-		 * @details 手鏡の確認のために、今は Stage02（1）から始める。本番は 0 に戻す。
+		 * @details 0から数えているのでステージ１を呼び出したい場合は0を入れる
 		 */
-		constexpr int FIRST_STAGE_INDEX = 0;
+		constexpr int FIRST_STAGE_INDEX = 2;
 		static_assert(FIRST_STAGE_INDEX >= 0 && FIRST_STAGE_INDEX < STAGE_COUNT, "FIRST_STAGE_INDEX が表の範囲の外");
 
 

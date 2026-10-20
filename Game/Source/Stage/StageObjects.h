@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file StageObjects.h
  * @brief ステージに置く物（奥の鏡と、全ギミック）
  * @details ギミックは1クラス1ファイルで Gimmick フォルダにある。ここではまとめて include するだけ。
@@ -12,13 +12,16 @@
 #include "Gimmick/FloorSwitch.h"
 #include "Gimmick/GimmickBase.h"
 #include "Gimmick/Goal.h"
+#include "Gimmick/IceBlock.h"
 #include "Gimmick/Indicator.h"
 #include "Gimmick/InvisibleFloor.h"
 #include "Gimmick/LightMirror.h"
 #include "Gimmick/LightPlatform.h"
 #include "Gimmick/LightReceiver.h"
 #include "Gimmick/MistEmitter.h"
+#include "Gimmick/ShadeBoard.h"
 #include "Gimmick/StageBlock.h"
+#include "Gimmick/SunLight.h"
 #include "Gimmick/WarpZone.h"
 #include "Source/Core/Math/Rect.h"
 

@@ -38,9 +38,9 @@ namespace app
 			/** 透視投影の画角（度） */
 			float viewAngleDeg = 60.0f;
 			/** 近平面までの距離 */
-			float nearClip = 1.0f;
+			float nearClip = 10.0f;
 			/** 遠平面までの距離（奥の鏡に映った世界まで入るように、カメラの距離より十分大きくする） */
-			float farClip = 10000.0f;
+			float farClip = 20000.0f;
 		};
 	}
 }

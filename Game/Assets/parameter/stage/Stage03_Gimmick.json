@@ -1,0 +1,12 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "Lamp1", "position": [400.0, 690.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "M1", "center": [400.0, 80.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "IceBlock", "name": "IceWall", "position": [1000.0, 0.0], "size": [80.0, 450.0], "kind": "Melt", "meltTime": 2.0 },
+		{ "type": "Checkpoint", "name": "Room2Entrance", "position": [1100.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "FloorSwitch", "name": "SunSwitch", "position": [1200.0, 0.0], "size": [70.0, 8.0], "isLatch": true },
+		{ "type": "Goal", "name": "Goal", "position": [3030.0, 0.0], "size": [150.0, 250.0] },
+		{ "type": "LightMirror", "name": "M2", "center": [1336.54, 75.0], "angleDeg": 180.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": false, "railMinX": -400.0, "railMaxX": -400.0 },
+		{ "type": "IceBlock", "name": "IceWall1", "position": [1750.0, 325.0], "size": [80.0, 300.0], "kind": "Melt", "meltTime": 2.0 }
+	]
+}

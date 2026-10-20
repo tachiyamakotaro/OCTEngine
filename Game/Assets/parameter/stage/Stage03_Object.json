@@ -1,0 +1,13 @@
+{
+	"stage": { "name": "Stage03_Ice", "playerStart": [100.0, 0.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [3400.0, 1200.0] } },
+	"gimmicks": [
+		{ "type": "StageBlock", "name": "FloorL", "position": [-200.0, -500.0], "size": [2100.0, 500.0] },
+		{ "type": "StageBlock", "name": "FloorR", "position": [2450.0, -500.0], "size": [850.0, 500.0] },
+		{ "type": "StageBlock", "name": "PitBottom", "position": [1900.0, -500.0], "size": [550.0, 100.0] },
+		{ "type": "StageBlock", "name": "PitStepL", "position": [1900.0, -400.0], "size": [90.0, 170.0] },
+		{ "type": "StageBlock", "name": "LeftWall", "position": [-200.0, 0.0], "size": [100.0, 700.0] },
+		{ "type": "StageBlock", "name": "RightWall", "position": [3200.0, 0.0], "size": [100.0, 802.0] },
+		{ "type": "StageBlock", "name": "CeilingL", "position": [-200.0, 700.0], "size": [3402.0, 100.0] },
+		{ "type": "StageBlock", "name": "IceWallTop", "position": [1000.0, 450.0], "size": [80.0, 250.0] }
+	]
+}

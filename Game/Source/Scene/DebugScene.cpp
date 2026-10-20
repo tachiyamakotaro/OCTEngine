@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file DebugScene.cpp
  * @brief インゲーム（ステージを遊ぶシーン）
  */
@@ -29,11 +29,14 @@ namespace
 	constexpr int MIST_EFFECT_NUMBER = 0;
 	/** 霧のエフェクトのファイル（テクスチャは Assets/effect/Texture/Smoke.png を読む） */
 	const char16_t* const MIST_EFFECT_PATH = u"Assets/effect/Mist.efk";
+	/** 氷が溶けきったときに出す湯気の大きさ（霧の煙に対する割合） */
+	constexpr float ICE_STEAM_PUFF_RATE = 0.6f;
 
 	/** ゴールしてからリザルトへ移り始めるまでの時間 */
 	constexpr float CLEAR_WAIT_TIME = 1.2f;
 	/** リザルトへ移るときのフェードの時間 */
 	constexpr float CLEAR_FADE_TIME = 1.0f;
+
 }
 
 
@@ -57,6 +60,7 @@ namespace app
 		, m_ventPositions()
 		, m_random(12345u)
 		, m_mistPuffCount(0)
+		, m_gameCamera()
 		, m_isAutoRestart(true)
 		, m_deadTimer(0.0f)
 		, m_isShowDebugWindow(true)
@@ -115,7 +119,7 @@ namespace app
 		// SE：今の状態を覚えておく（ここからの変化で鳴らす）
 		m_sePlayer.Reset(m_stage, m_player);
 
-		// カメラ（投影の設定。ズームなどの値は CameraParameter.h）
+		// カメラ（投影の設定。ズームや近平面・遠平面などの値は CameraParameter.h）
 		m_gameCamera.Init(g_camera3D);
 		// 最初のフレームからプレイヤーを映す（原点からすべってこないように）
 		UpdateCamera(0.0f, true);
@@ -147,7 +151,18 @@ namespace app
 			m_player.SetReflectionPlane(backMirror.isEnabled, backMirror.planeZ);
 		}
 		m_player.Update();
-		m_mirrorInteractor.Update(m_stage, m_player);
+		// 日よけ板と反射鏡は同じボタン（RB1）でつかむので、同時につかまないようにする
+		// ・反射鏡を引きずっている間は、日よけ板をつかまない
+		// ・日よけ板を引きずっている間は、反射鏡を操作しない（Reset で「回した」などの印も消しておく）
+		m_shadeInteractor.Update(m_stage, m_player, !m_mirrorInteractor.IsDragging());
+		if (m_shadeInteractor.IsDragging())
+		{
+			m_mirrorInteractor.Reset();
+		}
+		else
+		{
+			m_mirrorInteractor.Update(m_stage, m_player);
+		}
 
 		UpdateWarpAndGoal();
 		UpdateCheckpoint();
@@ -256,6 +271,7 @@ namespace app
 	{
 		m_stage.ResetRuntimeState();
 		m_mirrorInteractor.Reset();
+		m_shadeInteractor.Reset();
 
 		m_player.SetPosition(m_respawnPosition);
 		m_player.SetFacing(1);
@@ -311,8 +327,9 @@ namespace app
 		// 体の位置（コントローラー）と見た目の位置の両方を動かす。速度はそのままなので走り続ける
 		m_player.GetController().SetPosition(destination);
 		m_player.SetPosition(destination);
-		// 鏡を引きずっていたら離す
+		// 鏡や日よけ板を引きずっていたら離す
 		m_mirrorInteractor.Reset();
+		m_shadeInteractor.Reset();
 		UpdateCamera(0.0f, true);
 	}
 
@@ -339,6 +356,16 @@ namespace app
 
 	void DebugScene::UpdateStageEvents(const float deltaTime)
 	{
+		// ---- 氷が溶けきった瞬間：湯気（霧の煙を小さくした物）を出す ----
+		for (const app::stage::IceBlock& ice : m_stage.GetGimmicks().View<app::stage::IceBlock>())
+		{
+			if (ice.isMeltedThisFrame)
+			{
+				const app::math::Vec2 bottom((ice.rect.min.x + ice.rect.max.x) * 0.5f, ice.rect.min.y);
+				PlayMistPuff(Vector3(bottom.x, bottom.y + 20.0f, 0.0f), m_mistPuffScale * ICE_STEAM_PUFF_RATE);
+			}
+		}
+
 		if (!m_isMistEffectEnabled)
 		{
 			return;

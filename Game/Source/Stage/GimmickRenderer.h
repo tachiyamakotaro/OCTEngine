@@ -1,6 +1,6 @@
-/**
+﻿/**
  * @file GimmickRenderer.h
- * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・ゴール）をモデルで描く
+ * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・ゴール・氷・日よけ板・日光の窓）をモデルで描く
  * @details ギミックの位置・大きさ・状態（扉の開き具合、受光器の点灯など）は毎フレーム Stage から読むので、
  *          エディタで動かしたり、遊んでいる最中に状態が変わったりしても、そのまま追従する。
  *          奥の鏡があるときは、鏡に映った像も一緒に描く。
@@ -55,6 +55,12 @@ namespace app
 				IndicatorOn,	//!< 合図のランプ（点灯）
 				WarpGate,		//!< ワープの暗がり（通路の奥。入ると暗がりに消えるように見せる）
 				Goal,			//!< ゴール
+				IceMelt,		//!< 溶かす氷（白っぽい水色・ひび）
+				IceMeltLit,		//!< 溶かす氷（光が当たって溶けている最中。オレンジがかる）
+				IceKeep,		//!< 守る氷（濃い青・白い縁）
+				IceKeepLit,		//!< 守る氷（光が当たって溶けている最中。縁がオレンジになる）
+				ShadeBoard,		//!< 日よけ板（木の板）
+				SunWindow,		//!< 日光の窓（光が差し込む天窓の枠）
 				Num
 			};
 
@@ -82,6 +88,12 @@ namespace app
 					"Assets/modelData/gimmick/indicator_on.tkm",
 					"Assets/modelData/gimmick/warp_gate.tkm",
 					"Assets/modelData/gimmick/goal.tkm",
+					"Assets/modelData/gimmick/ice_melt.tkm",
+					"Assets/modelData/gimmick/ice_melt_lit.tkm",
+					"Assets/modelData/gimmick/ice_keep.tkm",
+					"Assets/modelData/gimmick/ice_keep_lit.tkm",
+					"Assets/modelData/gimmick/shade_board.tkm",
+					"Assets/modelData/gimmick/sun_window.tkm",
 				};
 				/** モデルの上方向（仮モデルは Y-up） */
 				EnModelUpAxis upAxis = enModelUpAxisY;
@@ -101,6 +113,9 @@ namespace app
 				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
 				float warpGateDepth = 300.0f;
 				float goalDepth = 150.0f;
+				float iceDepth = 200.0f;
+				float shadeBoardDepth = 150.0f;
+				float sunWindowDepth = 200.0f;
 				// ---- 大きさ ----
 				/** 光源の箱の一辺 */
 				float lightSourceSize = 30.0f;
@@ -115,6 +130,8 @@ namespace app
 				/** 霧の吹き出し口の大きさ（幅・高さ） */
 				float mistVentWidth = 60.0f;
 				float mistVentHeight = 30.0f;
+				/** 日光の窓の枠の太さ */
+				float sunWindowThickness = 20.0f;
 
 				/** 鏡に映った像も描くか */
 				bool isDrawReflection = true;

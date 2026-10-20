@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file LightTracer.cpp
  * @brief 光の経路を計算する（レイを飛ばして鏡で反射させる）
  */
@@ -87,14 +87,15 @@ namespace app
 		void LightTracer::Trace(const GimmickManager& gimmicks, LightTraceResult& out) const
 		{
 			out.Clear();
+			// 光源が出す光を全部集める（ふつうの光源は1本、日光は何本も）
+			std::vector<EmittedRay> rays;
 			for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
 			{
-				math::Vec2 origin;
-				math::Vec2 direction;
-				if (gimmick->GetEmittedRay(origin, direction))
-				{
-					TraceBeam(gimmicks, origin, direction, gimmick->GetEmittedBeamWidth(), out);
-				}
+				gimmick->CollectEmittedRays(rays);
+			}
+			for (const EmittedRay& ray : rays)
+			{
+				TraceBeam(gimmicks, ray.origin, ray.direction, ray.width, out);
 			}
 		}
 

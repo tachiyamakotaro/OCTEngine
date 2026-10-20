@@ -308,6 +308,7 @@
     <ClCompile Include="Source\Stage\Gimmick\GimmickManager.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickRegistry.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Goal.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\IceBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Indicator.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\InvisibleFloor.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\LightMirror.cpp" />
@@ -315,10 +316,13 @@
     <ClCompile Include="Source\Stage\Gimmick\LightReceiver.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\MistEmitter.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\RectGimmick.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\ShadeBoard.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\StageBlock.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\SunLight.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\WarpZone.cpp" />
     <ClCompile Include="Source\Stage\LightTracer.cpp" />
     <ClCompile Include="Source\Stage\MirrorInteractor.cpp" />
+    <ClCompile Include="Source\Stage\ShadeInteractor.cpp" />
     <ClCompile Include="Source\Stage\Stage.cpp" />
     <ClCompile Include="Source\Stage\StageCatalog.cpp" />
     <ClCompile Include="Source\Stage\StageLoader.cpp" />
@@ -390,6 +394,7 @@
     <ClInclude Include="Source\Stage\Gimmick\GimmickRegistry.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickView.h" />
     <ClInclude Include="Source\Stage\Gimmick\Goal.h" />
+    <ClInclude Include="Source\Stage\Gimmick\IceBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\Indicator.h" />
     <ClInclude Include="Source\Stage\Gimmick\InvisibleFloor.h" />
     <ClInclude Include="Source\Stage\Gimmick\LightMirror.h" />
@@ -397,10 +402,13 @@
     <ClInclude Include="Source\Stage\Gimmick\LightReceiver.h" />
     <ClInclude Include="Source\Stage\Gimmick\MistEmitter.h" />
     <ClInclude Include="Source\Stage\Gimmick\RectGimmick.h" />
+    <ClInclude Include="Source\Stage\Gimmick\ShadeBoard.h" />
     <ClInclude Include="Source\Stage\Gimmick\StageBlock.h" />
+    <ClInclude Include="Source\Stage\Gimmick\SunLight.h" />
     <ClInclude Include="Source\Stage\Gimmick\WarpZone.h" />
     <ClInclude Include="Source\Stage\LightTracer.h" />
     <ClInclude Include="Source\Stage\MirrorInteractor.h" />
+    <ClInclude Include="Source\Stage\ShadeInteractor.h" />
     <ClInclude Include="Source\Stage\Stage.h" />
     <ClInclude Include="Source\Stage\StageCatalog.h" />
     <ClInclude Include="Source\Stage\StageLoader.h" />
