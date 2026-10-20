@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GimmickRenderer.cpp
  * @brief ステージのギミックをモデルで描く
  */
@@ -147,6 +147,15 @@ namespace app
 			for (const Goal& goal : stage.GetGimmicks().View<Goal>())
 			{
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
+			}
+
+			// 暗がりの足場：見えている間だけ描く（消えかけのときは暗い色のモデル）
+			for (const HiddenFloor& floor : stage.GetGimmicks().View<HiddenFloor>())
+			{
+				if (floor.IsVisible())
+				{
+					PutRect(floor.visibility >= 0.5f ? ModelKind::HiddenFloor : ModelKind::HiddenFloorDim, floor.rect, m_config.hiddenFloorDepth);
+				}
 			}
 
 			// 奥の鏡の枠

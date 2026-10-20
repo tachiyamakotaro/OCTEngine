@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file DebugScene.cpp
  * @brief インゲーム（ステージを遊ぶシーン）
  */
@@ -89,6 +89,8 @@ namespace app
 
 		// 光（半透明。Assets/shader/lightBeam.fx）
 		m_lightBeamRenderer.Init(app::render::LightBeamRenderer::Config());
+		// 暗がり（半透明。Assets/shader/darkness.fx）
+		m_darknessRenderer.Init(app::render::DarknessRenderer::Config());
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
@@ -166,6 +168,11 @@ namespace app
 		UpdateCamera(deltaTime, false);
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
 		m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
+		{
+			// 暗がりもカメラの向きを使うので、カメラを動かしたあとに更新する（プレイヤーのまわりは少し明るくする）
+			const app::math::Rect body = m_player.GetController().GetBounds();
+			m_darknessRenderer.Update(m_stage, (body.min + body.max) * 0.5f, m_gameCamera.GetParameter().isOrtho);
+		}
 		SceneLight::GetInstance()->Update();
 
 		if (isDebugUI)
@@ -182,6 +189,8 @@ namespace app
 		m_player.Render(rc);
 		// 半透明のガラスは、ほかのモデルを全部登録したあとに登録する（エンジンは登録した順に描く）
 		m_mirrorGlass.Draw(rc);
+		// 暗がり（半透明。光より先に登録して、暗がりの中でも光の筋が見えるようにする）
+		m_darknessRenderer.Draw(rc);
 		// 光（半透明。最後に登録する）
 		m_lightBeamRenderer.Draw(rc);
 	}

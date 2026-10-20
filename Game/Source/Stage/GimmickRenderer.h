@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GimmickRenderer.h
  * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・ゴール）をモデルで描く
  * @details ギミックの位置・大きさ・状態（扉の開き具合、受光器の点灯など）は毎フレーム Stage から読むので、
@@ -55,6 +55,8 @@ namespace app
 				IndicatorOn,	//!< 合図のランプ（点灯）
 				WarpGate,		//!< ワープの暗がり（通路の奥。入ると暗がりに消えるように見せる）
 				Goal,			//!< ゴール
+				HiddenFloor,	//!< 暗がりの足場（見えているとき）
+				HiddenFloorDim,	//!< 暗がりの足場（消えかけ。見え具合が半分より小さいとき）
 				Num
 			};
 
@@ -82,6 +84,8 @@ namespace app
 					"Assets/modelData/gimmick/indicator_on.tkm",
 					"Assets/modelData/gimmick/warp_gate.tkm",
 					"Assets/modelData/gimmick/goal.tkm",
+					"Assets/modelData/gimmick/hidden_floor.tkm",
+					"Assets/modelData/gimmick/hidden_floor_dim.tkm",
 				};
 				/** モデルの上方向（仮モデルは Y-up） */
 				EnModelUpAxis upAxis = enModelUpAxisY;
@@ -101,6 +105,7 @@ namespace app
 				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
 				float warpGateDepth = 300.0f;
 				float goalDepth = 150.0f;
+				float hiddenFloorDepth = 200.0f;
 				// ---- 大きさ ----
 				/** 光源の箱の一辺 */
 				float lightSourceSize = 30.0f;
