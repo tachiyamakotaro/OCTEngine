@@ -149,19 +149,25 @@ namespace app
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
 			}
 
-			// 氷：溶けた分だけ縮む（光が当たった面から）。光が当たっている間は「溶けている最中」のモデルにする
+			// 氷：残っているマスを、まとめた矩形ごとに箱で置く（穴の開いた形になる）
+			// 光が当たっている間・通れる穴が開いて溶けていく間は「溶けている最中」のモデルにする
 			for (const IceBlock& ice : stage.GetGimmicks().View<IceBlock>())
 			{
 				if (ice.IsMelted())
 				{
 					continue;
 				}
-				ModelKind kind = ice.isLit ? ModelKind::IceMeltLit : ModelKind::IceMelt;
+				const bool isMelting = ice.isLit || ice.isFlowing;
+				ModelKind kind = isMelting ? ModelKind::IceMeltLit : ModelKind::IceMelt;
 				if (ice.kind == IceKind::Keep)
 				{
-					kind = ice.isLit ? ModelKind::IceKeepLit : ModelKind::IceKeep;
+					kind = isMelting ? ModelKind::IceKeepLit : ModelKind::IceKeep;
 				}
-				PutRect(kind, ice.GetCurrentRect(), m_config.iceDepth);
+				ice.CollectSolidRects(m_iceRects);
+				for (const math::Rect& solid : m_iceRects)
+				{
+					PutRect(kind, solid, m_config.iceDepth);
+				}
 			}
 
 			// 日よけ板

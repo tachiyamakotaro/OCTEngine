@@ -214,6 +214,8 @@ namespace app
 			ModelPool m_reflectionPools[static_cast<int>(ModelKind::Num)];
 			/** 霧の吹き出し口の位置（毎フレーム使い回す入れ物） */
 			std::vector<math::Vec2> m_ventPositions;
+			/** 氷の残っているマスをまとめた矩形（毎フレーム使い回す入れ物） */
+			std::vector<math::Rect> m_iceRects;
 			/** 今フレームの奥の鏡（Update の間だけ使う） */
 			bool m_isMirrorEnabled = false;
 			float m_mirrorPlaneZ = 0.0f;
