@@ -281,6 +281,7 @@
     <ClCompile Include="Source\Actor\Character\Player\PlayerState.cpp" />
     <ClCompile Include="Source\Actor\Character\Player\PlayerStateMachine.cpp" />
     <ClCompile Include="Source\Actor\Character\Player\PlayerStatus.cpp" />
+    <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Core\Fade.cpp" />
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
@@ -350,6 +351,8 @@
     <ClInclude Include="Source\Actor\Character\Player\PlayerState.h" />
     <ClInclude Include="Source\Actor\Character\Player\PlayerStateMachine.h" />
     <ClInclude Include="Source\Actor\Character\Player\PlayerStatus.h" />
+    <ClInclude Include="Source\Camera\CameraParameter.h" />
+    <ClInclude Include="Source\Camera\GameCamera.h" />
     <ClInclude Include="Source\Core\DebugUI.h" />
     <ClInclude Include="Source\Core\Fade.h" />
     <ClInclude Include="Source\Core\Math\MathUtil.h" />

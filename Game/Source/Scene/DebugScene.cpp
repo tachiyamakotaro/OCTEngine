@@ -34,12 +34,6 @@ namespace
 	constexpr float CLEAR_WAIT_TIME = 1.2f;
 	/** リザルトへ移るときのフェードの時間 */
 	constexpr float CLEAR_FADE_TIME = 1.0f;
-
-	/** 注視点の高さ（足元から体の中ほど） */
-	constexpr float CAMERA_TARGET_OFFSET_Y = 60.0f;
-	/** カメラの距離の範囲 */
-	constexpr float CAMERA_MIN_DISTANCE = 500.0f;
-	constexpr float CAMERA_MAX_DISTANCE = 6000.0f;
 }
 
 
@@ -63,11 +57,6 @@ namespace app
 		, m_ventPositions()
 		, m_random(12345u)
 		, m_mistPuffCount(0)
-		, m_cameraTarget(0.0f, 0.0f, 0.0f)
-		, m_cameraDistance(1100.0f)
-		, m_followDistance(1100.0f)
-		, m_cameraHeight(150.0f)
-		, m_cameraSmoothing(6.0f)
 		, m_isAutoRestart(true)
 		, m_deadTimer(0.0f)
 		, m_isShowDebugWindow(true)
@@ -126,9 +115,9 @@ namespace app
 		// SE：今の状態を覚えておく（ここからの変化で鳴らす）
 		m_sePlayer.Reset(m_stage, m_player);
 
-		// カメラ（遠くまで映るように）
-		g_camera3D->SetNear(10.0f);
-		g_camera3D->SetFar(20000.0f);
+		// カメラ（投影の設定。ズームなどの値は CameraParameter.h）
+		m_gameCamera.Init(g_camera3D);
+		// 最初のフレームからプレイヤーを映す（原点からすべってこないように）
 		UpdateCamera(0.0f, true);
 
 		return true;
@@ -479,22 +468,18 @@ namespace app
 
 	void DebugScene::UpdateCamera(const float deltaTime, const bool isImmediate)
 	{
+		// プレイヤーの足元を「見たい位置」として渡す（注視点の高さ・なめらかさ・投影は GameCamera が決める）
 		const app::math::Vec2& playerPos = m_player.GetPosition();
-
-		// プレイヤーを追う（奥の鏡に映った姿も一緒に画面に入る）
-		const Vector3 target(playerPos.x, playerPos.y + CAMERA_TARGET_OFFSET_Y, 0.0f);
-		const float distance = app::math::Clamp(m_followDistance, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE);
-
-		// なめらかに追いかける（フレームレートが変わっても同じ速さになる書き方）
-		const float t = isImmediate ? 1.0f : 1.0f - std::exp(-m_cameraSmoothing * deltaTime);
-		m_cameraTarget.x += (target.x - m_cameraTarget.x) * t;
-		m_cameraTarget.y += (target.y - m_cameraTarget.y) * t;
-		m_cameraTarget.z = 0.0f;
-		m_cameraDistance += (distance - m_cameraDistance) * t;
-
-		// 手前(-Z)から、少し上から見る
-		g_camera3D->SetTarget(m_cameraTarget);
-		g_camera3D->SetPosition(Vector3(m_cameraTarget.x, m_cameraTarget.y + m_cameraHeight, -m_cameraDistance));
+		const Vector3 followPosition(playerPos.x, playerPos.y, 0.0f);
+		if (isImmediate)
+		{
+			// リスタート・ワープの直後はすぐ追いつく
+			m_gameCamera.SnapTo(followPosition);
+		}
+		else
+		{
+			m_gameCamera.Update(deltaTime, followPosition);
+		}
 	}
 
 
@@ -678,9 +663,7 @@ namespace app
 		// ---- カメラ ----
 		if (ImGui::CollapsingHeader("Camera"))
 		{
-			ImGui::DragFloat("Distance", &m_followDistance, 10.0f, CAMERA_MIN_DISTANCE, CAMERA_MAX_DISTANCE, "%.0f");
-			ImGui::DragFloat("Height", &m_cameraHeight, 5.0f, -2000.0f, 2000.0f, "%.0f");
-			ImGui::DragFloat("Smoothing", &m_cameraSmoothing, 0.1f, 0.1f, 30.0f, "%.1f");
+			m_gameCamera.DrawSettingsUI();
 		}
 
 		// ---- SE ----

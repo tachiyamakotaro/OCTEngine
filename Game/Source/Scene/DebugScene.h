@@ -1,5 +1,6 @@
-#pragma once
+﻿#pragma once
 #include "Source/Actor/Character/Player/Player.h"
+#include "Source/Camera/GameCamera.h"
 #include "Source/Input/GamePadInputDevice.h"
 #include "Source/Render/LightBeamRenderer.h"
 #include "Source/Render/MirrorGlass.h"
@@ -160,16 +161,8 @@ namespace app
 		/** 出した煙の数（確認用） */
 		int m_mistPuffCount;
 
-		/** 今のカメラの注視点 */
-		Vector3 m_cameraTarget;
-		/** 今のカメラの距離 */
-		float m_cameraDistance;
-		/** カメラの距離 */
-		float m_followDistance;
-		/** 注視点から見たカメラの高さ（少し上から見下ろすと床の上面が見える） */
-		float m_cameraHeight;
-		/** カメラの追従の速さ */
-		float m_cameraSmoothing;
+		/** カメラ（追従・投影の設定・調整用の ImGui） */
+		app::camera::GameCamera m_gameCamera;
 
 		/** 死んだら自動でリスタートするか */
 		bool m_isAutoRestart;

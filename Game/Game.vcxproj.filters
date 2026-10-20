@@ -55,6 +55,9 @@
     <Filter Include="Source\Stage\Gimmick">
       <UniqueIdentifier>{a7e29f0b-8f26-4d51-9bfe-795177aed30a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Camera">
+      <UniqueIdentifier>{baace086-e7da-4c57-a55d-79077920bc84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -248,6 +251,9 @@
     </ClCompile>
     <ClCompile Include="Source\Stage\MirrorInteractor.cpp">
       <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera\GameCamera.cpp">
+      <Filter>Source\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -474,6 +480,12 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\MirrorInteractor.h">
       <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\CameraParameter.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\GameCamera.h">
+      <Filter>Source\Camera</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
