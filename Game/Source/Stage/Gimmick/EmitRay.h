@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file EmitRay.h
  * @brief 光を出すギミック（向いている方向にまっすぐ光を出す）
  */
@@ -43,6 +43,8 @@ namespace app
 			void DrawEditor(const EditorCanvas& canvas, bool isSelected) const override;
 			void DrawInspector(GimmickInspector& inspector) override;
 			void Serialize(GimmickArchive& archive) override;
+			/** 光の向きを90度ずつ回す */
+			void Rotate90(const int quarterTurns) override { angleDeg = math::NormalizeDeg(angleDeg + 90.0f * static_cast<float>(quarterTurns)); }
 
 
 		public:

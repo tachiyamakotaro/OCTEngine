@@ -209,6 +209,12 @@ namespace app
 			if (ImGui::SmallButton("Duplicate")) { DuplicateSelected(stage); }
 			ImGui::SameLine();
 			if (ImGui::SmallButton("Delete")) { DeleteSelected(stage); }
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Rotate L")) { RotateSelected(stage, 1); }
+			ImGui::SetItemTooltip("Rotate 90 degrees counterclockwise (Shift+R).");
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Rotate R")) { RotateSelected(stage, -1); }
+			ImGui::SetItemTooltip("Rotate 90 degrees clockwise (R).\nBlocks: swap width and height around the center.\nLamps / mirrors: turn the angle.");
 			ImGui::EndDisabled();
 
 			DrawFileMessages();
@@ -598,6 +604,18 @@ namespace app
 		}
 
 
+		void StageEditor::RotateSelected(Stage& stage, const int quarterTurns)
+		{
+			GimmickBase* gimmick = GetSelectedGimmick(stage);
+			if (gimmick == nullptr)
+			{
+				return;
+			}
+			// Undo の履歴には、UpdateHistory が変化を見つけて自動で積む
+			gimmick->Rotate90(quarterTurns);
+		}
+
+
 		void StageEditor::DeleteSelected(Stage& stage)
 		{
 			const GimmickBase* gimmick = GetSelectedGimmick(stage);
@@ -859,6 +877,11 @@ namespace app
 			else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Y))
 			{
 				Redo(stage);
+			}
+			else if (!io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_R, false))
+			{
+				// R：時計回り / Shift+R：反時計回り
+				RotateSelected(stage, io.KeyShift ? 1 : -1);
 			}
 		}
 

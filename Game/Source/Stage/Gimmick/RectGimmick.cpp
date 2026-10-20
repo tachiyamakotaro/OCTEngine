@@ -37,5 +37,17 @@ namespace app
 		{
 			archive.Rect(rect);
 		}
+
+
+		void RectGimmick::Rotate90(const int quarterTurns)
+		{
+			// 軸に平行な矩形は、90度回すと幅と高さが入れ替わるだけ（180度なら同じ形）
+			if (quarterTurns % 2 == 0)
+			{
+				return;
+			}
+			const math::Vec2 center = (rect.min + rect.max) * 0.5f;
+			rect = math::Rect::FromCenter(center, math::Vec2(rect.Height(), rect.Width()));
+		}
 	}
 }

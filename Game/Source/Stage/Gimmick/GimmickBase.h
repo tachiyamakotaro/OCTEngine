@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GimmickBase.h
  * @brief ステージに置く物（ギミック）の基底クラス
  * @details ステージに置く物は、地形ブロックもふくめて全部このクラスを継承する。
@@ -227,6 +227,13 @@ namespace app
 			virtual void DrawEditor(const EditorCanvas& canvas, bool isSelected) const = 0;
 			/** @brief プロパティ欄（ImGui）。名前の欄はエディタが描くので、ここでは描かない */
 			virtual void DrawInspector(GimmickInspector& inspector) {}
+			/**
+			 * @brief 90度ずつ回す（エディタの回転ボタン・R キー）
+			 * @param quarterTurns 回す回数（+1 で反時計回りに90度、-1 で時計回りに90度）
+			 * @details 矩形の物（RectGimmick）は、中心を軸に幅と高さを入れ替える。
+			 *          向きを持つ物（光源・反射鏡）は角度を回す。点や線で置く新しいギミックを作ったら override する。
+			 */
+			virtual void Rotate90(int quarterTurns) {}
 
 
 		public:
