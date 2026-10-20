@@ -45,6 +45,16 @@ namespace app
 				m_reflectionPools[i].upAxis = config.upAxis;
 				m_reflectionPools[i].cullMode = D3D12_CULL_MODE_FRONT;
 			}
+			// 氷は IceRenderer が描く（モデルは同じものを使う）
+			render::IceRenderer::Config iceConfig;
+			iceConfig.meltModelPath = config.modelPaths[static_cast<int>(ModelKind::IceMelt)];
+			iceConfig.meltLitModelPath = config.modelPaths[static_cast<int>(ModelKind::IceMeltLit)];
+			iceConfig.keepModelPath = config.modelPaths[static_cast<int>(ModelKind::IceKeep)];
+			iceConfig.keepLitModelPath = config.modelPaths[static_cast<int>(ModelKind::IceKeepLit)];
+			iceConfig.modelSize = config.modelSize;
+			iceConfig.depth = config.iceDepth;
+			iceConfig.isDrawReflection = config.isDrawReflection;
+			m_iceRenderer.Init(iceConfig);
 			m_isInited = true;
 		}
 
@@ -149,25 +159,13 @@ namespace app
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
 			}
 
-			// 氷：残っているマスを、まとめた矩形ごとに箱で置く（穴の開いた形になる）
-			// 光が当たっている間・通れる穴が開いて溶けていく間は「溶けている最中」のモデルにする
-			for (const IceBlock& ice : stage.GetGimmicks().View<IceBlock>())
+			// 氷：穴の縁がなめらかに消えていくように、IceRenderer が専用のシェーダーで描く
 			{
-				if (ice.IsMelted())
-				{
-					continue;
-				}
-				const bool isMelting = ice.isLit || ice.isFlowing;
-				ModelKind kind = isMelting ? ModelKind::IceMeltLit : ModelKind::IceMelt;
-				if (ice.kind == IceKind::Keep)
-				{
-					kind = isMelting ? ModelKind::IceKeepLit : ModelKind::IceKeep;
-				}
-				ice.CollectSolidRects(m_iceRects);
-				for (const math::Rect& solid : m_iceRects)
-				{
-					PutRect(kind, solid, m_config.iceDepth);
-				}
+				render::IceRenderer::Config& iceConfig = m_iceRenderer.GetConfig();
+				iceConfig.depth = m_config.iceDepth;
+				iceConfig.modelSize = m_config.modelSize;
+				iceConfig.isDrawReflection = m_config.isDrawReflection;
+				m_iceRenderer.Update(stage);
 			}
 
 			// 日よけ板
@@ -204,6 +202,7 @@ namespace app
 					m_reflectionPools[i].models[n]->Draw(rc);
 				}
 			}
+			m_iceRenderer.Draw(rc);
 		}
 
 
@@ -214,7 +213,7 @@ namespace app
 			{
 				count += m_pools[i].usedCount + m_reflectionPools[i].usedCount;
 			}
-			return count;
+			return count + m_iceRenderer.GetDrawCount();
 		}
 
 

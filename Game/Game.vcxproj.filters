@@ -267,6 +267,9 @@
     <ClCompile Include="Source\Stage\ShadeInteractor.cpp">
       <Filter>Source\Stage</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Render\IceRenderer.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -510,6 +513,9 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\ShadeInteractor.h">
       <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\IceRenderer.h">
+      <Filter>Source\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

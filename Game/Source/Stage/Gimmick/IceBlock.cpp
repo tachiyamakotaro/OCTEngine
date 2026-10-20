@@ -43,7 +43,16 @@ namespace app
 			 * 光の真上のマスは「1マスの大きさ ÷ 100 × meltTime × この値」秒で溶ける。
 			 * 光の先のマスも少しずつ先に温まっていくので、1 より大きくして合わせている（テストで計った値）
 			 */
-			constexpr float HEAT_TIME_SCALE = 1.6f;
+			constexpr float HEAT_TIME_SCALE = 2.0f;
+			/**
+			 * 通れる穴が開いたあと、穴から溶け広がるときの、ななめのとなりの溶けたマスの重み
+			 * （まっすぐのとなり = 1。この値にすると、穴がどの向きにもだいたい同じ速さで広がる → 丸く広がる）
+			 */
+			constexpr float FLOW_DIAGONAL_WEIGHT = 0.32f;
+			/** まっすぐな縁（となり1つ＋ななめ2つが溶けている）のときの重みの合計。これで割ると、まっすぐな縁が flowSpeed の速さで進む */
+			constexpr float FLOW_FLAT_SUM = 1.0f + 2.0f * FLOW_DIAGONAL_WEIGHT;
+			/** へこんだ所（まわりが多く溶けている）が早く溶ける上限（縁がなめらかになる） */
+			constexpr float FLOW_MAX_FACTOR = 2.0f;
 
 
 			/** int を範囲に収める */
@@ -284,18 +293,28 @@ namespace app
 				return;
 			}
 
+			// 光の通り道のまわりに熱をためる。当たっている時間が長いほど、熱が伝わる半径が広がる
+			m_lightGain.assign(m_solid.size(), 0.0f);
+			isLit = HeatFromLight(context, m_lightGain);
+			if (isLit)
+			{
+				litTime += context.deltaTime;
+			}
 			if (isFlowing)
 			{
-				// 通れる穴が開いたあと：穴から熱が伝わって、残りの氷も流れるように溶けていく
-				HeatFromHole(context.deltaTime);
-			}
-			else
-			{
-				// 光の通り道のまわりに熱をためる。当たっている時間が長いほど、熱が伝わる半径が広がる
-				isLit = HeatFromLight(context);
-				if (isLit)
+				// 通れる穴が開いたあと：穴から熱が伝わって、残りの氷も穴のまわりから溶け広がる（光が外れても続く）
+				// 光と穴の両方から温まるマスは、速いほうだけ使う（2つを足して、決めた速さより速くならないように）
+				HeatFromHole(context.deltaTime, m_flowGain);
+				for (size_t i = 0; i < m_lightGain.size(); ++i)
 				{
-					litTime += context.deltaTime;
+					m_lightGain[i] = math::Max(m_lightGain[i], m_flowGain[i]);
+				}
+			}
+			for (size_t i = 0; i < m_heat.size(); ++i)
+			{
+				if (m_solid[i] != 0)
+				{
+					m_heat[i] += m_lightGain[i];
 				}
 			}
 
@@ -312,7 +331,7 @@ namespace app
 		}
 
 
-		bool IceBlock::HeatFromLight(const GimmickUpdateContext& context)
+		bool IceBlock::HeatFromLight(const GimmickUpdateContext& context, std::vector<float>& outGain) const
 		{
 			const float radius = math::Max(math::Min(heatRadius + heatGrowSpeed * litTime, maxHeatRadius), 1.0f);
 			const float w = GetCellWidth();
@@ -355,7 +374,7 @@ namespace app
 						{
 							continue;
 						}
-						m_heat[index] += heatPerSecond * (1.0f - distance / radius) * context.deltaTime;
+						outGain[index] += heatPerSecond * (1.0f - distance / radius) * context.deltaTime;
 						isHeated = true;
 					}
 				}
@@ -364,10 +383,22 @@ namespace app
 		}
 
 
-		void IceBlock::HeatFromHole(const float deltaTime)
+		void IceBlock::HeatFromHole(const float deltaTime, std::vector<float>& outGain) const
 		{
-			// 溶けたマスのとなり（上下左右）のマスに熱をためる。氷の外は数えない（穴から広がっていくように）
-			const float heat = deltaTime / math::Max(flowTime, 0.001f);
+			outGain.assign(m_solid.size(), 0.0f);
+			if (flowSpeed <= 0.0f)
+			{
+				return;
+			}
+			// まっすぐな縁のマスが、1秒に「100 ÷ meltTime × flowSpeed」溶け進むようにする（flowSpeed 1 = 光で掘り進むのと同じ速さ）
+			const float cell = math::Max((GetCellWidth() + GetCellHeight()) * 0.5f, MIN_CELL_SIZE);
+			const float heatPerSecond = flowSpeed * 100.0f / (math::Max(meltTime, MIN_TIME) * cell);
+			// となりの溶けたマスを数える（まっすぐのとなり = 1、ななめ = FLOW_DIAGONAL_WEIGHT）。氷の外は数えない（穴から広がっていくように）
+			auto isHole = [this](const int column, const int row)
+				{
+					return column >= 0 && row >= 0 && column < m_columns && row < m_rows
+						&& m_solid[static_cast<size_t>(CellIndex(column, row))] == 0;
+				};
 			for (int row = 0; row < m_rows; ++row)
 			{
 				for (int column = 0; column < m_columns; ++column)
@@ -377,15 +408,65 @@ namespace app
 					{
 						continue;
 					}
-					const bool isNextToHole =
-						(column > 0 && !IsCellSolid(column - 1, row)) ||
-						(column + 1 < m_columns && !IsCellSolid(column + 1, row)) ||
-						(row > 0 && !IsCellSolid(column, row - 1)) ||
-						(row + 1 < m_rows && !IsCellSolid(column, row + 1));
-					if (isNextToHole)
+					float sum = 0.0f;
+					sum += isHole(column - 1, row) ? 1.0f : 0.0f;
+					sum += isHole(column + 1, row) ? 1.0f : 0.0f;
+					sum += isHole(column, row - 1) ? 1.0f : 0.0f;
+					sum += isHole(column, row + 1) ? 1.0f : 0.0f;
+					sum += isHole(column - 1, row - 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
+					sum += isHole(column + 1, row - 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
+					sum += isHole(column - 1, row + 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
+					sum += isHole(column + 1, row + 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
+					if (sum <= 0.0f)
 					{
-						m_heat[index] += heat;
+						continue;
 					}
+					// まわりが多く溶けている（へこんだ）所ほど早く溶ける → 穴の縁がなめらかになり、丸く広がる
+					const float factor = math::Min(sum / FLOW_FLAT_SUM, FLOW_MAX_FACTOR);
+					outGain[index] = heatPerSecond * factor * deltaTime;
+				}
+			}
+		}
+
+
+		void IceBlock::BuildSmoothField(std::vector<float>& out) const
+		{
+			if (!IsGridValid())
+			{
+				int columns = 0;
+				int rows = 0;
+				CalcGridSize(columns, rows);
+				out.assign(static_cast<size_t>(columns * rows), 1.0f);
+				return;
+			}
+			// 残り具合：残っているマスは 1 − 熱（溶けた瞬間にちょうど 0）、溶けたマスは 0
+			const size_t count = m_solid.size();
+			std::vector<float> value(count, 0.0f);
+			for (size_t i = 0; i < count; ++i)
+			{
+				value[i] = m_solid[i] != 0 ? 1.0f - math::Clamp01(m_heat[i]) : 0.0f;
+			}
+			// となりのマスと 1:2:1 で混ぜる（横 → 縦）。氷の端では、外も端のマスと同じ値として混ぜる（外側の形は変えない）
+			std::vector<float> horizontal(count, 0.0f);
+			for (int row = 0; row < m_rows; ++row)
+			{
+				for (int column = 0; column < m_columns; ++column)
+				{
+					const float left = value[static_cast<size_t>(CellIndex(ClampInt(column - 1, 0, m_columns - 1), row))];
+					const float center = value[static_cast<size_t>(CellIndex(column, row))];
+					const float right = value[static_cast<size_t>(CellIndex(ClampInt(column + 1, 0, m_columns - 1), row))];
+					horizontal[static_cast<size_t>(CellIndex(column, row))] = (left + center * 2.0f + right) * 0.25f;
+				}
+			}
+			out.assign(count, 0.0f);
+			for (int row = 0; row < m_rows; ++row)
+			{
+				for (int column = 0; column < m_columns; ++column)
+				{
+					const float below = horizontal[static_cast<size_t>(CellIndex(column, ClampInt(row - 1, 0, m_rows - 1)))];
+					const float center = horizontal[static_cast<size_t>(CellIndex(column, row))];
+					const float above = horizontal[static_cast<size_t>(CellIndex(column, ClampInt(row + 1, 0, m_rows - 1)))];
+					out[static_cast<size_t>(CellIndex(column, row))] = (below + center * 2.0f + above) * 0.25f;
 				}
 			}
 		}
@@ -513,6 +594,8 @@ namespace app
 			m_rows = 0;
 			m_solid.clear();
 			EnsureGrid();
+			m_lightGain.clear();
+			m_flowGain.clear();
 			isLit = false;
 			litTime = 0.0f;
 			isFlowing = false;
@@ -670,7 +753,7 @@ namespace app
 		{
 			const bool isKeep = kind == IceKind::Keep;
 			const ImU32 fill = isKeep ? EDITOR_COLOR_KEEP_FILL : EDITOR_COLOR_MELT_FILL;
-			const ImU32 line = isLit ? EDITOR_COLOR_MELTING : (isKeep ? EDITOR_COLOR_KEEP_LINE : EDITOR_COLOR_MELT_LINE);
+			const ImU32 line = IsMelting() ? EDITOR_COLOR_MELTING : (isKeep ? EDITOR_COLOR_KEEP_LINE : EDITOR_COLOR_MELT_LINE);
 			// 残っているマス（まとめた矩形）と、元の大きさの枠
 			std::vector<math::Rect> solids;
 			CollectSolidRects(solids);
@@ -678,7 +761,7 @@ namespace app
 			{
 				canvas.Rect(solid, fill, 0);
 			}
-			canvas.Rect(rect, 0, EditorCanvas::Pick(isSelected, GetMeltAmount() > 0.0f && !isLit ? EDITOR_COLOR_FRAME : line));
+			canvas.Rect(rect, 0, EditorCanvas::Pick(isSelected, GetMeltAmount() > 0.0f && !IsMelting() ? EDITOR_COLOR_FRAME : line));
 			canvas.Label({ rect.min.x, rect.max.y }, name + (isKeep ? " (keep)" : " (melt)"));
 		}
 
@@ -705,13 +788,13 @@ namespace app
 			ImGui::DragFloat("Heat Grow Speed", &heatGrowSpeed, 0.5f, 0.0f, 1000.0f, "%.0f /s");
 			ImGui::SetItemTooltip("How fast the heat radius grows while lit (the hole gets wider).");
 			ImGui::DragFloat("Max Heat Radius", &maxHeatRadius, 0.5f, 1.0f, 2000.0f, "%.0f");
-			ImGui::DragFloat("Flow Time", &flowTime, 0.005f, 0.001f, 2.0f, "%.3f s");
-			ImGui::SetItemTooltip("After a passable hole opens, seconds for the melting to spread to the next cell.");
+			ImGui::DragFloat("Flow Speed", &flowSpeed, 0.05f, 0.0f, 10.0f, "%.2f");
+			ImGui::SetItemTooltip("After a passable hole opens, how fast the melting spreads from the hole.\n1 = same speed as the beam digs. 0 = does not spread.");
 			ImGui::DragFloat("Pass Width", &passWidth, 1.0f, 1.0f, 1000.0f, "%.0f");
 			ImGui::DragFloat("Pass Height", &passHeight, 1.0f, 1.0f, 1000.0f, "%.0f");
 			ImGui::SetItemTooltip("Size of the hole the player needs. A tall ice checks left-right, a wide ice checks up-down.");
 			ImGui::Text("Cells: %d x %d   Melted: %.0f%%", m_columns, m_rows, GetMeltAmount() * 100.0f);
-			ImGui::Text("Lit: %s   Passable: %s", isLit ? "YES" : "no", isFlowing ? "YES (melting away)" : "no");
+			ImGui::Text("Lit: %s   Passable: %s", isLit ? "YES" : "no", isFlowing ? "YES (spreading from the hole)" : "no");
 			if (ImGui::SmallButton("Refreeze"))
 			{
 				// 溶けた分を元に戻す（Reset Runtime と同じことを、この氷だけに）
@@ -736,7 +819,7 @@ namespace app
 			archive.Field("heatRadius", heatRadius);
 			archive.Field("heatGrowSpeed", heatGrowSpeed);
 			archive.Field("maxHeatRadius", maxHeatRadius);
-			archive.Field("flowTime", flowTime);
+			archive.Field("flowSpeed", flowSpeed);
 			archive.Field("passWidth", passWidth);
 			archive.Field("passHeight", passHeight);
 			if (archive.IsReading())

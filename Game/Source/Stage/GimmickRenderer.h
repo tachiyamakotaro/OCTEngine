@@ -13,9 +13,11 @@
  *            ・霧の吹き出し口 … 吹き出す面を -Y（下）に向ける
  *          鏡の足場は「見えるようになってから」だけ描く（見えないうちは風景を映しているので何も描かない）。
  *          霧と露のエフェクトはここでは描かない（Game::UpdateStageEvents で出す）。
+ *          氷は、穴の縁をなめらかに描くため IceRenderer（専用のシェーダー ice.fx）に任せる（モデルのパスと奥行きはここの Config のもの）。
  */
 #pragma once
 #include "Source/Core/Math/Rect.h"
+#include "Source/Render/IceRenderer.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -214,8 +216,8 @@ namespace app
 			ModelPool m_reflectionPools[static_cast<int>(ModelKind::Num)];
 			/** 霧の吹き出し口の位置（毎フレーム使い回す入れ物） */
 			std::vector<math::Vec2> m_ventPositions;
-			/** 氷の残っているマスをまとめた矩形（毎フレーム使い回す入れ物） */
-			std::vector<math::Rect> m_iceRects;
+			/** 氷（穴の縁をなめらかに描くため、専用のシェーダーを使う） */
+			render::IceRenderer m_iceRenderer;
 			/** 今フレームの奥の鏡（Update の間だけ使う） */
 			bool m_isMirrorEnabled = false;
 			float m_mirrorPlaneZ = 0.0f;

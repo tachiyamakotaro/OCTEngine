@@ -286,6 +286,7 @@
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
+    <ClCompile Include="Source\Render\IceRenderer.cpp" />
     <ClCompile Include="Source\Render\LightBeamRenderer.cpp" />
     <ClCompile Include="Source\Render\MirrorGlass.cpp" />
     <ClCompile Include="Source\Scene\DebugScene.cpp" />
@@ -367,6 +368,7 @@
     <ClInclude Include="Source\Physics\ICollisionWorld.h" />
     <ClInclude Include="Source\Physics\MirroredCollisionWorld.h" />
     <ClInclude Include="Source\Physics\SimpleCollisionWorld.h" />
+    <ClInclude Include="Source\Render\IceRenderer.h" />
     <ClInclude Include="Source\Render\LightBeamRenderer.h" />
     <ClInclude Include="Source\Render\MirrorGlass.h" />
     <ClInclude Include="Source\Render\MirrorReflection.h" />
