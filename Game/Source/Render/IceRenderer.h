@@ -9,7 +9,9 @@
  *          ・穴の縁は少し明るくする（溶けている最中はオレンジがかった色で光る）。
  *          ・穴の向こうに見える箱の内側（裏の面）は少し暗くして、氷の厚みに見せる（両面を描く）。
  *          ・奥の鏡があるときは、鏡に映った像も描く。
- *          ・光が当たっている間・通れる穴から溶け広がっている間は「溶けている最中」のモデルにする（GimmickRenderer と同じモデル）。
+ *          ・色は IceBlock::warmth（温まり具合 0〜1）で、ふつうの色と「溶けている最中」の色（*_lit の模様）を混ぜる。
+ *            光が外れると、オレンジから元の青へだんだん戻る。
+ *            モデルはふつうの氷（ice_melt / ice_keep）を使い、溶けている最中の模様はテクスチャ（*_lit_0.dds / *_lit_1.dds）だけ読む。
  *          ・ice.fx は model.fx を include しているので、ライトの値（カメラの位置など）は model.fx と同じ並びで渡す。
  *
  *          エンジンの ModelRender は model.fx 固定なので、LightBeamRenderer と同じく Model を直接持っている。
@@ -45,7 +47,10 @@ namespace app
 			 */
 			struct Config
 			{
-				/** モデル（1辺100の箱・原点は中心・Y-up）：溶かす氷・溶かす氷（溶けている最中）・守る氷・守る氷（溶けている最中） */
+				/**
+				 * モデル（1辺100の箱・原点は中心・Y-up）：溶かす氷・溶かす氷（溶けている最中）・守る氷・守る氷（溶けている最中）
+				 * 「溶けている最中」のほうは、同じ名前のテクスチャ（〜_0.dds = 横と下の面、〜_1.dds = 上の面）だけを使う
+				 */
 				std::string meltModelPath = "Assets/modelData/gimmick/ice_melt.tkm";
 				std::string meltLitModelPath = "Assets/modelData/gimmick/ice_melt_lit.tkm";
 				std::string keepModelPath = "Assets/modelData/gimmick/ice_keep.tkm";
@@ -104,6 +109,7 @@ namespace app
 				float iceGrid[4];		// x = 列の数, y = 行の数, z = マスの幅, w = マスの高さ
 				float iceParam[4];		// x = 描かない残り具合（threshold）, y = 縁の幅, z = 内側の明るさ, w = 鏡に映った像なら 1
 				float iceEdgeColor[4];	// rgb = 縁の色, a = どれだけ混ぜるか
+				float iceWarm[4];		// x = 温まり具合（0 = ふつうの色 〜 1 = 溶けている最中の色）, y = 溶けている最中のテクスチャがあれば 1
 			};
 			static_assert(sizeof(SceneLightData) % 16 == 0, "SceneLight の構造体の大きさが 16 の倍数でないと、HLSL とずれる");
 
@@ -129,16 +135,16 @@ namespace app
 				bool isKeep = false;
 				/** 今フレーム描くか */
 				bool isVisible = false;
-				/** 今フレーム「溶けている最中」のモデルを使うか */
-				bool isMelting = false;
+				/** 今フレームの温まり具合（0 = ふつうの色 〜 1 = 溶けている最中の色） */
+				float warmth = 0.0f;
 				/** 今フレーム鏡に映った像も描くか */
 				bool isReflected = false;
 				/** マスごとの残り具合（CPU 側。Draw で GPU に送る） */
 				std::vector<float> field;
 				/** マスごとの残り具合（シェーダーの t11） */
 				StructuredBuffer fieldBuffer;
-				/** モデル [溶けている最中か][鏡に映った像か]（使うときに作る） */
-				std::unique_ptr<IceModel> models[2][2];
+				/** モデル [鏡に映った像か]（使うときに作る） */
+				std::unique_ptr<IceModel> models[2];
 			};
 
 
@@ -146,9 +152,11 @@ namespace app
 			/** @brief index 番目の氷の入れ物を取り出す（マスの数や種類が変わっていたら作り直す） */
 			IceView& AcquireView(size_t index, const stage::IceBlock& ice);
 			/** @brief モデルを取り出す（なければ作る） */
-			IceModel& AcquireModel(IceView& view, bool isMelting, bool isReflected);
+			IceModel& AcquireModel(IceView& view, bool isReflected);
+			/** @brief 「溶けている最中」のテクスチャを取り出す（なければ読む。読めなかったら nullptr） */
+			Texture* AcquireWarmTexture(bool isKeep, int face);
 			/** @brief シェーダーに渡す値を入れる */
-			void SetConstants(Constants& constants, const stage::IceBlock& ice, const IceView& view, bool isMelting, bool isReflected) const;
+			void SetConstants(Constants& constants, const stage::IceBlock& ice, const IceView& view, bool isReflected, bool hasWarmTexture) const;
 
 
 		private:
@@ -156,6 +164,10 @@ namespace app
 			Config m_config;
 			/** 氷ごとの入れ物（ステージの氷の順。unique_ptr なので、増えても中身の場所は変わらない。Model はこの場所を覚えている） */
 			std::vector<std::unique_ptr<IceView>> m_views;
+			/** 「溶けている最中」のテクスチャ [守る氷か][0 = 横と下の面, 1 = 上の面]（使うときに読む） */
+			std::unique_ptr<Texture> m_warmTextures[2][2];
+			/** テクスチャを読もうとしたか（読めなかったときに、毎回読み直さないように） */
+			bool m_isWarmTextureTried[2][2];
 			/** 今フレーム使っている数 */
 			size_t m_viewCount;
 			/** 初期化済みか */

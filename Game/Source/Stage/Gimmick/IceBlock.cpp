@@ -43,16 +43,22 @@ namespace app
 			 * 光の真上のマスは「1マスの大きさ ÷ 100 × meltTime × この値」秒で溶ける。
 			 * 光の先のマスも少しずつ先に温まっていくので、1 より大きくして合わせている（テストで計った値）
 			 */
-			constexpr float HEAT_TIME_SCALE = 2.0f;
+			constexpr float HEAT_TIME_SCALE = 2.5f;
+			/** 残りの氷が消えていくときの、ななめのとなりまでの距離（まっすぐ = 1） */
+			constexpr float VANISH_DIAGONAL_DISTANCE = 1.41421356f;
 			/**
-			 * 通れる穴が開いたあと、穴から溶け広がるときの、ななめのとなりの溶けたマスの重み
-			 * （まっすぐのとなり = 1。この値にすると、穴がどの向きにもだいたい同じ速さで広がる → 丸く広がる）
+			 * 残りの氷が消えていくとき、1マスが温まり始めてから消えるまでの時間（となりのマスが消える間隔の何倍か）
+			 * 消える少し前から温まり始めるので、見た目の縁がなめらかに下がり、当たり判定とも大きくずれない
 			 */
-			constexpr float FLOW_DIAGONAL_WEIGHT = 0.32f;
-			/** まっすぐな縁（となり1つ＋ななめ2つが溶けている）のときの重みの合計。これで割ると、まっすぐな縁が flowSpeed の速さで進む */
-			constexpr float FLOW_FLAT_SUM = 1.0f + 2.0f * FLOW_DIAGONAL_WEIGHT;
-			/** へこんだ所（まわりが多く溶けている）が早く溶ける上限（縁がなめらかになる） */
-			constexpr float FLOW_MAX_FACTOR = 2.0f;
+			constexpr float VANISH_RAMP_LAYERS = 1.5f;
+			/** 1マスが温まり始めてから消えるまでの、いちばん短い秒数（短すぎると縁がカクカク動く） */
+			constexpr float VANISH_MIN_RAMP_TIME = 0.25f;
+			/** 余熱の弱まり方：afterglowTime 秒で、光が当たっていたときの 5% まで弱まる（e^-3 ≒ 0.05） */
+			constexpr float AFTERGLOW_DECAY = 3.0f;
+			/** 余熱がこれより弱くなったら（光が当たっているときの速さに対する割合）、0 にして止める */
+			constexpr float AFTERGLOW_STOP_RATE = 0.05f;
+			/** 溶け始めたとき、色がオレンジになるまでの秒数 */
+			constexpr float WARM_UP_TIME = 0.25f;
 
 
 			/** int を範囲に収める */
@@ -285,6 +291,7 @@ namespace app
 		void IceBlock::Update(const GimmickUpdateContext& context)
 		{
 			isLit = false;
+			isAfterglow = false;
 			isMeltedThisFrame = false;
 			isPassableThisFrame = false;
 			EnsureGrid();
@@ -292,24 +299,55 @@ namespace app
 			{
 				return;
 			}
+			const float deltaTime = context.deltaTime;
 
 			// 光の通り道のまわりに熱をためる。当たっている時間が長いほど、熱が伝わる半径が広がる
 			m_lightGain.assign(m_solid.size(), 0.0f);
 			isLit = HeatFromLight(context, m_lightGain);
 			if (isLit)
 			{
-				litTime += context.deltaTime;
+				litTime += deltaTime;
 			}
-			if (isFlowing)
+
+			// 余熱：光が当たっている間は、そのマスの温まる速さを覚えておく。光が外れても、その速さがだんだん弱まりながら溶け続ける
+			if (m_warmRate.size() != m_solid.size())
 			{
-				// 通れる穴が開いたあと：穴から熱が伝わって、残りの氷も穴のまわりから溶け広がる（光が外れても続く）
-				// 光と穴の両方から温まるマスは、速いほうだけ使う（2つを足して、決めた速さより速くならないように）
-				HeatFromHole(context.deltaTime, m_flowGain);
-				for (size_t i = 0; i < m_lightGain.size(); ++i)
+				m_warmRate.assign(m_solid.size(), 0.0f);
+			}
+			if (deltaTime > 0.0f)
+			{
+				const float decay = afterglowTime > 0.0f ? std::exp(-AFTERGLOW_DECAY * deltaTime / afterglowTime) : 0.0f;
+				const float cell = math::Max((GetCellWidth() + GetCellHeight()) * 0.5f, MIN_CELL_SIZE);
+				const float cellTime = math::Max(math::Max(meltTime, MIN_TIME) * cell / 100.0f * HEAT_TIME_SCALE, MIN_TIME);
+				const float stopRate = AFTERGLOW_STOP_RATE / cellTime;
+				for (size_t i = 0; i < m_warmRate.size(); ++i)
 				{
-					m_lightGain[i] = math::Max(m_lightGain[i], m_flowGain[i]);
+					if (m_solid[i] == 0)
+					{
+						m_warmRate[i] = 0.0f;
+						continue;
+					}
+					const float lightRate = m_lightGain[i] / deltaTime;
+					float rate = math::Max(m_warmRate[i] * decay, lightRate);
+					if (rate < stopRate)
+					{
+						rate = 0.0f;
+					}
+					m_warmRate[i] = rate;
+					if (rate > lightRate)
+					{
+						// 光より余熱のほうが強い ＝ 光が外れたあとの余韻で溶けている
+						isAfterglow = true;
+					}
+					m_lightGain[i] = rate * deltaTime;
 				}
 			}
+			if (isLit)
+			{
+				// 光が当たっている間は「光が当たっている」ほうを出す（余韻は光が外れてから）
+				isAfterglow = false;
+			}
+
 			for (size_t i = 0; i < m_heat.size(); ++i)
 			{
 				if (m_solid[i] != 0)
@@ -318,15 +356,32 @@ namespace app
 				}
 			}
 
-			const bool isAnyMelted = MeltHotCells();
-			if (isAnyMelted && !isFlowing && HasPassage())
+			if (isVanishing)
 			{
-				isFlowing = true;
+				// 通れる穴が開いたあと：穴の縁から順に溶け広がり、vanishTime 秒で残りが全部消える（光が外れても続く）
+				UpdateVanish(deltaTime);
+			}
+
+			const bool isAnyMelted = MeltHotCells();
+			if (isAnyMelted && !isVanishing && HasPassage())
+			{
+				isVanishing = true;
 				isPassableThisFrame = true;
+				StartVanish();
 			}
 			if (isAnyMelted && m_solidCount <= 0)
 			{
 				isMeltedThisFrame = true;
+			}
+
+			// 色の温まり具合：光が当たっている・溶け広がっている間はオレンジへ、光が外れたら coolTime 秒かけて元の色へ
+			if (isLit || isVanishing)
+			{
+				warmth = math::Min(warmth + deltaTime / WARM_UP_TIME, 1.0f);
+			}
+			else
+			{
+				warmth = math::Max(warmth - deltaTime / math::Max(coolTime, MIN_TIME), 0.0f);
 			}
 		}
 
@@ -383,48 +438,108 @@ namespace app
 		}
 
 
-		void IceBlock::HeatFromHole(const float deltaTime, std::vector<float>& outGain) const
+		void IceBlock::StartVanish()
 		{
-			outGain.assign(m_solid.size(), 0.0f);
-			if (flowSpeed <= 0.0f)
+			const size_t count = m_solid.size();
+			vanishElapsed = 0.0f;
+			m_vanishTime.assign(count, 0.0f);
+			m_vanishStartHeat.assign(count, 0.0f);
+
+			// 溶けたマス（穴）からの距離を測る（マス単位。前から・後ろからの2回なぞる距離の測り方）
+			// 氷の外は数えない → 穴の縁から順に、穴から広がるように溶けていく（氷の外側や天井側からは縮まない）
+			// （far は Windows のヘッダーでマクロになっていて変数名に使えないので、unreached にしている）
+			const float unreached = 1e9f;
+			std::vector<float> distance(count, 0.0f);
+			for (size_t i = 0; i < count; ++i)
 			{
-				return;
+				distance[i] = m_solid[i] != 0 ? unreached : 0.0f;
 			}
-			// まっすぐな縁のマスが、1秒に「100 ÷ meltTime × flowSpeed」溶け進むようにする（flowSpeed 1 = 光で掘り進むのと同じ速さ）
-			const float cell = math::Max((GetCellWidth() + GetCellHeight()) * 0.5f, MIN_CELL_SIZE);
-			const float heatPerSecond = flowSpeed * 100.0f / (math::Max(meltTime, MIN_TIME) * cell);
-			// となりの溶けたマスを数える（まっすぐのとなり = 1、ななめ = FLOW_DIAGONAL_WEIGHT）。氷の外は数えない（穴から広がっていくように）
-			auto isHole = [this](const int column, const int row)
+			auto at = [&](const int column, const int row)
 				{
-					return column >= 0 && row >= 0 && column < m_columns && row < m_rows
-						&& m_solid[static_cast<size_t>(CellIndex(column, row))] == 0;
+					if (column < 0 || row < 0 || column >= m_columns || row >= m_rows)
+					{
+						return unreached;
+					}
+					return distance[static_cast<size_t>(CellIndex(column, row))];
 				};
+			const float d = 1.0f;
+			const float dd = VANISH_DIAGONAL_DISTANCE;
 			for (int row = 0; row < m_rows; ++row)
 			{
 				for (int column = 0; column < m_columns; ++column)
 				{
-					const size_t index = static_cast<size_t>(CellIndex(column, row));
-					if (m_solid[index] == 0)
-					{
-						continue;
-					}
-					float sum = 0.0f;
-					sum += isHole(column - 1, row) ? 1.0f : 0.0f;
-					sum += isHole(column + 1, row) ? 1.0f : 0.0f;
-					sum += isHole(column, row - 1) ? 1.0f : 0.0f;
-					sum += isHole(column, row + 1) ? 1.0f : 0.0f;
-					sum += isHole(column - 1, row - 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
-					sum += isHole(column + 1, row - 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
-					sum += isHole(column - 1, row + 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
-					sum += isHole(column + 1, row + 1) ? FLOW_DIAGONAL_WEIGHT : 0.0f;
-					if (sum <= 0.0f)
-					{
-						continue;
-					}
-					// まわりが多く溶けている（へこんだ）所ほど早く溶ける → 穴の縁がなめらかになり、丸く広がる
-					const float factor = math::Min(sum / FLOW_FLAT_SUM, FLOW_MAX_FACTOR);
-					outGain[index] = heatPerSecond * factor * deltaTime;
+					float& value = distance[static_cast<size_t>(CellIndex(column, row))];
+					value = math::Min(value, at(column - 1, row) + d);
+					value = math::Min(value, at(column, row - 1) + d);
+					value = math::Min(value, at(column - 1, row - 1) + dd);
+					value = math::Min(value, at(column + 1, row - 1) + dd);
 				}
+			}
+			for (int row = m_rows - 1; row >= 0; --row)
+			{
+				for (int column = m_columns - 1; column >= 0; --column)
+				{
+					float& value = distance[static_cast<size_t>(CellIndex(column, row))];
+					value = math::Min(value, at(column + 1, row) + d);
+					value = math::Min(value, at(column, row + 1) + d);
+					value = math::Min(value, at(column + 1, row + 1) + dd);
+					value = math::Min(value, at(column - 1, row + 1) + dd);
+				}
+			}
+
+			// 穴からいちばん遠いマスが、ちょうど vanishTime 秒で消えるようにする
+			float maxDistance = 0.0f;
+			for (size_t i = 0; i < count; ++i)
+			{
+				if (m_solid[i] != 0 && distance[i] < unreached)
+				{
+					maxDistance = math::Max(maxDistance, distance[i]);
+				}
+			}
+			for (size_t i = 0; i < count; ++i)
+			{
+				// 穴とつながっていないマス（ふつうはない）は、最後に消える
+				if (m_solid[i] != 0 && distance[i] >= unreached)
+				{
+					distance[i] = maxDistance;
+				}
+			}
+			const float total = math::Max(vanishTime, 0.0f);
+			// となりのマスが消える間隔
+			const float layerTime = maxDistance > 0.0f ? total / maxDistance : 0.0f;
+			m_vanishRamp = math::Max(layerTime * VANISH_RAMP_LAYERS, VANISH_MIN_RAMP_TIME);
+			for (size_t i = 0; i < count; ++i)
+			{
+				if (m_solid[i] == 0)
+				{
+					continue;
+				}
+				m_vanishTime[i] = maxDistance > 0.0f ? total * distance[i] / maxDistance : 0.0f;
+				m_vanishStartHeat[i] = math::Clamp01(m_heat[i]);
+			}
+		}
+
+
+		void IceBlock::UpdateVanish(const float deltaTime)
+		{
+			if (m_vanishTime.size() != m_solid.size())
+			{
+				// マスを作り直した直後など：作り直す
+				StartVanish();
+			}
+			vanishElapsed += deltaTime;
+			for (size_t i = 0; i < m_solid.size(); ++i)
+			{
+				if (m_solid[i] == 0)
+				{
+					continue;
+				}
+				// 決めた時刻の少し前（m_vanishRamp 秒前）から温まり始め、決めた時刻にちょうど 1 になる（光でもっと温まっていれば、そちらのまま）
+				const float time = m_vanishTime[i];
+				const float ramp = math::Min(m_vanishRamp, time);
+				const float rate = ramp > 0.0f ? math::Clamp01((vanishElapsed - (time - ramp)) / ramp) : (vanishElapsed >= time ? 1.0f : 0.0f);
+				const float target = math::Lerp(m_vanishStartHeat[i], 1.0f, rate);
+				m_heat[i] = math::Max(m_heat[i], target);
 			}
 		}
 
@@ -474,10 +589,20 @@ namespace app
 
 		bool IceBlock::MeltHotCells()
 		{
+			// 見た目の残り具合（溶かす前の値で、全部のマスを同時に調べる）
+			BuildSmoothField(m_smoothField);
 			bool isAnyMelted = false;
 			for (size_t i = 0; i < m_solid.size(); ++i)
 			{
-				if (m_solid[i] != 0 && m_heat[i] >= 1.0f)
+				if (m_solid[i] == 0)
+				{
+					continue;
+				}
+				// 熱がいっぱい、または、温まって見た目から消えた（当たり判定を見た目に合わせる）
+				const bool isHot = m_heat[i] >= 1.0f;
+				const float meltHeat = isVanishing ? VISIBLE_MELT_HEAT_VANISHING : VISIBLE_MELT_HEAT;
+				const bool isInvisible = m_heat[i] >= meltHeat && i < m_smoothField.size() && m_smoothField[i] < VISIBLE_LEVEL;
+				if (isHot || isInvisible)
 				{
 					m_solid[i] = 0;
 					--m_solidCount;
@@ -595,10 +720,15 @@ namespace app
 			m_solid.clear();
 			EnsureGrid();
 			m_lightGain.clear();
-			m_flowGain.clear();
+			m_vanishTime.clear();
+			m_vanishStartHeat.clear();
+			m_warmRate.clear();
 			isLit = false;
 			litTime = 0.0f;
-			isFlowing = false;
+			isVanishing = false;
+			vanishElapsed = 0.0f;
+			isAfterglow = false;
+			warmth = 0.0f;
 			isPassableThisFrame = false;
 			isMeltedThisFrame = false;
 		}
@@ -788,13 +918,18 @@ namespace app
 			ImGui::DragFloat("Heat Grow Speed", &heatGrowSpeed, 0.5f, 0.0f, 1000.0f, "%.0f /s");
 			ImGui::SetItemTooltip("How fast the heat radius grows while lit (the hole gets wider).");
 			ImGui::DragFloat("Max Heat Radius", &maxHeatRadius, 0.5f, 1.0f, 2000.0f, "%.0f");
-			ImGui::DragFloat("Flow Speed", &flowSpeed, 0.05f, 0.0f, 10.0f, "%.2f");
-			ImGui::SetItemTooltip("After a passable hole opens, how fast the melting spreads from the hole.\n1 = same speed as the beam digs. 0 = does not spread.");
+			ImGui::DragFloat("Vanish Time", &vanishTime, 0.05f, 0.0f, 10.0f, "%.2f s");
+			ImGui::SetItemTooltip("After a passable hole opens, the rest of the ice melts outward from the hole\nand is gone in this many seconds.");
+			ImGui::DragFloat("Afterglow Time", &afterglowTime, 0.05f, 0.0f, 10.0f, "%.2f s");
+			ImGui::SetItemTooltip("After the light leaves, the warm ice keeps melting a little.\nThe melting fades out in about this many seconds. 0 = stops at once.");
+			ImGui::DragFloat("Cool Time", &coolTime, 0.05f, 0.0f, 10.0f, "%.2f s");
+			ImGui::SetItemTooltip("After the light leaves, seconds for the color to go back from orange to normal.");
 			ImGui::DragFloat("Pass Width", &passWidth, 1.0f, 1.0f, 1000.0f, "%.0f");
 			ImGui::DragFloat("Pass Height", &passHeight, 1.0f, 1.0f, 1000.0f, "%.0f");
 			ImGui::SetItemTooltip("Size of the hole the player needs. A tall ice checks left-right, a wide ice checks up-down.");
 			ImGui::Text("Cells: %d x %d   Melted: %.0f%%", m_columns, m_rows, GetMeltAmount() * 100.0f);
-			ImGui::Text("Lit: %s   Passable: %s", isLit ? "YES" : "no", isFlowing ? "YES (spreading from the hole)" : "no");
+			ImGui::Text("Lit: %s   Afterglow: %s   Warmth: %.2f", isLit ? "YES" : "no", isAfterglow ? "YES" : "no", warmth);
+			ImGui::Text("Passable: %s", isVanishing ? "YES (the rest is vanishing)" : "no");
 			if (ImGui::SmallButton("Refreeze"))
 			{
 				// 溶けた分を元に戻す（Reset Runtime と同じことを、この氷だけに）
@@ -819,7 +954,9 @@ namespace app
 			archive.Field("heatRadius", heatRadius);
 			archive.Field("heatGrowSpeed", heatGrowSpeed);
 			archive.Field("maxHeatRadius", maxHeatRadius);
-			archive.Field("flowSpeed", flowSpeed);
+			archive.Field("vanishTime", vanishTime);
+			archive.Field("afterglowTime", afterglowTime);
+			archive.Field("coolTime", coolTime);
 			archive.Field("passWidth", passWidth);
 			archive.Field("passHeight", passHeight);
 			if (archive.IsReading())

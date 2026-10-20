@@ -9,6 +9,9 @@
  * ピクセルの位置で、まわりの4マスの残り具合をなめらかにつなぎ（双線形補間）、
  * iceParam.x より小さい所を捨てる → マスの四角い形は見えず、穴の縁は丸い線になる。
  *
+ * 色は、ふつうの氷のテクスチャ（モデルの t0）と「溶けている最中」のテクスチャ（t12 = 横と下の面、t13 = 上の面）を、
+ * 温まり具合（iceWarm.x）で混ぜる。光が外れると、オレンジから元の色へだんだん戻る。
+ *
  * エントリーポイント
  *   PSMainIce : 穴を切り抜いて、穴の縁を明るくする。穴の向こうに見える内側（裏の面）は少し暗くする
  */
@@ -18,13 +21,17 @@
 //   iceGrid      : x = 列の数, y = 行の数, z = マスの幅, w = マスの高さ
 //   iceParam     : x = 描かない残り具合, y = 縁の幅, z = 内側の明るさ, w = 鏡に映った像なら 1（表裏が逆になる）
 //   iceEdgeColor : rgb = 縁の色, a = どれだけ混ぜるか
+//   iceWarm      : x = 温まり具合（0 = ふつうの色 〜 1 = 溶けている最中の色）, y = 溶けている最中のテクスチャがあれば 1
 // （fxc は複数行のマクロの中のコメントをうまく読めないことがあるので、マクロは1行で書く）
-#define MODEL_CB_EXTRA float4 iceRect; float4 iceGrid; float4 iceParam; float4 iceEdgeColor;
+#define MODEL_CB_EXTRA float4 iceRect; float4 iceGrid; float4 iceParam; float4 iceEdgeColor; float4 iceWarm;
 
 #include "model.fx"
 
 // マスごとの残り具合（並びは下の行から：行 × 列の数 + 列）
 StructuredBuffer<float> g_iceField : register(t11);
+// 溶けている最中の色のテクスチャ（モデルのマテリアルと同じ分け方：横と下の面 / 上の面）
+Texture2D<float4> g_warmSideTexture : register(t12);
+Texture2D<float4> g_warmTopTexture  : register(t13);
 
 
 // マス (column, row) の残り具合（氷の外は、いちばん近い端のマス）
@@ -60,6 +67,9 @@ float4 PSMainIce(SPSIn In, bool isFrontFace : SV_IsFrontFace) : SV_Target0
     float remain = SampleIceField(In.worldPos.xy);
     clip(remain - iceParam.x);
 
+    // 上の面か（モデルの上の面だけ別のマテリアル。裏返す前の法線で調べる）
+    bool isTopFace = In.normal.y > 0.5f;
+
     // 両面を描いているので、裏の面（穴の向こうに見える箱の内側）は法線を裏返す
     // 鏡に映った像は拡大率が負なので、表裏が逆になる
     bool isOutside = (iceParam.w > 0.5f) ? !isFrontFace : isFrontFace;
@@ -71,6 +81,17 @@ float4 PSMainIce(SPSIn In, bool isFrontFace : SV_IsFrontFace) : SV_Target0
     }
 
     float4 color = CalcLitColor(In, true);
+
+    // 温まり具合で、ふつうの色と溶けている最中の色を混ぜる
+    // model.fx のライトの計算は「テクスチャの色 × 光」なので、ふつうのテクスチャの色で割ってから、混ぜた色をかけ直す
+    if (iceWarm.y > 0.5f && iceWarm.x > 0.001f)
+    {
+        float3 baseAlbedo = albedoTexture.Sample(Sampler, In.uv).rgb;
+        float3 warmAlbedo = isTopFace ? g_warmTopTexture.Sample(Sampler, In.uv).rgb : g_warmSideTexture.Sample(Sampler, In.uv).rgb;
+        float3 albedo     = lerp(baseAlbedo, warmAlbedo, iceWarm.x);
+        color.rgb *= albedo / max(baseAlbedo, 0.02f);
+    }
+
     if (!isOutside)
     {
         // 内側は少し暗くして、氷の厚みに見せる

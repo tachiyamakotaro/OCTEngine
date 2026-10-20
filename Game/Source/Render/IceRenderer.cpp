@@ -17,6 +17,24 @@ namespace
 	const char* const PS_ENTRY = "PSMainIce";
 	/** 氷の残り具合を渡す拡張 SRV の番号（0 はシャドウマップ。番号 + 10 がシェーダーのレジスタ → t11） */
 	constexpr int FIELD_SRV_SLOT = 1;
+	/** 「溶けている最中」のテクスチャを渡す拡張 SRV の番号（横と下の面 → t12、上の面 → t13） */
+	constexpr int WARM_SIDE_SRV_SLOT = 2;
+	constexpr int WARM_TOP_SRV_SLOT = 3;
+
+
+	/** "〜.tkm" → "〜_<face>.dds"（仮モデルのテクスチャの名前） */
+	std::wstring MakeTexturePath(const std::string& modelPath, const int face)
+	{
+		std::string path = modelPath;
+		const size_t dot = path.rfind('.');
+		if (dot != std::string::npos)
+		{
+			path.erase(dot);
+		}
+		path += face == 0 ? "_0.dds" : "_1.dds";
+		// パスは英数字だけなので、そのまま wchar_t にする
+		return std::wstring(path.begin(), path.end());
+	}
 
 
 	void Set4(float out[4], const float x, const float y, const float z, const float w)
@@ -36,6 +54,8 @@ namespace app
 		IceRenderer::IceRenderer()
 			: m_config()
 			, m_views()
+			, m_warmTextures()
+			, m_isWarmTextureTried()
 			, m_viewCount(0)
 			, m_isInited(false)
 		{}
@@ -69,7 +89,7 @@ namespace app
 				{
 					continue;
 				}
-				view.isMelting = ice.IsMelting();
+				view.warmth = math::Clamp01(ice.warmth);
 				view.isReflected = isMirrorEnabled;
 				// マスごとの残り具合（GPU に送るのは Draw のとき）
 				ice.BuildSmoothField(view.field);
@@ -81,14 +101,15 @@ namespace app
 				Quaternion rotation;
 				rotation.SetRotationDegZ(0.0f);
 
-				IceModel& model = AcquireModel(view, view.isMelting, false);
-				SetConstants(model.constants, ice, view, view.isMelting, false);
+				const bool hasWarmTexture = AcquireWarmTexture(view.isKeep, 0) != nullptr && AcquireWarmTexture(view.isKeep, 1) != nullptr;
+				IceModel& model = AcquireModel(view, false);
+				SetConstants(model.constants, ice, view, false, hasWarmTexture);
 				model.model.UpdateWorldMatrix(position, rotation, scale);
 
 				if (view.isReflected)
 				{
-					IceModel& reflected = AcquireModel(view, view.isMelting, true);
-					SetConstants(reflected.constants, ice, view, view.isMelting, true);
+					IceModel& reflected = AcquireModel(view, true);
+					SetConstants(reflected.constants, ice, view, true, hasWarmTexture);
 					reflected.model.UpdateWorldMatrix(
 						ReflectPositionZ(position, backMirror.planeZ),
 						ReflectRotationZ(rotation),
@@ -112,14 +133,13 @@ namespace app
 				// 氷の残り具合を GPU に送る（構造化バッファは今のバックバッファの分だけ書き換わる）
 				view.fieldBuffer.Update(view.field.data());
 
-				const int melting = view.isMelting ? 1 : 0;
-				IceModel* model = view.models[melting][0].get();
+				IceModel* model = view.models[0].get();
 				if (model != nullptr)
 				{
 					model->constants.light = light;
 					RenderingEngine::GetInstance()->AddRenderObject(model->model);
 				}
-				IceModel* reflected = view.isReflected ? view.models[melting][1].get() : nullptr;
+				IceModel* reflected = view.isReflected ? view.models[1].get() : nullptr;
 				if (reflected != nullptr)
 				{
 					reflected->constants.light = light;
@@ -179,9 +199,9 @@ namespace app
 		}
 
 
-		IceRenderer::IceModel& IceRenderer::AcquireModel(IceView& view, const bool isMelting, const bool isReflected)
+		IceRenderer::IceModel& IceRenderer::AcquireModel(IceView& view, const bool isReflected)
 		{
-			std::unique_ptr<IceModel>& slot = view.models[isMelting ? 1 : 0][isReflected ? 1 : 0];
+			std::unique_ptr<IceModel>& slot = view.models[isReflected ? 1 : 0];
 			if (slot != nullptr)
 			{
 				return *slot;
@@ -190,9 +210,8 @@ namespace app
 			auto model = std::make_unique<IceModel>();
 			model->constants = Constants();
 
-			const std::string& path = view.isKeep
-				? (isMelting ? m_config.keepLitModelPath : m_config.keepModelPath)
-				: (isMelting ? m_config.meltLitModelPath : m_config.meltModelPath);
+			// モデルはふつうの氷。「溶けている最中」の色は、テクスチャを混ぜてシェーダーで出す
+			const std::string& path = view.isKeep ? m_config.keepModelPath : m_config.meltModelPath;
 			ModelInitData initData;
 			initData.m_tkmFilePath = path.c_str();
 			initData.m_fxFilePath = SHADER_PATH;
@@ -211,6 +230,12 @@ namespace app
 			initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
 			// 氷の残り具合（t11）
 			initData.m_expandShaderResoruceView[FIELD_SRV_SLOT] = &view.fieldBuffer;
+			// 溶けている最中の色のテクスチャ（t12 = 横と下の面、t13 = 上の面）。読めなかったときは、つなぐだけのためにシャドウマップを入れておく（使わない）
+			Texture* warmSide = AcquireWarmTexture(view.isKeep, 0);
+			Texture* warmTop = AcquireWarmTexture(view.isKeep, 1);
+			const bool hasWarmTexture = warmSide != nullptr && warmTop != nullptr;
+			initData.m_expandShaderResoruceView[WARM_SIDE_SRV_SLOT] = hasWarmTexture ? warmSide : &RenderingEngine::GetInstance()->GetShadowMapTexture();
+			initData.m_expandShaderResoruceView[WARM_TOP_SRV_SLOT] = hasWarmTexture ? warmTop : &RenderingEngine::GetInstance()->GetShadowMapTexture();
 			model->model.Init(initData);
 
 			slot = std::move(model);
@@ -218,7 +243,27 @@ namespace app
 		}
 
 
-		void IceRenderer::SetConstants(Constants& constants, const stage::IceBlock& ice, const IceView& view, const bool isMelting, const bool isReflected) const
+		Texture* IceRenderer::AcquireWarmTexture(const bool isKeep, const int face)
+		{
+			const int kind = isKeep ? 1 : 0;
+			const int side = face == 0 ? 0 : 1;
+			if (!m_isWarmTextureTried[kind][side])
+			{
+				m_isWarmTextureTried[kind][side] = true;
+				const std::string& modelPath = isKeep ? m_config.keepLitModelPath : m_config.meltLitModelPath;
+				const std::wstring texturePath = MakeTexturePath(modelPath, side);
+				auto texture = std::make_unique<Texture>();
+				texture->InitFromDDSFile(texturePath.c_str());
+				if (texture->IsValid())
+				{
+					m_warmTextures[kind][side] = std::move(texture);
+				}
+			}
+			return m_warmTextures[kind][side].get();
+		}
+
+
+		void IceRenderer::SetConstants(Constants& constants, const stage::IceBlock& ice, const IceView& view, const bool isReflected, const bool hasWarmTexture) const
 		{
 			const Config& c = m_config;
 			Set4(constants.iceRect, ice.rect.min.x, ice.rect.min.y, ice.rect.max.x, ice.rect.max.y);
@@ -226,8 +271,14 @@ namespace app
 				static_cast<float>(view.columns), static_cast<float>(view.rows),
 				ice.rect.Width() / static_cast<float>(view.columns), ice.rect.Height() / static_cast<float>(view.rows));
 			Set4(constants.iceParam, math::Clamp01(c.threshold), math::Max(c.edgeWidth, 0.0001f), math::Clamp01(c.innerShade), isReflected ? 1.0f : 0.0f);
-			const float* edge = isMelting ? c.meltingEdgeColor : c.edgeColor;
-			Set4(constants.iceEdgeColor, edge[0], edge[1], edge[2], math::Clamp01(edge[3]));
+			// 縁の色も、温まり具合で「冷えているとき」と「溶けている最中」の色を混ぜる
+			const float w = view.warmth;
+			Set4(constants.iceEdgeColor,
+				math::Lerp(c.edgeColor[0], c.meltingEdgeColor[0], w),
+				math::Lerp(c.edgeColor[1], c.meltingEdgeColor[1], w),
+				math::Lerp(c.edgeColor[2], c.meltingEdgeColor[2], w),
+				math::Clamp01(math::Lerp(c.edgeColor[3], c.meltingEdgeColor[3], w)));
+			Set4(constants.iceWarm, w, hasWarmTexture ? 1.0f : 0.0f, 0.0f, 0.0f);
 		}
 	}
 }
