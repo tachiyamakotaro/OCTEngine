@@ -3,7 +3,7 @@
  * @brief 「始点と終点の間を動く」動きの部品
  * @details 動く床・動く壁（MovingBlock）が持っている。ギミックそのものではなく、ギミックに持たせる部品。
  *          ほかのギミック（反射鏡・受光器など）を動かしたくなったら、そのクラスに MovePath を1つ持たせて、
- *          ・Update で movePath.Update(動いてよいか, deltaTime)
+ *          ・Update で movePath.MoveToward(1.0f か 0.0f, deltaTime)（1 で終点へ、0 で始点へ）
  *          ・当たり判定や描画の位置に movePath.GetOffset() を足す
  *          ・DrawInspector / Serialize / ResetRuntimeState / Rotate90 から movePath の同じ関数を呼ぶ
  *          とするだけで動かせる。
@@ -28,44 +28,25 @@ namespace app
 		 */
 		struct MovePath
 		{
-			/**
-			 * @brief 動き方
-			 */
-			enum class Mode : int
-			{
-				PingPong = 0,	//!< 往復する（終点に着いたら始点へ戻り、またくり返す）
-				OneWay = 1,		//!< 終点まで動いたら止まる
-				Num
-			};
-
-
 			// ---- 設定（JSON に保存する）----
 			/** 終点が始点からどれだけずれているか（上に 200 動くなら (0, 200)） */
 			math::Vec2 offset = math::Vec2(0.0f, 200.0f);
 			/** 動く速さ（1秒あたりの距離） */
 			float speed = 150.0f;
-			/** 動き方 */
-			Mode mode = Mode::PingPong;
-			/** 往復のとき、端で止まる時間（秒） */
-			float waitTime = 0.5f;
 
 			// ---- 実行時（保存しない）----
 			/** 【実行時】どこまで動いたか（0=始点 〜 1=終点） */
 			float progress = 0.0f;
-			/** 【実行時】向かっている方向（1=終点へ、-1=始点へ） */
-			float direction = 1.0f;
-			/** 【実行時】端で止まっている残り時間 */
-			float waitTimer = 0.0f;
 
 
 			/**
-			 * @brief 動かす（毎フレーム）
-			 * @param isPowered 動いてよいか（ソーラーパネルに光が当たっている間など）。false の間はその場で止まる
+			 * @brief 始点か終点へ向かって、1フレームぶん動かす
+			 * @param target 向かう先（1=終点、0=始点）
 			 * @param deltaTime 経過時間
 			 */
-			void Update(bool isPowered, float deltaTime);
+			void MoveToward(float target, float deltaTime);
 			/** @brief 実行時の状態を最初（始点）に戻す */
-			void ResetRuntimeState();
+			void ResetRuntimeState() { progress = 0.0f; }
 			/** @brief 今、始点からどれだけずれているか */
 			math::Vec2 GetOffset() const { return offset * progress; }
 			/** @brief 始点から終点までの距離 */

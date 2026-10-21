@@ -38,7 +38,6 @@ namespace app
 				{ "Warp", "Warp", [](const math::Vec2& p) { return std::make_unique<WarpZone>("", p.x, p.y, 150.0f, 200.0f, p.x - 300.0f, p.y); } },
 				{ "Lamp", "Lamp", [](const math::Vec2& p) { return std::make_unique<Indicator>("", p.x, p.y, 40.0f, 30.0f, ""); } },
 				{ "Goal", "Goal", [](const math::Vec2& p) { return std::make_unique<Goal>("", p.x, p.y, 150.0f, 250.0f); } },
-				{ "Solar Panel", "SolarPanel", [](const math::Vec2& p) { return std::make_unique<SolarPanel>("", p.x, p.y, 80.0f, 20.0f); } },
 				{ "Moving Block", "MovingBlock", [](const math::Vec2& p) { return std::make_unique<MovingBlock>("", p.x, p.y, 200.0f, 30.0f); } },
 			};
 			return REGISTRY;

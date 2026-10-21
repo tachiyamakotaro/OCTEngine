@@ -1,6 +1,6 @@
 ﻿/**
  * @file MovingBlock.h
- * @brief 動く床・動く壁（つながった信号が全部 ON の間だけ動く）
+ * @brief ソーラーパネル付きの動く床・動く壁（パネルに光をためると、ためた分だけ動く）
  */
 #pragma once
 #include "RectGimmick.h"
@@ -12,43 +12,67 @@ namespace app
 	namespace stage
 	{
 		/**
-		 * @brief 動く床・動く壁
-		 * @details 床か壁かは大きさだけの違い（横長なら床、縦長なら壁）。エディタの R キーで回すと、動く向きも一緒に回る。
+		 * @brief ソーラーパネル付きの動く床・動く壁
+		 * @details 床か壁かは大きさだけの違い（横長なら床、縦長なら壁）。エディタの R キーで回すと、動く向きとパネルの面も一緒に回る。
+		 *          ・ブロックの1つの面にソーラーパネルが付いている。パネルに光が当たっている間、電気がたまる（charge が増える）。
+		 *          ・満タンになると動き出し、終点へ向かう。終点に着いたらそこで止まって待つ。
+		 *            動いている間（終点で待っている間も）電気は減っていき、なくなると始点へ戻る。
+		 *            光が当たり続けていれば電気は減らないので、ずっと動いたまま（終点にいたまま）になる。
+		 *          ・パネルの色は、ためている間はたまった量に合わせて黒 → 灰色 → 白に変わり、動いている間はずっと白く光ったまま（StageRenderer が描く）。
 		 *          ・rect は「置いた位置」（始点）。動いても rect は変えず、今の位置は GetCurrentRect() で求める。
-		 *          ・つながった信号（ソーラーパネル・受光器・スイッチ）が全部 ON の間だけ、movePath に沿って動く。
-		 *            OFF になるとその場で止まる。つながりがなければずっと止まっている。
 		 *          ・乗っているキャラクターは、床が動いた分だけ一緒に運ばれる（GetCarryDelta）。
 		 *          ・体を地形との間にはさんでしまうときは、その間だけ止まる（押しつぶさない）。
-		 *          ・当たり判定は地形あつかい。光も止める。
+		 *          ・当たり判定は地形あつかい。光はパネルに当たったら吸収（電気になる）、パネル以外の面では止まる。
 		 */
 		class MovingBlock : public RectGimmick
 		{
 		public:
-			/** 動くのに必要な信号の名前（ソーラーパネル・受光器・スイッチ。全部 ON で動く） */
-			std::vector<std::string> requiredSignals;
-			/** 動き方（終点までのずれ・速さ・往復か片道か） */
-			MovePath movePath;
+			/**
+			 * @brief ソーラーパネルを付ける面
+			 */
+			enum class PanelSide : int
+			{
+				Top = 0,	//!< 上の面
+				Bottom = 1,	//!< 下の面
+				Left = 2,	//!< 左の面
+				Right = 3,	//!< 右の面
+				Num
+			};
 
+
+		public:
+			/** 動き方（終点までのずれ・速さ） */
+			MovePath movePath;
+			/** ソーラーパネルを付ける面 */
+			PanelSide panelSide = PanelSide::Top;
+			/** パネルの長さ（面に沿った長さ。0 なら面いっぱい。面より長ければ面いっぱい） */
+			float panelLength = 0.0f;
+			/** 空から満タンまで、光を当て続ける時間（秒） */
+			float chargeTime = 1.0f;
+			/** 満タンから空まで、動いていられる時間（秒） */
+			float runTime = 4.0f;
+
+			/** 【実行時】たまった電気（0=空 〜 1=満タン） */
+			float charge = 0.0f;
+			/** 【実行時】動いているか（満タンになったら true、空になったら false） */
+			bool isRunning = false;
+			/** 【実行時】パネルに光が当たっているか */
+			bool isLit = false;
 			/** 【実行時】このフレームで動く前の範囲（乗っているキャラクターを運ぶのに使う） */
 			math::Rect previousRect;
-			/** 【実行時】動いてよい状態か（信号が全部 ON） */
-			bool isPowered = false;
 
 
 		public:
 			const char* GetTypeName() const override { return "MovingBlock"; }
 			std::unique_ptr<GimmickBase> Clone() const override { return std::make_unique<MovingBlock>(*this); }
 
-			UpdatePhase GetUpdatePhase() const override { return UpdatePhase::Signal; }
+			UpdatePhase GetUpdatePhase() const override { return UpdatePhase::Light; }
 			void Update(const GimmickUpdateContext& context) override;
 			void ResetRuntimeState() override;
 			CollisionKind GetCollision(math::Rect& outRect) const override;
 			bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const override;
 
 			bool IntersectLight(const math::Vec2& origin, const math::Vec2& direction, LightHit& outHit) const override;
-
-			void RenameSignal(const std::string& oldName, const std::string& newName) override;
-			void RemoveSignal(const std::string& signalName) override;
 
 			bool HitTest(const math::Vec2& point, float pickDistance) const override;
 			void DrawEditor(const EditorCanvas& canvas, bool isSelected) const override;
@@ -62,6 +86,18 @@ namespace app
 			math::Rect GetCurrentRect() const { return Translate(rect, movePath.GetOffset()); }
 			/** 終点に着いたときの範囲（エディタで道のりを見せるのに使う） */
 			math::Rect GetEndRect() const { return Translate(rect, movePath.offset); }
+			/** 今のソーラーパネルの範囲（ブロックの面の内側の薄い帯） */
+			math::Rect GetPanelRect() const { return CalcPanelRect(GetCurrentRect()); }
+			/**
+			 * @brief パネルの光り具合（0=黒 〜 1=白く光る）
+			 * @details ためている間はたまった量。動いている間は電気が減っていっても、ずっと 1（光ったまま）
+			 */
+			float GetPanelBrightness() const { return isRunning ? 1.0f : charge; }
+
+
+		public:
+			/** パネルの厚さ（面から内側へ） */
+			static constexpr float PANEL_THICKNESS = 10.0f;
 
 
 		public:
@@ -72,6 +108,10 @@ namespace app
 		private:
 			/** 矩形をずらす */
 			static math::Rect Translate(const math::Rect& source, const math::Vec2& delta) { return { source.min + delta, source.max + delta }; }
+			/** ブロックの範囲 block に付いているパネルの範囲 */
+			math::Rect CalcPanelRect(const math::Rect& block) const;
+			/** 電気をためる・使う（動いてよいかを決める） */
+			void UpdateCharge(float deltaTime);
 			/** 体を delta だけ押したとき、ほかの地形にはさまれるか */
 			bool IsBlockedByBody(const GimmickUpdateContext& context, const math::Rect& nextRect, const math::Vec2& delta) const;
 		};

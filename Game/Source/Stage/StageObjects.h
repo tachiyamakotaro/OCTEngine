@@ -19,7 +19,6 @@
 #include "Gimmick/LightReceiver.h"
 #include "Gimmick/MistEmitter.h"
 #include "Gimmick/MovingBlock.h"
-#include "Gimmick/SolarPanel.h"
 #include "Gimmick/StageBlock.h"
 #include "Gimmick/WarpZone.h"
 #include "Source/Core/Math/Rect.h"

@@ -66,9 +66,15 @@ namespace app
 				return;
 			}
 
+			// 崖につかまっていたら、つかんだ床が動いた分だけ一緒に動く
+			// （崖を登りきる直前は足が床に着くので、地面より先に調べる）
+			if (m_isLedgeCarry)
+			{
+				CarryWithLedge();
+			}
 			// 前のフレームで地面の上にいたら、乗っている動く床が動いた分だけ一緒に動く
 			// （ステージの更新で床はもう動いているので、めり込みを押し出すより先に運んでおく）
-			if (wasOnGround)
+			else if (wasOnGround)
 			{
 				math::Vec2 carry = math::Vec2::Zero();
 				if (m_collisionWorld->GetCarryDelta(GetGroundProbe(), carry))
@@ -257,6 +263,51 @@ namespace app
 		}
 
 
+		void CharacterController::BeginLedgeCarry(const math::Vec2& corner, const int facing)
+		{
+			m_isLedgeCarry = true;
+			m_isLedgeLost = false;
+			m_ledgeCorner = corner;
+			m_ledgeFacing = facing > 0 ? 1 : -1;
+			m_ledgeCarryOffset = math::Vec2::Zero();
+		}
+
+
+		void CharacterController::CarryWithLedge()
+		{
+			math::Vec2 carry = math::Vec2::Zero();
+			if (!m_collisionWorld->GetCarryDelta(GetLedgeProbe(), carry))
+			{
+				return;
+			}
+
+			// 横を先に動かす（床が横に動いたとき、体が床の横の面にめり込んだまま縦に動かすと、床の上か下へはじき出されてしまう）
+			const math::Vec2 before = m_position;
+			MoveAxisX(carry.x);
+			MoveAxisY(carry.y);
+			m_ledgeCorner += carry;
+			m_ledgeCarryOffset += carry;
+
+			// 地形にぶつかって床と同じだけ動けなかったら、手が離れたことにする（床が下りて足が地面に着いた、など）
+			const math::Vec2 moved = m_position - before;
+			if (math::Abs(moved.x - carry.x) > CONTACT_PROBE || math::Abs(moved.y - carry.y) > CONTACT_PROBE)
+			{
+				m_isLedgeCarry = false;
+				m_isLedgeLost = true;
+			}
+		}
+
+
+		math::Rect CharacterController::GetLedgeProbe() const
+		{
+			// 角から床の内側へ少し入ったところの小さな箱（崖が右にあるなら角の右下）
+			constexpr float INSET = 0.5f;
+			constexpr float HALF = 0.25f;
+			const math::Vec2 center(m_ledgeCorner.x + static_cast<float>(m_ledgeFacing) * INSET, m_ledgeCorner.y - INSET);
+			return { { center.x - HALF, center.y - HALF }, { center.x + HALF, center.y + HALF } };
+		}
+
+
 		math::Rect CharacterController::GetGroundProbe() const
 		{
 			// 足元のすぐ下の薄い箱（横幅を少し削って、壁に触れているだけで接地扱いにならないようにする）
@@ -395,6 +446,7 @@ namespace app
 					out.standPosition = standPos;
 					out.ledgeTopY = ledgeY;
 					out.facing = facing > 0 ? 1 : -1;
+					out.corner = math::Vec2(edgeX, ledgeY);
 					isFound = true;
 				}
 			}
@@ -416,6 +468,11 @@ namespace app
 			, m_isHitCeiling(false)
 			, m_isTouchingWallLeft(false)
 			, m_isTouchingWallRight(false)
+			, m_isLedgeCarry(false)
+			, m_isLedgeLost(false)
+			, m_ledgeCorner(math::Vec2::Zero())
+			, m_ledgeFacing(1)
+			, m_ledgeCarryOffset(math::Vec2::Zero())
 		{}
 	}
 }

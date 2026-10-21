@@ -33,7 +33,6 @@ namespace app
 			{ "Stage01", "Assets/parameter/stage/Stage01_Object.json", "Assets/parameter/stage/Stage01_Gimmick.json" },
 			{ "Stage02", "Assets/parameter/stage/Stage02_Object.json", "Assets/parameter/stage/Stage02_Gimmick.json" },
 			{ "Stage03", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json" },
-			// ソーラーパネルと動く床・動く壁のテスト用
 		};
 
 		/** ステージの数 */
