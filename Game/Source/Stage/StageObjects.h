@@ -21,6 +21,7 @@
 #include "Gimmick/LightPlatform.h"
 #include "Gimmick/LightReceiver.h"
 #include "Gimmick/MistEmitter.h"
+#include "Gimmick/MovingBlock.h"
 #include "Gimmick/ShadeBoard.h"
 #include "Gimmick/StageBlock.h"
 #include "Gimmick/SunLight.h"

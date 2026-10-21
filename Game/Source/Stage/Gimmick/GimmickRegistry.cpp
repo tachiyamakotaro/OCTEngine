@@ -38,6 +38,7 @@ namespace app
 				{ "Warp", "Warp", [](const math::Vec2& p) { return std::make_unique<WarpZone>("", p.x, p.y, 150.0f, 200.0f, p.x - 300.0f, p.y); } },
 				{ "Lamp", "Lamp", [](const math::Vec2& p) { return std::make_unique<Indicator>("", p.x, p.y, 40.0f, 30.0f, ""); } },
 				{ "Goal", "Goal", [](const math::Vec2& p) { return std::make_unique<Goal>("", p.x, p.y, 150.0f, 250.0f); } },
+				{ "Moving Block", "MovingBlock", [](const math::Vec2& p) { return std::make_unique<MovingBlock>("", p.x, p.y, 200.0f, 30.0f); } },
 				// 暗がりと、光で照らすと見える足場
 				{ "Dark Zone", "Dark", [](const math::Vec2& p) { return std::make_unique<DarkZone>("", p.x, p.y, 800.0f, 600.0f); } },
 				{ "Hidden Floor", "HiddenFloor", [](const math::Vec2& p) { return std::make_unique<HiddenFloor>("", p.x, p.y, 150.0f, 25.0f); } },

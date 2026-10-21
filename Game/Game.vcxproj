@@ -319,7 +319,10 @@
     <ClCompile Include="Source\Stage\Gimmick\LightPlatform.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\LightReceiver.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\MistEmitter.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\MovePath.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\MovingBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\RectGimmick.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\SolarPanel.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\ShadeBoard.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\StageBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\SunLight.cpp" />
@@ -409,7 +412,10 @@
     <ClInclude Include="Source\Stage\Gimmick\LightPlatform.h" />
     <ClInclude Include="Source\Stage\Gimmick\LightReceiver.h" />
     <ClInclude Include="Source\Stage\Gimmick\MistEmitter.h" />
+    <ClInclude Include="Source\Stage\Gimmick\MovePath.h" />
+    <ClInclude Include="Source\Stage\Gimmick\MovingBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\RectGimmick.h" />
+    <ClInclude Include="Source\Stage\Gimmick\SolarPanel.h" />
     <ClInclude Include="Source\Stage\Gimmick\ShadeBoard.h" />
     <ClInclude Include="Source\Stage\Gimmick\StageBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\SunLight.h" />

@@ -268,6 +268,8 @@ namespace app
 			controller.SetVelocity(math::Vec2::Zero());
 			controller.SetPosition(ledge.hangPosition);
 			GetPlayer().SetFacing(ledge.facing);
+			// つかんだ角が動く床なら、ぶら下がったまま一緒に動く
+			controller.BeginLedgeCarry(ledge.corner, ledge.facing);
 
 			PlayAnimation(static_cast<int>(PlayerAnimation::LedgeHang));
 		}
@@ -282,6 +284,7 @@ namespace app
 		void PlayerLedgeHangState::Exit()
 		{
 			GetController().SetGravityEnabled(true);
+			GetController().EndLedgeCarry();
 			// 手を離した直後に同じ崖をつかみ直さないようにする
 			m_machine->StartLedgeCooldown();
 		}
@@ -289,6 +292,11 @@ namespace app
 
 		int PlayerLedgeHangState::CheckTransition()
 		{
+			// 動く床と一緒に動けずに手が離れた（床が下りて足が地面に着いた、など）
+			if (GetController().IsLedgeLost())
+			{
+				return ToID(PlayerStateID::Fall);
+			}
 			const CharacterCommand& command = GetCommand();
 			if (command.up || m_machine->IsJumpBuffered())
 			{
@@ -316,8 +324,13 @@ namespace app
 			CharacterController& controller = GetController();
 
 			m_machine->ConsumeJump();
+			// ぶら下がっている間に動く床に運ばれた分だけ、登りきる位置もずらす
+			const LedgeInfo& ledge = m_machine->GetLedge();
+			const math::Vec2 carried = controller.GetLedgeCarryOffset();
 			m_startPosition = controller.GetPosition();
-			m_endPosition = m_machine->GetLedge().standPosition;
+			m_endPosition = ledge.standPosition + carried;
+			// 登っている間も、つかんだ床と一緒に動く
+			controller.BeginLedgeCarry(ledge.corner + carried, ledge.facing);
 
 			controller.SetGravityEnabled(false);
 			controller.SetVelocity(math::Vec2::Zero());
@@ -334,12 +347,14 @@ namespace app
 			const float riseT = math::SmoothStep(t / CLIMB_RISE_END);
 			const float forwardT = math::SmoothStep((t - CLIMB_RISE_END) / (1.0f - CLIMB_RISE_END));
 
+			CharacterController& controller = GetController();
+			// 登り始めてから動く床に運ばれた分を足す
+			const math::Vec2 carried = controller.GetLedgeCarryOffset();
 			const math::Vec2 position{
-				math::Lerp(m_startPosition.x, m_endPosition.x, forwardT),
-				math::Lerp(m_startPosition.y, m_endPosition.y, riseT)
+				math::Lerp(m_startPosition.x, m_endPosition.x, forwardT) + carried.x,
+				math::Lerp(m_startPosition.y, m_endPosition.y, riseT) + carried.y
 			};
 
-			CharacterController& controller = GetController();
 			controller.SetPosition(position);
 			controller.SetVelocity(math::Vec2::Zero());
 		}
@@ -349,6 +364,7 @@ namespace app
 		{
 			CharacterController& controller = GetController();
 			controller.SetGravityEnabled(true);
+			controller.EndLedgeCarry();
 			controller.SetVelocity(math::Vec2::Zero());
 		}
 

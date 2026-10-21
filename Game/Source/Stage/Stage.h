@@ -105,6 +105,8 @@ namespace app
 			// ---- 当たり判定（ICollisionWorld）----
 			void QueryOverlap(const math::Rect& box, std::vector<math::Rect>& out) const override;
 			bool AnyOverlap(const math::Rect& box) const override;
+			/** @brief 足元の動く床がどれだけ動いたか（乗っているキャラクターを運ぶ） */
+			bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const override { return m_gimmicks.GetCarryDelta(groundProbe, outDelta); }
 			/**
 			 * @brief 地形だけ（ブロック + 閉じた扉 + 透明の足場）と重なるか
 			 * @details 反射鏡を動かせるかの判定に使う（光の足場は含めない）

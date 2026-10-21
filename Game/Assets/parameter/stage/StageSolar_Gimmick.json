@@ -1,0 +1,17 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "Light1", "position": [350.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [350.0, 40.0], "angleDeg": 90.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "MovingBlock", "name": "Lift", "position": [750.0, 0.0], "size": [200.0, 60.0], "moveOffset": [0.0, 360.0], "moveSpeed": 150.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 2.0, "runTime": 6.0, "hasFrontPanel": true },
+		{ "type": "Checkpoint", "name": "Room2Entrance", "position": [1000.0, 420.0], "size": [80.0, 180.0] },
+		{ "type": "EmitRay", "name": "Light2", "position": [1250.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [1250.0, 490.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "LightMirror", "name": "MirrorFixed", "center": [1600.0, 490.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "MovingBlock", "name": "Bridge", "position": [1500.0, 390.0], "size": [200.0, 30.0], "moveOffset": [500.0, 0.0], "moveSpeed": 150.0, "panelSide": 0, "panelLength": 0.0, "chargeTime": 0.5, "runTime": 5.0, "hasFrontPanel": false },
+		{ "type": "Checkpoint", "name": "Room3Entrance", "position": [2250.0, 420.0], "size": [80.0, 180.0] },
+		{ "type": "EmitRay", "name": "Light3", "position": [2500.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror3", "center": [2500.0, 490.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "MovingBlock", "name": "Shutter", "position": [2700.0, 420.0], "size": [40.0, 280.0], "moveOffset": [0.0, 300.0], "moveSpeed": 150.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 2.0, "runTime": 5.0, "hasFrontPanel": true },
+		{ "type": "Goal", "name": "Goal", "position": [3550.0, 0.0], "size": [150.0, 250.0] }
+	]
+}

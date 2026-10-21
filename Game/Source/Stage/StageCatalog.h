@@ -33,7 +33,8 @@ namespace app
 			{ "Stage01", "Assets/parameter/stage/Stage01_Object.json", "Assets/parameter/stage/Stage01_Gimmick.json" },
 			{ "Stage02", "Assets/parameter/stage/Stage02_Object.json", "Assets/parameter/stage/Stage02_Gimmick.json" },
 			{ "StageDark", "Assets/parameter/stage/StageDark_Object.json", "Assets/parameter/stage/StageDark_Gimmick.json" },
-			{ "Stage03_Ice", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json" },
+        	{ "Stage03_Ice", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json" },
+        	{ "StageSolar", "Assets/parameter/stage/StageSolar_Object.json", "Assets/parameter/stage/StageSolar_Gimmick.json" },
 		};
 
 		/** ステージの数 */
