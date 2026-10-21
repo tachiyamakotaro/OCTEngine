@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file DebugScene.cpp
  * @brief インゲーム（ステージを遊ぶシーン）
  */
@@ -92,6 +92,8 @@ namespace app
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
+		// 虫眼鏡のギミック（虫眼鏡・草・ロープ・吊るされた板）と、集まる光・炎
+		m_fireRenderer.Init(app::stage::FireGimmickRenderer::Config());
 		// 鏡の境目の半透明ガラス（Assets/shader/mirrorGlass.fx）
 		m_mirrorGlass.Init();
 		// モデルで描くようになったので、デバッグ表示は当たり判定の枠とキャラクターだけにする（Display で切り替えられる）
@@ -152,6 +154,7 @@ namespace app
 		UpdateWarpAndGoal();
 		UpdateCheckpoint();
 		UpdateStageEvents(deltaTime);
+		UpdateFireEffects(deltaTime);
 		// SE：ステージ・プレイヤー・鏡の操作が全部終わってから、変化を見て鳴らす
 		m_sePlayer.Update(deltaTime, m_stage, m_player, m_mirrorInteractor);
 		if (m_isCleared)
@@ -163,6 +166,7 @@ namespace app
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
 		m_lightBeamRenderer.Update(m_stage);
+		m_fireRenderer.Update(m_stage, deltaTime);
 		UpdateCamera(deltaTime, false);
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
 		m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
@@ -179,11 +183,14 @@ namespace app
 	{
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
+		m_fireRenderer.DrawOpaque(rc);
 		m_player.Render(rc);
 		// 半透明のガラスは、ほかのモデルを全部登録したあとに登録する（エンジンは登録した順に描く）
 		m_mirrorGlass.Draw(rc);
 		// 光（半透明。最後に登録する）
 		m_lightBeamRenderer.Draw(rc);
+		// 集まる光・炎（半透明）
+		m_fireRenderer.DrawTranslucent(rc);
 	}
 
 
@@ -739,5 +746,86 @@ namespace app
 		}
 
 		ImGui::End();
+	}
+
+
+	void DebugScene::UpdateFireEffects(const float deltaTime)
+	{
+		// 虫眼鏡で燃やす物の煙と音。煙は霧と同じ Mist.efk を小さくして使う
+		// 音は今ある SE の仮使い（火がつく = 霧の吹き出し、板が落ちた = 高い所からの着地）
+		constexpr float SMOKE_START_HEAT = 0.15f;	// これより温まったら煙を出し始める
+		constexpr float BURNING_PUFF_INTERVAL = 0.15f;	// 燃えている間に煙を出す間隔
+		constexpr float SMOKE_Z = -20.0f;			// 煙を出す奥行き（物の少し手前）
+		const float puffScale = m_mistPuffScale;
+
+		auto puff = [&](const app::math::Vec2& at, const float scale)
+			{
+				if (m_isMistEffectEnabled)
+				{
+					PlayMistPuff(Vector3(at.x, at.y, SMOKE_Z), scale);
+				}
+			};
+
+		const auto burnables = m_stage.GetGimmicks().View<app::stage::BurnableGimmick>();
+		m_firePuffTimers.resize(burnables.size(), 0.0f);
+		size_t index = 0;
+		for (const app::stage::BurnableGimmick& burnable : burnables)
+		{
+			float& timer = m_firePuffTimers[index++];
+			if (burnable.isIgnitedThisFrame)
+			{
+				m_sePlayer.Play(enSoundKind_MistBurst);
+				timer = 0.0f;
+			}
+			if (burnable.isBurntThisFrame)
+			{
+				// 燃え尽きた瞬間：元の範囲に煙をまとめて出す
+				for (int n = 0; n < 3; ++n)
+				{
+					const app::math::Rect& r = burnable.rect;
+					puff({ r.min.x + r.Width() * Random01(), r.min.y + r.Height() * Random01() }, puffScale * 0.5f);
+				}
+				continue;
+			}
+			if (burnable.isBurnt || (!burnable.isBurning && burnable.heat <= SMOKE_START_HEAT))
+			{
+				timer = 0.0f;
+				continue;
+			}
+
+			timer -= deltaTime;
+			if (timer > 0.0f)
+			{
+				continue;
+			}
+			if (burnable.isBurning)
+			{
+				// 燃えている：今の形の上の辺から煙が立ちのぼる
+				timer += BURNING_PUFF_INTERVAL;
+				const app::math::Rect r = burnable.GetCurrentRect();
+				puff({ r.min.x + r.Width() * Random01(), r.max.y }, puffScale * 0.35f);
+			}
+			else
+			{
+				// 温まっている：焦点から細い煙。熱いほど多く・大きく
+				timer += app::math::Lerp(0.5f, 0.15f, burnable.heat);
+				puff(burnable.heatPoint, puffScale * (0.1f + 0.2f * burnable.heat));
+			}
+		}
+
+		// 吊るされた板が落ちて乗った瞬間：下の辺に土ぼこり
+		for (const app::stage::HangingBlock& block : m_stage.GetGimmicks().View<app::stage::HangingBlock>())
+		{
+			if (!block.isLandedThisFrame)
+			{
+				continue;
+			}
+			m_sePlayer.Play(enSoundKind_PlayerHardLand);
+			const app::math::Rect r = block.GetCurrentRect();
+			for (int n = 0; n < 5; ++n)
+			{
+				puff({ r.min.x + r.Width() * (static_cast<float>(n) + 0.5f) / 5.0f, r.min.y }, puffScale * 0.3f);
+			}
+		}
 	}
 }

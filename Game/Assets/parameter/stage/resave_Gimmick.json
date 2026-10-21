@@ -1,0 +1,19 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "Light1", "position": [350.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [350.0, 70.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "Magnifier", "name": "Magnifier1", "center": [600.0, 70.0], "angleDeg": 0.0, "diameter": 100.0, "focalLength": 200.0, "focusTolerance": 30.0, "isShowGuide": true },
+		{ "type": "Grass", "name": "GrassBottom", "position": [790.0, 0.0], "size": [100.0, 200.0], "igniteTime": 1.0, "coolTime": 1.5, "burnTime": 1.5, "spreadTime": 0.35 },
+		{ "type": "Grass", "name": "GrassMiddle", "position": [790.0, 200.0], "size": [100.0, 200.0], "igniteTime": 1.0, "coolTime": 1.5, "burnTime": 1.5, "spreadTime": 0.35 },
+		{ "type": "Grass", "name": "GrassTop", "position": [790.0, 400.0], "size": [100.0, 200.0], "igniteTime": 1.0, "coolTime": 1.5, "burnTime": 1.5, "spreadTime": 0.35 },
+		{ "type": "Checkpoint", "name": "Room2Entrance", "position": [1000.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "Light2", "position": [1250.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0 },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [1250.0, 70.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 0.0, "railMaxX": 0.0 },
+		{ "type": "Magnifier", "name": "Magnifier2", "center": [1500.0, 70.0], "angleDeg": 0.0, "diameter": 100.0, "focalLength": 200.0, "focusTolerance": 30.0, "isShowGuide": true },
+		{ "type": "Rope", "name": "AnchorRope", "position": [1694.0, 0.0], "size": [12.0, 590.0], "igniteTime": 0.8, "coolTime": 1.5, "burnTime": 0.8, "spreadTime": 0.15 },
+		{ "type": "Rope", "name": "CeilingRope", "position": [1694.0, 578.0], "size": [712.0, 12.0], "igniteTime": 0.8, "coolTime": 1.5, "burnTime": 0.8, "spreadTime": 0.15 },
+		{ "type": "Rope", "name": "HangRope", "position": [2394.0, 450.0], "size": [12.0, 140.0], "igniteTime": 0.8, "coolTime": 1.5, "burnTime": 0.8, "spreadTime": 0.15 },
+		{ "type": "HangingBlock", "name": "Plank", "position": [2030.0, 420.0], "size": [740.0, 30.0], "ropes": ["AnchorRope", "CeilingRope", "HangRope"], "gravity": 2500.0, "maxFallSpeed": 1800.0 },
+		{ "type": "Goal", "name": "Goal", "position": [2950.0, 0.0], "size": [150.0, 250.0] }
+	]
+}
