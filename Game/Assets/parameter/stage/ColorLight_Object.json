@@ -1,0 +1,11 @@
+﻿{
+	"stage": { "name": "ColorLight", "playerStart": [50.0, 0.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [2350.0, 600.0] } },
+	"gimmicks": [
+		{ "type": "StageBlock", "name": "Floor", "position": [-200.0, -100.0], "size": [2550.0, 100.0] },
+		{ "type": "StageBlock", "name": "Ceiling", "position": [-200.0, 600.0], "size": [2550.0, 100.0] },
+		{ "type": "StageBlock", "name": "LeftWall", "position": [-200.0, 0.0], "size": [100.0, 600.0] },
+		{ "type": "StageBlock", "name": "RightWall", "position": [2250.0, 0.0], "size": [100.0, 600.0] },
+		{ "type": "StageBlock", "name": "Wall1", "position": [800.0, 130.0], "size": [40.0, 470.0] },
+		{ "type": "StageBlock", "name": "Wall2", "position": [1860.0, 130.0], "size": [40.0, 470.0] }
+	]
+}

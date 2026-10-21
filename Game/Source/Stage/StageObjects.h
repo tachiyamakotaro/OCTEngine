@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file StageObjects.h
  * @brief ステージに置く物（奥の鏡と、全ギミック）
  * @details ギミックは1クラス1ファイルで Gimmick フォルダにある。ここではまとめて include するだけ。
@@ -7,6 +7,8 @@
  */
 #pragma once
 #include "Gimmick/Checkpoint.h"
+#include "Gimmick/ColorGlass.h"
+#include "Gimmick/ColorReceiver.h"
 #include "Gimmick/Door.h"
 #include "Gimmick/EmitRay.h"
 #include "Gimmick/FloorSwitch.h"
