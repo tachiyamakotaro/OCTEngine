@@ -46,6 +46,7 @@ namespace app
 		{
 			focusDirection = GetAxis();
 			coneLength = focalLength;
+			guidePoint = center + GetAxis() * focalLength;
 		}
 
 
@@ -62,7 +63,16 @@ namespace app
 			{
 				focusDirection = GetAxis();
 			}
-			TraceFocus(context);
+			// 集まった光がどこまで届くか（焦点の手前でさえぎられたら、ぼやけて燃やせない）
+			const float tolerance = math::Max(focusTolerance, 0.0f);
+			coneLength = TraceFocusLength(context, focusDirection);
+			isSharp = math::Abs(coneLength - focalLength) <= tolerance;
+
+			// 軸の向きの焦点（燃やす所の黒い印の位置）。光が当たっていてもいなくても、軸の向きで調べる
+			const math::Vec2 axis = GetAxis();
+			const float guideLength = TraceFocusLength(context, axis);
+			guidePoint = center + axis * guideLength;
+			isGuideSharp = math::Abs(guideLength - focalLength) <= tolerance;
 		}
 
 
@@ -72,6 +82,8 @@ namespace app
 			focusDirection = GetAxis();
 			coneLength = focalLength;
 			isSharp = true;
+			guidePoint = center + GetAxis() * focalLength;
+			isGuideSharp = true;
 		}
 
 
@@ -110,7 +122,7 @@ namespace app
 		}
 
 
-		void Magnifier::TraceFocus(const GimmickUpdateContext& context)
+		float Magnifier::TraceFocusLength(const GimmickUpdateContext& context, const math::Vec2& direction) const
 		{
 			// レンズの中心から焦点の少し先まで、光を止める物（ブロック・閉じた扉・燃える前の草など）を探す
 			// 光を通り抜けさせる物（光の足場・ロープ）は止めない
@@ -124,7 +136,7 @@ namespace app
 					continue;
 				}
 				LightHit hit;
-				if (gimmick->IntersectLight(center, focusDirection, hit)
+				if (gimmick->IntersectLight(center, direction, hit)
 					&& hit.response != LightResponse::PassThrough
 					&& hit.distance < nearest)
 				{
@@ -132,11 +144,9 @@ namespace app
 					isBlocked = true;
 				}
 			}
-
 			// 何にも止められなければ、焦点で一点に集まる（空中、またはロープのような細い物の中）
 			// 止められたら、その物の面まで。面が焦点の近くなら、そこで燃やせる
-			coneLength = isBlocked ? nearest : focalLength;
-			isSharp = math::Abs(coneLength - focalLength) <= math::Max(focusTolerance, 0.0f);
+			return isBlocked ? nearest : focalLength;
 		}
 
 
@@ -149,6 +159,17 @@ namespace app
 			const math::Vec2 point = GetFocusPoint();
 			return point.x >= rect.min.x - margin && point.x <= rect.max.x + margin
 				&& point.y >= rect.min.y - margin && point.y <= rect.max.y + margin;
+		}
+
+
+		bool Magnifier::IsGuidePointIn(const math::Rect& rect, const float margin) const
+		{
+			if (!isGuideSharp)
+			{
+				return false;
+			}
+			return guidePoint.x >= rect.min.x - margin && guidePoint.x <= rect.max.x + margin
+				&& guidePoint.y >= rect.min.y - margin && guidePoint.y <= rect.max.y + margin;
 		}
 
 

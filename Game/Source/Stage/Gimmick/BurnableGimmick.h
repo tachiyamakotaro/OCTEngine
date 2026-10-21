@@ -20,6 +20,10 @@ namespace app
 		 *            4. burnTime 秒で燃え尽きる（isBurnt）。燃え尽きると、自分の名前の信号が ON になる
 		 *               （ロープが燃え尽きたら吊るしていた板が落ちる、のように使う）
 		 *          ふつうの光（反射鏡の光など）を直接当てても燃えない。虫眼鏡で集めた光だけで燃える。
+		 *
+		 *          黒い印：虫眼鏡のレンズの軸の向きの焦点（光を当てたら燃える所）が自分の上にあれば、そこを黒くする。
+		 *            「黒い紙は光をよく吸って燃えやすい」という理科の実験の通り、黒い所に光を集めればよいと伝える。
+		 *            虫眼鏡を動かすと印も一緒に動く（位置は毎フレーム虫眼鏡から決める）。isMarked を false にすると付けない。
 		 *          見た目（形が縮む・当たり判定）は派生クラスが GetCurrentRect などで決める。
 		 */
 		class BurnableGimmick : public RectGimmick
@@ -33,6 +37,8 @@ namespace app
 			float burnTime = 1.5f;
 			/** 火がついてから、触れている燃える物に火が移るまでの秒数（負なら燃え広がらない） */
 			float spreadTime = 0.35f;
+			/** 虫眼鏡の焦点が来る所に、黒い印を付けるか */
+			bool isMarked = true;
 
 			/** 【実行時】温まり具合（0〜1。1 で火がつく） */
 			float heat = 0.0f;
@@ -50,6 +56,10 @@ namespace app
 			bool isBurntThisFrame = false;
 			/** 【実行時】最後に熱が来た点（焦点の位置、または燃え移ってきた側。煙を出す位置に使う） */
 			math::Vec2 heatPoint;
+			/** 【実行時】黒い印があるか（燃え始めたら消す） */
+			bool hasMark = false;
+			/** 【実行時】黒い印の位置（虫眼鏡の焦点を、自分の範囲の中に収めた点） */
+			math::Vec2 markPoint;
 
 
 		public:

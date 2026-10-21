@@ -19,6 +19,8 @@ namespace app
 			const ImU32 EDITOR_COLOR_BURNING = IM_COL32(255, 120, 30, 255);
 			const ImU32 EDITOR_COLOR_BURNT = IM_COL32(90, 80, 70, 160);
 			const ImU32 EDITOR_COLOR_HEAT = IM_COL32(255, 80, 40, 255);
+			const ImU32 EDITOR_COLOR_MARK = IM_COL32(15, 15, 15, 255);
+			const ImU32 EDITOR_COLOR_MARK_RIM = IM_COL32(255, 255, 255, 200);
 
 			/** 燃え広がるとき「触れている」とみなす距離（ぴったり接している物どうしも燃え移るように少し広げる） */
 			constexpr float SPREAD_MARGIN = 3.0f;
@@ -61,6 +63,7 @@ namespace app
 			isIgnitedThisFrame = false;
 			isBurntThisFrame = false;
 			isHeated = false;
+			hasMark = false;
 			if (isBurnt)
 			{
 				return;
@@ -80,6 +83,20 @@ namespace app
 			}
 
 			const math::Rect current = GetCurrentRect();
+
+			// 0. 黒い印：虫眼鏡の軸の向きの焦点（光を当てたら燃える所）が自分の上にあれば、そこに付ける
+			if (isMarked)
+			{
+				for (const Magnifier& magnifier : context.gimmicks.View<Magnifier>())
+				{
+					if (magnifier.IsGuidePointIn(current, GetHotSpotMargin()))
+					{
+						hasMark = true;
+						markPoint = ClampInto(magnifier.guidePoint, current);
+						break;
+					}
+				}
+			}
 
 			// 1. 虫眼鏡の焦点が当たっていれば温まり、外れていれば冷める
 			for (const Magnifier& magnifier : context.gimmicks.View<Magnifier>())
@@ -136,6 +153,7 @@ namespace app
 			isIgnitedThisFrame = false;
 			isBurntThisFrame = false;
 			heatPoint = (rect.min + rect.max) * 0.5f;
+			hasMark = false;
 		}
 
 
@@ -168,6 +186,12 @@ namespace app
 				{
 					canvas.Rect(rect, 0, EDITOR_COLOR_BURNING);
 				}
+				if (hasMark && !isBurning)
+				{
+					// 黒い印（白い縁取りで、見取り図の暗い背景でも見えるように）
+					canvas.Dot(markPoint, 6.0f, EDITOR_COLOR_MARK_RIM);
+					canvas.Dot(markPoint, 4.5f, EDITOR_COLOR_MARK);
+				}
 				if (isHeated)
 				{
 					canvas.Dot(heatPoint, 4.0f, EDITOR_COLOR_HEAT);
@@ -185,6 +209,8 @@ namespace app
 			ImGui::DragFloat("Burn Time", &burnTime, 0.05f, 0.05f, 30.0f, "%.2f s");
 			ImGui::DragFloat("Spread Time", &spreadTime, 0.05f, -1.0f, 30.0f, "%.2f s");
 			ImGui::SetItemTooltip("Seconds after catching fire until the fire spreads to touching burnables (negative = never)");
+			ImGui::Checkbox("Black Mark", &isMarked);
+			ImGui::SetItemTooltip("Blacken the spot where a magnifier focuses (shows where to burn)");
 			ImGui::Text("Heat: %.0f%%  %s", heat * 100.0f, isBurnt ? "BURNT" : (isBurning ? "BURNING" : (isHeated ? "heating" : "")));
 			if (ImGui::Button("Ignite"))
 			{
@@ -205,6 +231,7 @@ namespace app
 			archive.Field("coolTime", coolTime);
 			archive.Field("burnTime", burnTime);
 			archive.Field("spreadTime", spreadTime);
+			archive.Field("isMarked", isMarked);
 			if (archive.IsReading())
 			{
 				ResetRuntimeState();

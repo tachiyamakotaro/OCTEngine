@@ -150,7 +150,13 @@ namespace app
 				PutRect(ModelKind::Plank, block.GetCurrentRect(), c.plankDepth);
 			}
 
-			// 炎：物の手前の面に出す（草は奥行きがあるので、その手前）
+			// 黒い印と炎：物の手前の面に出す（草は奥行きがあるので、その手前）
+			// 印 → 炎 の順に置くと、半透明の描く順番も 印 → 炎 になり、くすぶる炎が印の上に重なる
+			for (const BurnableGimmick& burnable : gimmicks.View<BurnableGimmick>())
+			{
+				const bool isRope = dynamic_cast<const Rope*>(&burnable) != nullptr;
+				PutMark(burnable, -(isRope ? c.ropeDepth : c.grassDepth) * 0.5f);
+			}
 			int objectIndex = 0;
 			for (const BurnableGimmick& burnable : gimmicks.View<BurnableGimmick>())
 			{
@@ -290,6 +296,46 @@ namespace app
 				const float size = c.guideSpotSize;
 				PutGlow(GlowKind::Spot, style, spotPosition, 0.0f, Vector3(size, size, size));
 			}
+		}
+
+
+		void FireGimmickRenderer::PutMark(const BurnableGimmick& burnable, const float frontZ)
+		{
+			const Config& c = m_config;
+			if (!burnable.hasMark || burnable.isBurning || burnable.isBurnt)
+			{
+				return;
+			}
+			const math::Rect rect = burnable.GetCurrentRect();
+			const float width = rect.Width();
+			const float height = rect.Height();
+
+			// 大きさ：ふつうは markSize の丸。細い向き（ロープの太さ）は、物の太さより少しはみ出すだけにする
+			const float innerX = math::Min(c.markSize, width + c.markOverhang);
+			const float innerY = math::Min(c.markSize, height + c.markOverhang);
+			// まわりのすすは、細くない向きにだけ広げる（ロープのまわりの空中に黒い影が浮かないように）
+			const float outerX = innerX < c.markSize ? innerX : innerX * c.markOuterRate;
+			const float outerY = innerY < c.markSize ? innerY : innerY * c.markOuterRate;
+
+			// 位置：焦点の点を中心にするが、すすが物の外にはみ出さないように内側へ寄せる
+			const float halfX = math::Min(outerX * 0.5f, width * 0.5f);
+			const float halfY = math::Min(outerY * 0.5f, height * 0.5f);
+			const float x = math::Clamp(burnable.markPoint.x, rect.min.x + halfX, rect.max.x - halfX);
+			const float y = math::Clamp(burnable.markPoint.y, rect.min.y + halfY, rect.max.y - halfY);
+			const float z = frontZ - c.markOffsetZ;
+
+			// 温まるほど赤くなる（焦げていく）
+			GlowStyle inner = c.mark;
+			const float heat = math::Clamp01(burnable.heat);
+			for (int i = 0; i < 3; ++i)
+			{
+				inner.color[i] = math::Lerp(c.mark.color[i], c.markHotColor[i], heat);
+			}
+
+			// 玉のモデルを Z 方向につぶして、物の面に貼った丸にする（まわりのうすいすす → 黒い印 の順）
+			constexpr float FLAT = 1.0f;
+			PutGlow(GlowKind::Spot, c.markOuter, Vector3(x, y, z), 0.0f, Vector3(outerX, outerY, FLAT));
+			PutGlow(GlowKind::Spot, inner, Vector3(x, y, z - 0.5f), 0.0f, Vector3(innerX, innerY, FLAT));
 		}
 
 

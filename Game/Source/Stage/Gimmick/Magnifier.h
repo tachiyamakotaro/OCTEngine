@@ -47,6 +47,10 @@ namespace app
 			float coneLength = 200.0f;
 			/** 【実行時】焦点がちょうど物の上（または空中）に結んでいるか（false なら手前でさえぎられてぼやけている） */
 			bool isSharp = true;
+			/** 【実行時】レンズの軸の向きに集めたときの焦点（光が当たっていなくても調べる。燃やす所の黒い印に使う） */
+			math::Vec2 guidePoint;
+			/** 【実行時】軸の向きに集めたとき、焦点がはっきり結ぶか */
+			bool isGuideSharp = true;
 
 
 		public:
@@ -95,6 +99,11 @@ namespace app
 			 * @details 燃える物が「自分が温められているか」を調べるのに使う
 			 */
 			bool IsHotSpotIn(const math::Rect& rect, float margin) const;
+			/**
+			 * @brief レンズの軸の向きの焦点（光を当てたら燃える所）が、矩形の中（まわり margin まで）にあるか
+			 * @details 燃える物が「自分のどこに黒い印を付けるか」を調べるのに使う（光が当たっていなくても調べる）
+			 */
+			bool IsGuidePointIn(const math::Rect& rect, float margin) const;
 
 
 		private:
@@ -103,8 +112,11 @@ namespace app
 			 * @return 見つかったら true
 			 */
 			bool FindIncomingDirection(const GimmickUpdateContext& context, math::Vec2& outDirection) const;
-			/** 集まった光が、焦点までに何かに止められるか調べて coneLength と isSharp を決める */
-			void TraceFocus(const GimmickUpdateContext& context);
+			/**
+			 * @brief レンズの中心から direction の向きに集めた光が、どこまで届くか
+			 * @return 焦点の手前で光を止める物があればその面までの距離、なければ focalLength
+			 */
+			float TraceFocusLength(const GimmickUpdateContext& context, const math::Vec2& direction) const;
 
 
 		public:

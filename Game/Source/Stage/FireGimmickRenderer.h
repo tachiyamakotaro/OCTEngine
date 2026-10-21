@@ -6,6 +6,7 @@
  *          ・半透明のモデル（光と同じ Assets/shader/lightBeam.fx）… 集まる光の円すい・焦点の光の玉・炎
  *            1つずつ色やゆらぎが違うので、光（LightBeamRenderer）と同じく、1つずつ自分の定数バッファを持つ。
  *          ・虫眼鏡に光が当たっていない間も、うすい円すいと小さな玉で「ここに光が集まる」ことを見せる（isShowGuide）。
+ *          ・燃える物の、虫眼鏡の焦点が来る所に黒い印（すす）を描く（BurnableGimmick::hasMark）。温まると赤くなる。
  *          ・奥の鏡に映った像は描かない（今は全ステージで奥の鏡を使っていないため）。
  *          ・煙と SE は DebugScene::UpdateFireEffects が出す。
  *          GimmickRenderer に足さずに別のクラスにしたのは、ほかのギミックのブランチとぶつかりにくくするため。
@@ -79,6 +80,22 @@ namespace app
 			 */
 			struct Config
 			{
+				// ---- 黒い印（燃やす所） ----
+				/** 印の大きさ（物が細いときは、物の太さ + markOverhang までにする） */
+				float markSize = 50.0f;
+				/** 細い物（ロープ）で、印を物の太さより少しはみ出させる量（両側の合計） */
+				float markOverhang = 4.0f;
+				/** まわりのうすいすすの大きさ（印に対する割合。細い向きには広げない） */
+				float markOuterRate = 1.5f;
+				/** 印の色（冷えているとき） */
+				GlowStyle mark = { { 0.03f, 0.03f, 0.03f, 0.92f }, 1.0f, 1.0f };
+				/** まわりのうすいすす */
+				GlowStyle markOuter = { { 0.05f, 0.04f, 0.03f, 0.45f }, 1.0f, 1.0f };
+				/** 温まったとき（heat = 1）の印の色。冷えているときの色からだんだん変わる */
+				float markHotColor[3] = { 0.85f, 0.18f, 0.04f };
+				/** 物の手前の面から、どれだけ手前に描くか（面にめり込まないように） */
+				float markOffsetZ = 1.5f;
+
 				/** ふつうのモデルのパス（ModelKind の順） */
 				std::string modelPaths[static_cast<int>(ModelKind::Num)] = {
 					"Assets/modelData/gimmick/magnifier.tkm",
@@ -218,6 +235,8 @@ namespace app
 				const math::Vec2& endCapNormal = math::Vec2::Zero(), const math::Vec2& endCapPoint = math::Vec2::Zero());
 			/** 虫眼鏡と、集まる光・焦点 */
 			void PutMagnifier(const Magnifier& magnifier);
+			/** 黒い印（燃やす所）を物の手前の面に描く */
+			void PutMark(const BurnableGimmick& burnable, float frontZ);
 			/** 燃えている物の炎（くすぶっている物の小さな炎も） */
 			void PutFlames(const BurnableGimmick& burnable, bool isRope, float frontZ, int objectIndex);
 			/** 炎を1つ置く（position は炎の根元） */
