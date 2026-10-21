@@ -7,11 +7,13 @@
  */
 #pragma once
 #include "Gimmick/Checkpoint.h"
+#include "Gimmick/DarkZone.h"
 #include "Gimmick/Door.h"
 #include "Gimmick/EmitRay.h"
 #include "Gimmick/FloorSwitch.h"
 #include "Gimmick/GimmickBase.h"
 #include "Gimmick/Goal.h"
+#include "Gimmick/HiddenFloor.h"
 #include "Gimmick/IceBlock.h"
 #include "Gimmick/Indicator.h"
 #include "Gimmick/InvisibleFloor.h"

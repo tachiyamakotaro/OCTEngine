@@ -2,6 +2,7 @@
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Input/GamePadInputDevice.h"
+#include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/LightBeamRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Scene/IScene.h"
@@ -122,6 +123,8 @@ namespace app
 		app::render::MirrorGlass m_mirrorGlass;
 		/** 光の描画（半透明） */
 		app::render::LightBeamRenderer m_lightBeamRenderer;
+		/** 暗がりの描画（半透明。光の前に描く） */
+		app::render::DarknessRenderer m_darknessRenderer;
 		/** デバッグ表示 */
 		app::stage::StageDebugOverlay m_overlay;
 		/** ステージエディタ */

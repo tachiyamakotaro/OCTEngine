@@ -286,6 +286,7 @@
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
+    <ClCompile Include="Source\Render\DarknessRenderer.cpp" />
     <ClCompile Include="Source\Render\IceRenderer.cpp" />
     <ClCompile Include="Source\Render\LightBeamRenderer.cpp" />
     <ClCompile Include="Source\Render\MirrorGlass.cpp" />
@@ -300,6 +301,7 @@
     <ClCompile Include="Source\Stage\Editor\StageEditor.cpp" />
     <ClCompile Include="Source\Stage\GimmickRenderer.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Checkpoint.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\DarkZone.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Door.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\EmitRay.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\FloorSwitch.cpp" />
@@ -309,6 +311,7 @@
     <ClCompile Include="Source\Stage\Gimmick\GimmickManager.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickRegistry.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Goal.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\HiddenFloor.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\IceBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Indicator.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\InvisibleFloor.cpp" />
@@ -368,6 +371,7 @@
     <ClInclude Include="Source\Physics\ICollisionWorld.h" />
     <ClInclude Include="Source\Physics\MirroredCollisionWorld.h" />
     <ClInclude Include="Source\Physics\SimpleCollisionWorld.h" />
+    <ClInclude Include="Source\Render\DarknessRenderer.h" />
     <ClInclude Include="Source\Render\IceRenderer.h" />
     <ClInclude Include="Source\Render\LightBeamRenderer.h" />
     <ClInclude Include="Source\Render\MirrorGlass.h" />
@@ -386,6 +390,7 @@
     <ClInclude Include="Source\Stage\Editor\StageEditor.h" />
     <ClInclude Include="Source\Stage\GimmickRenderer.h" />
     <ClInclude Include="Source\Stage\Gimmick\Checkpoint.h" />
+    <ClInclude Include="Source\Stage\Gimmick\DarkZone.h" />
     <ClInclude Include="Source\Stage\Gimmick\Door.h" />
     <ClInclude Include="Source\Stage\Gimmick\EmitRay.h" />
     <ClInclude Include="Source\Stage\Gimmick\FloorSwitch.h" />
@@ -396,6 +401,7 @@
     <ClInclude Include="Source\Stage\Gimmick\GimmickRegistry.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickView.h" />
     <ClInclude Include="Source\Stage\Gimmick\Goal.h" />
+    <ClInclude Include="Source\Stage\Gimmick\HiddenFloor.h" />
     <ClInclude Include="Source\Stage\Gimmick\IceBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\Indicator.h" />
     <ClInclude Include="Source\Stage\Gimmick\InvisibleFloor.h" />

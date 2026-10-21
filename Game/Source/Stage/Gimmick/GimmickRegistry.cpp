@@ -38,6 +38,9 @@ namespace app
 				{ "Warp", "Warp", [](const math::Vec2& p) { return std::make_unique<WarpZone>("", p.x, p.y, 150.0f, 200.0f, p.x - 300.0f, p.y); } },
 				{ "Lamp", "Lamp", [](const math::Vec2& p) { return std::make_unique<Indicator>("", p.x, p.y, 40.0f, 30.0f, ""); } },
 				{ "Goal", "Goal", [](const math::Vec2& p) { return std::make_unique<Goal>("", p.x, p.y, 150.0f, 250.0f); } },
+				// 暗がりと、光で照らすと見える足場
+				{ "Dark Zone", "Dark", [](const math::Vec2& p) { return std::make_unique<DarkZone>("", p.x, p.y, 800.0f, 600.0f); } },
+				{ "Hidden Floor", "HiddenFloor", [](const math::Vec2& p) { return std::make_unique<HiddenFloor>("", p.x, p.y, 150.0f, 25.0f); } },
 				// 光の現象のギミック（氷・日光・日よけ板）
 				{ "Ice (Melt)", "IceWall", [](const math::Vec2& p) { return std::make_unique<IceBlock>("", p.x, p.y, 80.0f, 300.0f, IceKind::Melt); } },
 				{ "Ice (Keep)", "IceFloor", [](const math::Vec2& p)

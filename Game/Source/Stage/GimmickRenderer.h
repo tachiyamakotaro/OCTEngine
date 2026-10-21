@@ -57,6 +57,8 @@ namespace app
 				IndicatorOn,	//!< 合図のランプ（点灯）
 				WarpGate,		//!< ワープの暗がり（通路の奥。入ると暗がりに消えるように見せる）
 				Goal,			//!< ゴール
+				HiddenFloor,	//!< 暗がりの足場（プレイヤーが乗っているとき。明るい石）
+				HiddenFloorDim,	//!< 暗がりの足場（ふだん見えているとき。暗い石）
 				IceMelt,		//!< 溶かす氷（白っぽい水色・ひび）
 				IceMeltLit,		//!< 溶かす氷（光が当たって溶けている最中。オレンジがかる）
 				IceKeep,		//!< 守る氷（濃い青・白い縁）
@@ -90,6 +92,8 @@ namespace app
 					"Assets/modelData/gimmick/indicator_on.tkm",
 					"Assets/modelData/gimmick/warp_gate.tkm",
 					"Assets/modelData/gimmick/goal.tkm",
+					"Assets/modelData/gimmick/hidden_floor.tkm",
+					"Assets/modelData/gimmick/hidden_floor_dim.tkm",
 					"Assets/modelData/gimmick/ice_melt.tkm",
 					"Assets/modelData/gimmick/ice_melt_lit.tkm",
 					"Assets/modelData/gimmick/ice_keep.tkm",
@@ -115,6 +119,7 @@ namespace app
 				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
 				float warpGateDepth = 300.0f;
 				float goalDepth = 150.0f;
+				float hiddenFloorDepth = 200.0f;
 				float iceDepth = 200.0f;
 				float shadeBoardDepth = 150.0f;
 				float sunWindowDepth = 200.0f;

@@ -255,6 +255,15 @@
     <ClCompile Include="Source\Camera\GameCamera.cpp">
       <Filter>Source\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\DarkZone.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\HiddenFloor.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\DarknessRenderer.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Stage\Gimmick\IceBlock.cpp">
       <Filter>Source\Stage\Gimmick</Filter>
     </ClCompile>
@@ -501,6 +510,15 @@
     </ClInclude>
     <ClInclude Include="Source\Camera\GameCamera.h">
       <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\DarkZone.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\HiddenFloor.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\DarknessRenderer.h">
+      <Filter>Source\Render</Filter>
     </ClInclude>
     <ClInclude Include="Source\Stage\Gimmick\IceBlock.h">
       <Filter>Source\Stage\Gimmick</Filter>

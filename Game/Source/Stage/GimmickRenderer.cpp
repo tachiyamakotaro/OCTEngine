@@ -159,6 +159,16 @@ namespace app
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
 			}
 
+			// 暗がりの足場：見えている間だけ描く。ふだんは暗い石のモデル、プレイヤーが乗っている間だけ明るい石のモデル
+			// （光に近いだけで明るくすると特別な床に見えるので、明るさは暗がりの透け具合だけで見せる）
+			for (const HiddenFloor& floor : stage.GetGimmicks().View<HiddenFloor>())
+			{
+				if (floor.IsVisible())
+				{
+					PutRect(floor.isPlayerOn ? ModelKind::HiddenFloor : ModelKind::HiddenFloorDim, floor.rect, m_config.hiddenFloorDepth);
+				}
+			}
+
 			// 氷：穴の縁がなめらかに消えていくように、IceRenderer が専用のシェーダーで描く
 			{
 				render::IceRenderer::Config& iceConfig = m_iceRenderer.GetConfig();
