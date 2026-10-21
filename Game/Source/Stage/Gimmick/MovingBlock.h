@@ -3,8 +3,8 @@
  * @brief ソーラーパネル付きの動く床・動く壁（パネルに光をためると、ためた分だけ動く）
  */
 #pragma once
-#include "RectGimmick.h"
 #include "MovePath.h"
+#include "RectGimmick.h"
 
 
 namespace app
@@ -18,7 +18,7 @@ namespace app
 		 *          ・満タンになると動き出し、終点へ向かう。終点に着いたらそこで止まって待つ。
 		 *            動いている間（終点で待っている間も）電気は減っていき、なくなると始点へ戻る。
 		 *            光が当たり続けていれば電気は減らないので、ずっと動いたまま（終点にいたまま）になる。
-		 *          ・パネルの色は、ためている間はたまった量に合わせて黒 → 灰色 → 白に変わり、動いている間はずっと白く光ったまま（StageRenderer が描く）。
+		 *          ・パネルの色は、ためている間はたまった量に合わせて黒 → 灰色 → 白に変わり、動いている間は白く光ったまま（電気が残り少なくなると白 → 黒に戻っていく）（StageRenderer が描く）。
 		 *          ・rect は「置いた位置」（始点）。動いても rect は変えず、今の位置は GetCurrentRect() で求める。
 		 *          ・乗っているキャラクターは、床が動いた分だけ一緒に運ばれる（GetCarryDelta）。
 		 *          ・体を地形との間にはさんでしまうときは、その間だけ止まる（押しつぶさない）。
@@ -53,7 +53,7 @@ namespace app
 			 */
 			bool hasFrontPanel = false;
 			/** 空から満タンまで、光を当て続ける時間（秒） */
-			float chargeTime = 1.0f;
+			float chargeTime = 2.0f;
 			/** 満タンから空まで、動いていられる時間（秒） */
 			float runTime = 4.0f;
 
@@ -95,14 +95,24 @@ namespace app
 			math::Rect GetPanelRect() const { return CalcPanelRect(GetCurrentRect()); }
 			/**
 			 * @brief パネルの光り具合（0=黒 〜 1=白く光る）
-			 * @details ためている間はたまった量。動いている間は電気が減っていっても、ずっと 1（光ったまま）
+			 * @details ためている間はたまった量。
+			 *          動いている間は白く光ったままで、電気が PANEL_FADE_CHARGE より少なくなったら、空に向かって白 → 黒に戻っていく
 			 */
-			float GetPanelBrightness() const { return isRunning ? 1.0f : charge; }
+			float GetPanelBrightness() const
+			{
+				if (!isRunning)
+				{
+					return charge;
+				}
+				return math::Min(charge / PANEL_FADE_CHARGE, 1.0f);
+			}
 
 
 		public:
 			/** パネルの厚さ（面から内側へ） */
 			static constexpr float PANEL_THICKNESS = 10.0f;
+			/** 動いている間、電気がこれより少なくなったらパネルが暗くなり始める（0〜1。0.25 なら残り 1/4 から） */
+			static constexpr float PANEL_FADE_CHARGE = 0.25f;
 
 
 		public:
