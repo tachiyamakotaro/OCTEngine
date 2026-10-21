@@ -98,6 +98,9 @@ namespace app
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
+		// 色の光のギミック（色センサー・扉の色の印・色の付いた光源）
+		m_colorLightRenderer.Init(app::stage::ColorLightRenderer::Config());
+		m_colorGlassRenderer.Init(app::stage::ColorGlassRenderer::Config());
 		// 虫眼鏡のギミック（虫眼鏡・草・ロープ・吊るされた板）と、集まる光・炎
 		m_fireRenderer.Init(app::stage::FireGimmickRenderer::Config());
 		// 鏡の境目の半透明ガラス（Assets/shader/mirrorGlass.fx）
@@ -183,6 +186,8 @@ namespace app
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
 		m_lightBeamRenderer.Update(m_stage);
+		m_colorLightRenderer.Update(m_stage, deltaTime);
+		m_colorGlassRenderer.Update(m_stage);
 		m_fireRenderer.Update(m_stage, deltaTime);
 		UpdateCamera(deltaTime, false);
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
@@ -206,9 +211,14 @@ namespace app
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
 		m_fireRenderer.DrawOpaque(rc);
+		m_colorLightRenderer.DrawOpaque(rc);
 		m_player.Render(rc);
 		// 半透明のガラスは、ほかのモデルを全部登録したあとに登録する（エンジンは登録した順に描く）
 		m_mirrorGlass.Draw(rc);
+		// 色センサーの窓・扉の色の印（半透明）
+		m_colorLightRenderer.DrawTranslucent(rc);
+		// 色ガラス（半透明）
+		m_colorGlassRenderer.Draw(rc);
 		// 暗がり（半透明。光より先に登録して、暗がりの中でも光の筋が見えるようにする）
 		m_darknessRenderer.Draw(rc);
 		// 光（半透明。最後に登録する）

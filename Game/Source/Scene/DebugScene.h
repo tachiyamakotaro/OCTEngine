@@ -9,6 +9,8 @@
 #include "Source/Sound/GameplaySEPlayer.h"
 #include "Source/Stage/Editor/StageDebugOverlay.h"
 #include "Source/Stage/Editor/StageEditor.h"
+#include "Source/Stage/ColorLightRenderer.h"
+#include "Source/Stage/ColorGlassRenderer.h"
 #include "Source/Stage/FireGimmickRenderer.h"
 #include "Source/Stage/GimmickRenderer.h"
 #include "Source/Stage/MirrorInteractor.h"
@@ -127,6 +129,10 @@ namespace app
 		app::render::MirrorGlass m_mirrorGlass;
 		/** 光の描画（半透明） */
 		app::render::LightBeamRenderer m_lightBeamRenderer;
+		/** 色の光のギミック（色センサー・扉の色の印・色の付いた光源）の描画 */
+		app::stage::ColorLightRenderer m_colorLightRenderer;
+		/** 色ガラスの描画 */
+		app::stage::ColorGlassRenderer m_colorGlassRenderer;
 		/** 虫眼鏡のギミックと、集まる光・炎の描画 */
 		app::stage::FireGimmickRenderer m_fireRenderer;
 		/** 暗がりの描画（半透明。光の前に描く） */

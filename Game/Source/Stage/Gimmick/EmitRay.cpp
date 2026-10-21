@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file EmitRay.cpp
  * @brief 光を出すギミック
  */
@@ -58,9 +58,11 @@ namespace app
 
 		void EmitRay::DrawEditor(const EditorCanvas& canvas, const bool isSelected) const
 		{
-			const ImU32 color = EditorCanvas::Pick(isSelected, EDITOR_COLOR_SOURCE);
-			canvas.Dot(position, EDITOR_RADIUS_PX, isOn ? color : EDITOR_COLOR_OFF);
-			canvas.Line(position, position + GetDirection() * canvas.PixelsToWorld(20.0f), color, 2.0f);
+			// 白い光はオレンジ、色の付いた光はその色で描く
+			const ImU32 sourceColor = color == LightColor::White ? EDITOR_COLOR_SOURCE : GetLightColorEditorColor(color);
+			const ImU32 drawColor = EditorCanvas::Pick(isSelected, sourceColor);
+			canvas.Dot(position, EDITOR_RADIUS_PX, isOn ? drawColor : EDITOR_COLOR_OFF);
+			canvas.Line(position, position + GetDirection() * canvas.PixelsToWorld(20.0f), drawColor, 2.0f);
 			canvas.Label(position, name);
 		}
 
@@ -70,6 +72,7 @@ namespace app
 			ImGui::DragFloat2("Position", &position.x, 1.0f, 0.0f, 0.0f, "%.1f");
 			inspector.EditAngle("Angle", angleDeg, 45.0f);
 			ImGui::Checkbox("On", &isOn);
+			EditLightColor("Color", color);
 			ImGui::Checkbox("Wide Beam", &isWideBeam);
 			ImGui::SetItemTooltip("ON: a thick beam. With a Band fake wall, the wall disappears as wide as the beam.");
 			if (isWideBeam)
@@ -86,6 +89,7 @@ namespace app
 			archive.Field("isOn", isOn);
 			archive.Field("isWideBeam", isWideBeam);
 			archive.Field("wideBeamWidth", wideBeamWidth);
+			SerializeLightColor(archive, "color", color);
 		}
 	}
 }

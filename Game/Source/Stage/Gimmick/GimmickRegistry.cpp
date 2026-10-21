@@ -29,6 +29,8 @@ namespace app
 				{ "Emit Ray", "Lamp", [](const math::Vec2& p) { return std::make_unique<EmitRay>("", p.x, p.y, 0.0f); } },
 				{ "Light Mirror", "Mirror", [](const math::Vec2& p) { return std::make_unique<LightMirror>("", p.x, p.y, 45.0f, 80.0f); } },
 				{ "Receiver", "Receiver", [](const math::Vec2& p) { return std::make_unique<LightReceiver>("", p.x, p.y, 40.0f, 40.0f); } },
+				{ "Color Receiver", "ColorReceiver", [](const math::Vec2& p) { return std::make_unique<ColorReceiver>("", p.x, p.y, 30.0f, 40.0f, LightColor::Red); } },
+				{ "Color Glass", "ColorGlass", [](const math::Vec2& p) { return std::make_unique<ColorGlass>("", p.x, p.y, 20.0f, 120.0f, LightColor::Red); } },
 				{ "Door", "Door", [](const math::Vec2& p) { return std::make_unique<Door>("", p.x, p.y, 40.0f, 200.0f); } },
 				{ "Light Platform", "LightPlatform", [](const math::Vec2& p) { return std::make_unique<LightPlatform>("", p.x, p.y, 150.0f, 25.0f); } },
 				{ "Switch", "Switch", [](const math::Vec2& p) { return std::make_unique<FloorSwitch>("", p.x, p.y, 70.0f, 8.0f); } },

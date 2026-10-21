@@ -286,6 +286,7 @@
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
+    <ClCompile Include="Source\Render\ColorBoxRenderer.cpp" />
     <ClCompile Include="Source\Render\DarknessRenderer.cpp" />
     <ClCompile Include="Source\Render\IceRenderer.cpp" />
     <ClCompile Include="Source\Render\LightBeamRenderer.cpp" />
@@ -297,12 +298,16 @@
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="Source\Sound\GameplaySEPlayer.cpp" />
     <ClCompile Include="Source\Sound\SoundManager.cpp" />
+    <ClCompile Include="Source\Stage\ColorGlassRenderer.cpp" />
+    <ClCompile Include="Source\Stage\ColorLightRenderer.cpp" />
     <ClCompile Include="Source\Stage\Editor\StageDebugOverlay.cpp" />
     <ClCompile Include="Source\Stage\Editor\StageEditor.cpp" />
     <ClCompile Include="Source\Stage\FireGimmickRenderer.cpp" />
     <ClCompile Include="Source\Stage\GimmickRenderer.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\BurnableGimmick.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Checkpoint.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\ColorGlass.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\ColorReceiver.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\DarkZone.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\Door.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\EmitRay.cpp" />
@@ -333,6 +338,7 @@
     <ClCompile Include="Source\Stage\Gimmick\StageBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\SunLight.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\WarpZone.cpp" />
+    <ClCompile Include="Source\Stage\LightColor.cpp" />
     <ClCompile Include="Source\Stage\LightTracer.cpp" />
     <ClCompile Include="Source\Stage\MirrorInteractor.cpp" />
     <ClCompile Include="Source\Stage\ShadeInteractor.cpp" />
@@ -380,6 +386,7 @@
     <ClInclude Include="Source\Physics\ICollisionWorld.h" />
     <ClInclude Include="Source\Physics\MirroredCollisionWorld.h" />
     <ClInclude Include="Source\Physics\SimpleCollisionWorld.h" />
+    <ClInclude Include="Source\Render\ColorBoxRenderer.h" />
     <ClInclude Include="Source\Render\DarknessRenderer.h" />
     <ClInclude Include="Source\Render\IceRenderer.h" />
     <ClInclude Include="Source\Render\LightBeamRenderer.h" />
@@ -395,12 +402,16 @@
     <ClInclude Include="Source\Sound\SoundHandle.h" />
     <ClInclude Include="Source\Sound\SoundManager.h" />
     <ClInclude Include="Source\Sound\Types.h" />
+    <ClInclude Include="Source\Stage\ColorGlassRenderer.h" />
+    <ClInclude Include="Source\Stage\ColorLightRenderer.h" />
     <ClInclude Include="Source\Stage\Editor\StageDebugOverlay.h" />
     <ClInclude Include="Source\Stage\Editor\StageEditor.h" />
     <ClInclude Include="Source\Stage\FireGimmickRenderer.h" />
     <ClInclude Include="Source\Stage\GimmickRenderer.h" />
     <ClInclude Include="Source\Stage\Gimmick\BurnableGimmick.h" />
     <ClInclude Include="Source\Stage\Gimmick\Checkpoint.h" />
+    <ClInclude Include="Source\Stage\Gimmick\ColorGlass.h" />
+    <ClInclude Include="Source\Stage\Gimmick\ColorReceiver.h" />
     <ClInclude Include="Source\Stage\Gimmick\DarkZone.h" />
     <ClInclude Include="Source\Stage\Gimmick\Door.h" />
     <ClInclude Include="Source\Stage\Gimmick\EmitRay.h" />
@@ -432,6 +443,7 @@
     <ClInclude Include="Source\Stage\Gimmick\StageBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\SunLight.h" />
     <ClInclude Include="Source\Stage\Gimmick\WarpZone.h" />
+    <ClInclude Include="Source\Stage\LightColor.h" />
     <ClInclude Include="Source\Stage\LightTracer.h" />
     <ClInclude Include="Source\Stage\MirrorInteractor.h" />
     <ClInclude Include="Source\Stage\ShadeInteractor.h" />

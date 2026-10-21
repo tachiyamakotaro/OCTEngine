@@ -16,6 +16,7 @@
  */
 #pragma once
 #include "Source/Core/Math/Rect.h"
+#include "Source/Stage/LightColor.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -66,6 +67,7 @@ namespace app
 			Reflect,		//!< 反射する（反射鏡）
 			Absorb,			//!< 光が止まり、当たったギミックが点灯する（受光器）
 			PassThrough,	//!< 光は通り抜け、通ったギミックが点灯する（光の足場）
+			Filter,			//!< 光は通り抜けるが、そこから先の光の色が変わる（色ガラス。LightHit::filterColor と同じ色の成分だけ残る）
 		};
 
 
@@ -80,6 +82,8 @@ namespace app
 			LightResponse response = LightResponse::Stop;
 			/** 反射するときの面の向き（光が来た側を向いた法線） */
 			math::Vec2 normal;
+			/** Filter のとき、通ったあとに残る色（白 = 何も変わらない） */
+			LightColor filterColor = LightColor::White;
 		};
 
 
@@ -208,6 +212,8 @@ namespace app
 			virtual bool GetEmittedRay(math::Vec2& outOrigin, math::Vec2& outDirection) const { return false; }
 			/** @brief 出している光の太さ（0 ならふつうの細い光。光源だけ override する） */
 			virtual float GetEmittedBeamWidth() const { return 0.0f; }
+			/** @brief 出している光の色（ふつうは白。光源だけ override する） */
+			virtual LightColor GetEmittedColor() const { return LightColor::White; }
 			/**
 			 * @brief 出している光を全部 out に足す（光の計算はこれを呼ぶ）
 			 * @details ふつうは GetEmittedRay の1本。日光のように何本も出す物だけ override する

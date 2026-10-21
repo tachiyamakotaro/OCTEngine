@@ -7,6 +7,8 @@
  */
 #pragma once
 #include "Gimmick/Checkpoint.h"
+#include "Gimmick/ColorGlass.h"
+#include "Gimmick/ColorReceiver.h"
 #include "Gimmick/DarkZone.h"
 #include "Gimmick/Door.h"
 #include "Gimmick/EmitRay.h"

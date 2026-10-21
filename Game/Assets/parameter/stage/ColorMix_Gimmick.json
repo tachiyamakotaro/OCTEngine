@@ -1,0 +1,12 @@
+﻿{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "RedLamp", "position": [200.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Red" },
+		{ "type": "EmitRay", "name": "YellowLamp", "position": [400.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Yellow" },
+		{ "type": "EmitRay", "name": "BlueLamp", "position": [600.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Blue" },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [300.0, 150.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 150.0, "railMaxX": 650.0 },
+		{ "type": "ColorGlass", "name": "CyanGlass", "position": [750.0, 135.0], "size": [20.0, 465.0], "color": "Cyan", "isSolid": true },
+		{ "type": "ColorReceiver", "name": "GreenSensor", "position": [930.0, 130.0], "size": [30.0, 40.0], "requiredColor": "Green" },
+		{ "type": "Door", "name": "Door1", "position": [960.0, 0.0], "size": [40.0, 130.0], "requiredReceivers": ["GreenSensor"], "openSpeed": 2.0, "isLatch": false },
+		{ "type": "Goal", "name": "Goal", "position": [1100.0, 0.0], "size": [150.0, 250.0] }
+	]
+}
