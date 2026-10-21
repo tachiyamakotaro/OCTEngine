@@ -165,8 +165,9 @@ namespace app
 			 * @brief ソーラーパネルを1枚置く
 			 * @param panelRect パネルの範囲
 			 * @param brightness 光り具合（0=黒 〜 1=白く光る。MovingBlock::GetPanelBrightness）
+			 * @param isFront 手前の面に貼る薄い板にするか（false なら、奥行きいっぱいの帯）
 			 */
-			void PlacePanel(const math::Rect& panelRect, float brightness);
+			void PlacePanel(const math::Rect& panelRect, float brightness, bool isFront);
 			/** @brief ソーラーパネルのモデルを1つ取り出す（足りなければ作る） */
 			PanelModel& AcquirePanel();
 

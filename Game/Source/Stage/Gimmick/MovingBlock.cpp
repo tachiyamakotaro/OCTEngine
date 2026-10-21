@@ -184,7 +184,13 @@ namespace app
 			// 今の位置を塗りで
 			canvas.Rect(GetCurrentRect(), isRunning ? EDITOR_COLOR_RUNNING : EDITOR_COLOR_BLOCK, isSelected ? EditorCanvas::COLOR_SELECTED : 0);
 			// パネル（ためている間は黒 → 灰色 → 白、動いている間は白のまま）
-			canvas.Rect(GetPanelRect(), LerpColor(IM_COL32(15, 15, 18, 255), IM_COL32(245, 248, 255, 255), GetPanelBrightness()), 0);
+			const ImU32 panelColor = LerpColor(IM_COL32(15, 15, 18, 255), IM_COL32(245, 248, 255, 255), GetPanelBrightness());
+			canvas.Rect(GetPanelRect(), panelColor, 0);
+			// 手前の面のパネルは、見取り図では今の位置の枠で見せる
+			if (hasFrontPanel)
+			{
+				canvas.Rect(GetCurrentRect(), 0, panelColor);
+			}
 			canvas.Label({ rect.min.x, rect.max.y }, name);
 		}
 
@@ -202,6 +208,8 @@ namespace app
 			}
 			ImGui::DragFloat("Panel Length", &panelLength, 1.0f, 0.0f, 10000.0f, "%.0f");
 			ImGui::SetItemTooltip("0 = the whole face.");
+			ImGui::Checkbox("Front Panel", &hasFrontPanel);
+			ImGui::SetItemTooltip("Also cover the whole front face (the face the camera sees) with a panel. Look only: light still charges through the Panel Side.");
 			ImGui::DragFloat("Charge Time", &chargeTime, 0.05f, 0.05f, 30.0f, "%.2f s");
 			ImGui::SetItemTooltip("Seconds of light to fill the panel.");
 			ImGui::DragFloat("Run Time", &runTime, 0.05f, 0.05f, 60.0f, "%.2f s");
@@ -246,6 +254,7 @@ namespace app
 			archive.Field("panelLength", panelLength);
 			archive.Field("chargeTime", chargeTime);
 			archive.Field("runTime", runTime);
+			archive.Field("hasFrontPanel", hasFrontPanel);
 		}
 
 

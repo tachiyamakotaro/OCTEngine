@@ -47,6 +47,11 @@ namespace app
 			PanelSide panelSide = PanelSide::Top;
 			/** パネルの長さ（面に沿った長さ。0 なら面いっぱい。面より長ければ面いっぱい） */
 			float panelLength = 0.0f;
+			/**
+			 * 手前の面（カメラに見えている面）全体にもパネルを貼るか（見た目だけ。見やすくするため）
+			 * 光を受けるのは panelSide の面のまま。手前のパネルも、panelSide のパネルと同じように光る
+			 */
+			bool hasFrontPanel = false;
 			/** 空から満タンまで、光を当て続ける時間（秒） */
 			float chargeTime = 1.0f;
 			/** 満タンから空まで、動いていられる時間（秒） */

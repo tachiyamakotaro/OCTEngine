@@ -51,7 +51,12 @@ namespace app
 			m_panelCount = 0;
 			for (const MovingBlock& block : stage.GetGimmicks().View<MovingBlock>())
 			{
-				PlacePanel(block.GetPanelRect(), block.GetPanelBrightness());
+				PlacePanel(block.GetPanelRect(), block.GetPanelBrightness(), false);
+				// 手前の面全体のパネル（見やすくするため。同じように光る）
+				if (block.hasFrontPanel)
+				{
+					PlacePanel(block.GetCurrentRect(), block.GetPanelBrightness(), true);
+				}
 			}
 		}
 
@@ -149,7 +154,7 @@ namespace app
 		}
 
 
-		void StageRenderer::PlacePanel(const math::Rect& panelRect, const float brightness)
+		void StageRenderer::PlacePanel(const math::Rect& panelRect, const float brightness, const bool isFront)
 		{
 			// ブロックの面にぴったり重なるとちらつくので、パネルはブロックより少しだけ大きくする
 			constexpr float PANEL_MARGIN = 1.0f;
@@ -159,7 +164,18 @@ namespace app
 			};
 			Vector3 position;
 			Vector3 scale;
-			CalcTransform(drawRect, m_config.depth + PANEL_MARGIN * 2.0f, position, scale);
+			if (isFront)
+			{
+				// 手前の面に貼る薄い板（厚さ PANEL_MARGIN * 2）。ブロックの手前の面（Z = -奥行きの半分）のすぐ手前に置く
+				// （横の面の帯も手前に PANEL_MARGIN だけはみ出しているので、それよりさらに手前にして、重なってちらつかないようにする）
+				CalcTransform(drawRect, PANEL_MARGIN * 2.0f, position, scale);
+				position.z = -m_config.depth * 0.5f - PANEL_MARGIN;
+			}
+			else
+			{
+				// 面の帯を、奥行きいっぱいに置く
+				CalcTransform(drawRect, m_config.depth + PANEL_MARGIN * 2.0f, position, scale);
+			}
 
 			// 色はシェーダーで混ぜる（セルの色：空のときの色 → 満タンのときの色。満タンに近いほど少し光る）
 			PanelModel& panel = AcquirePanel();
