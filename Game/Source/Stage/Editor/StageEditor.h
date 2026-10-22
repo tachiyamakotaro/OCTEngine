@@ -2,10 +2,13 @@
  * @file StageEditor.h
  * @brief ImGui のステージエディタ
  * @details 使い方
- *          ・左：物の一覧（クリックで選択）と、選択中の物の数値
- *          ・右：ステージの見取り図
+ *          ・上：保存・読み込みなどのツールバーと、ギミックの追加ボタン（2行に並べる）
+ *          ・左：物の一覧（クリックで選択）
+ *          ・真ん中：ステージの見取り図
  *              左ドラッグ … 選択して動かす（Snap ON ならグリッドに吸着）
  *              右/中ドラッグ … 画面の移動、ホイール … 拡大縮小
+ *          ・右：詳細パネル（Inspector。Unity の Inspector のように、選択中の物の名前・数値と、複製・削除・回転のボタン）
+ *              見取り図との境目をドラッグすると幅を変えられる
  *          ・「Save JSON」… 今の配置を JSON ファイル（StageCatalog.h の地形のファイル・ギミックのファイル）に保存する。
  *          ・「Load JSON」… JSON ファイルから読み直す（保存していない変更は消えるが、Undo で戻せる）。
  *          ・何も選んでいないときは、ステージの設定（名前・プレイヤーの開始位置）を変えられる。
@@ -101,8 +104,15 @@ namespace app
 
 		private:
 			void DrawToolbar(Stage& stage);
+			/** 追加ボタン（GimmickRegistry.cpp の一覧を2行に分けて並べる） */
+			void DrawAddButtons(Stage& stage);
 			void DrawObjectList(Stage& stage);
+			/** 右の詳細パネル（選択中の物の見出し・編集ボタン・数値） */
+			void DrawInspectorPanel(Stage& stage);
+			/** 選択中の物の数値（詳細パネルの中身） */
 			void DrawProperties(Stage& stage);
+			/** 見取り図と詳細パネルの境目（ドラッグで詳細パネルの幅を変える） */
+			void DrawInspectorSplitter(float height);
 			void DrawCanvas(Stage& stage);
 			/** 保存・読み込みの結果を出す */
 			void DrawFileMessages();
@@ -158,6 +168,10 @@ namespace app
 			float m_zoom;
 			/** 見取り図の画面上の中心 */
 			ImVec2 m_canvasCenter;
+			/** 見取り図の画面上の大きさ（Fit View で使う。前のフレームの大きさ） */
+			ImVec2 m_canvasSize;
+			/** 右の詳細パネルの幅（境目のドラッグで変わる） */
+			float m_inspectorWidth;
 			/** グリッドに吸着するか */
 			bool m_isSnap;
 			/** グリッドの大きさ */

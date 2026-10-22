@@ -20,8 +20,17 @@ namespace app
 	{
 		namespace
 		{
-			/** 一覧・プロパティの欄の幅 */
-			constexpr float LEFT_PANE_WIDTH = 320.0f;
+			/** 物の一覧の欄の幅 */
+			constexpr float LEFT_PANE_WIDTH = 260.0f;
+			/** 右の詳細パネルの幅（最初の幅・いちばん狭い幅） */
+			constexpr float INSPECTOR_DEFAULT_WIDTH = 340.0f;
+			constexpr float INSPECTOR_MIN_WIDTH = 220.0f;
+			/** 見取り図のいちばん狭い幅（詳細パネルを広げすぎても、これ以上は狭くしない） */
+			constexpr float CANVAS_MIN_WIDTH = 200.0f;
+			/** 見取り図と詳細パネルの境目（つかめる幅） */
+			constexpr float SPLITTER_WIDTH = 6.0f;
+			/** 追加ボタンを何行に分けるか */
+			constexpr size_t ADD_BUTTON_ROWS = 2;
 			/** 線を選択できる距離（ピクセル） */
 			constexpr float PICK_DISTANCE_PX = 8.0f;
 			/** 拡大率の範囲 */
@@ -102,17 +111,33 @@ namespace app
 				HandleShortcuts(stage);
 				DrawToolbar(stage);
 
+				// 左：物の一覧（右の端をドラッグすると幅を変えられる）
 				ImGui::BeginChild("##StageEditorLeft", ImVec2(LEFT_PANE_WIDTH, 0.0f), ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX);
 				DrawObjectList(stage);
-				ImGui::Separator();
-				DrawProperties(stage);
 				ImGui::EndChild();
 
 				ImGui::SameLine();
 
-				ImGui::BeginChild("##StageEditorCanvas", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders,
+				// 残りの幅を「見取り図 | 境目 | 詳細パネル」に分ける（ウィンドウが狭いときは詳細パネルを縮める）
+				const ImVec2 available = ImGui::GetContentRegionAvail();
+				const float maxInspectorWidth = math::Max(INSPECTOR_MIN_WIDTH, available.x - SPLITTER_WIDTH - CANVAS_MIN_WIDTH);
+				m_inspectorWidth = math::Clamp(m_inspectorWidth, INSPECTOR_MIN_WIDTH, maxInspectorWidth);
+				const float canvasWidth = math::Max(CANVAS_MIN_WIDTH, available.x - SPLITTER_WIDTH - m_inspectorWidth);
+
+				// 真ん中：見取り図
+				ImGui::BeginChild("##StageEditorCanvas", ImVec2(canvasWidth, 0.0f), ImGuiChildFlags_Borders,
 					ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 				DrawCanvas(stage);
+				ImGui::EndChild();
+
+				// 境目（ドラッグで詳細パネルの幅を変える）
+				ImGui::SameLine(0.0f, 0.0f);
+				DrawInspectorSplitter(available.y);
+				ImGui::SameLine(0.0f, 0.0f);
+
+				// 右：詳細パネル
+				ImGui::BeginChild("##StageEditorInspector", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders);
+				DrawInspectorPanel(stage);
 				ImGui::EndChild();
 			}
 			ImGui::End();
@@ -190,34 +215,60 @@ namespace app
 						bounds.max.y = math::Max(bounds.max.y, block.rect.max.y);
 					}
 					m_viewCenter = (bounds.min + bounds.max) * 0.5f;
-					const float canvasWidth = math::Max(200.0f, m_canvasCenter.x * 2.0f - LEFT_PANE_WIDTH);
-					const float canvasHeight = math::Max(200.0f, ImGui::GetContentRegionAvail().y);
+					// 見取り図の大きさ（詳細パネルのぶんを引いた、実際に描いている大きさ）
+					const float canvasWidth = math::Max(200.0f, m_canvasSize.x);
+					const float canvasHeight = math::Max(200.0f, m_canvasSize.y);
 					m_zoom = math::Clamp(math::Min(canvasWidth / (bounds.Width() * 1.2f), canvasHeight / (bounds.Height() * 1.2f)), MIN_ZOOM, MAX_ZOOM);
 				}
 			}
 
-			// 追加ボタン（GimmickRegistry.cpp の一覧から作る）
-			ImGui::TextUnformatted("Add:");
-			for (const GimmickRegistryEntry& entry : GetGimmickRegistry())
-			{
-				ImGui::SameLine();
-				if (ImGui::SmallButton(entry.buttonLabel)) { AddGimmick(stage, entry); }
-			}
-			ImGui::SameLine(); ImGui::TextDisabled("|");
-			ImGui::SameLine();
-			ImGui::BeginDisabled(m_selection.type != SelectionType::Gimmick);
-			if (ImGui::SmallButton("Duplicate")) { DuplicateSelected(stage); }
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Delete")) { DeleteSelected(stage); }
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Rotate L")) { RotateSelected(stage, 1); }
-			ImGui::SetItemTooltip("Rotate 90 degrees counterclockwise (Shift+R).");
-			ImGui::SameLine();
-			if (ImGui::SmallButton("Rotate R")) { RotateSelected(stage, -1); }
-			ImGui::SetItemTooltip("Rotate 90 degrees clockwise (R).\nBlocks: swap width and height around the center.\nLamps / mirrors: turn the angle.");
-			ImGui::EndDisabled();
+			// 追加ボタン（複製・削除・回転のボタンは右の詳細パネルに移した）
+			DrawAddButtons(stage);
 
 			DrawFileMessages();
+		}
+
+
+		void StageEditor::DrawAddButtons(Stage& stage)
+		{
+			// GimmickRegistry.cpp の一覧を ADD_BUTTON_ROWS 行に分けて並べる（1行だと右のほうがウィンドウからはみ出すため）
+			// ウィンドウが狭くて1行に入りきらないときは、はみ出す前に折り返す
+			const std::vector<GimmickRegistryEntry>& registry = GetGimmickRegistry();
+			if (registry.empty())
+			{
+				return;
+			}
+			const size_t buttonsPerRow = (registry.size() + ADD_BUTTON_ROWS - 1) / ADD_BUTTON_ROWS;
+			const ImGuiStyle& style = ImGui::GetStyle();
+
+			ImGui::TextUnformatted("Add:");
+			ImGui::SameLine();
+			// 2行目からも「Add:」の右にそろえる
+			const float rowStartX = ImGui::GetCursorPosX();
+			const float rightEdge = ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+
+			for (size_t i = 0; i < registry.size(); ++i)
+			{
+				const GimmickRegistryEntry& entry = registry[i];
+				if (i > 0)
+				{
+					const float buttonWidth = ImGui::CalcTextSize(entry.buttonLabel, nullptr, true).x + style.FramePadding.x * 2.0f;
+					const bool isRowEnd = (i % buttonsPerRow) == 0;
+					const bool isFit = ImGui::GetItemRectMax().x + style.ItemSpacing.x + buttonWidth <= rightEdge;
+					if (!isRowEnd && isFit)
+					{
+						ImGui::SameLine();
+					}
+					else
+					{
+						// 次の行へ
+						ImGui::SetCursorPosX(rowStartX);
+					}
+				}
+				ImGui::PushID(static_cast<int>(i));
+				if (ImGui::SmallButton(entry.buttonLabel)) { AddGimmick(stage, entry); }
+				ImGui::PopID();
+			}
 		}
 
 
@@ -308,6 +359,85 @@ namespace app
 
 
 		/************************************/
+		// 右の詳細パネル
+
+
+		void StageEditor::DrawInspectorPanel(Stage& stage)
+		{
+			ImGui::PushID("Inspector");
+			ImGui::SeparatorText("Inspector");
+
+			// ---- 見出し（何を選んでいるか） ----
+			switch (m_selection.type)
+			{
+			case SelectionType::None:
+				ImGui::TextUnformatted("Stage");
+				ImGui::SameLine();
+				ImGui::TextDisabled("(nothing selected)");
+				break;
+			case SelectionType::BackMirror:
+				ImGui::TextUnformatted("Back Mirror");
+				break;
+			case SelectionType::Gimmick:
+				if (const GimmickBase* gimmick = GetSelectedGimmick(stage))
+				{
+					ImGui::TextUnformatted(gimmick->name.empty() ? "(no name)" : gimmick->name.c_str());
+					ImGui::SameLine();
+					ImGui::TextDisabled("(%s)", gimmick->GetTypeName());
+				}
+				break;
+			}
+
+			// ---- 編集ボタン（ギミックを選んでいるときだけ） ----
+			// ボタンを押すと選択が変わる（複製した物・選択なし）ので、ここから下はギミックのポインタを持ち越さない
+			if (m_selection.type == SelectionType::Gimmick)
+			{
+				if (ImGui::SmallButton("Duplicate")) { DuplicateSelected(stage); }
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Delete")) { DeleteSelected(stage); }
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Rotate L")) { RotateSelected(stage, 1); }
+				ImGui::SetItemTooltip("Rotate 90 degrees counterclockwise (Shift+R).");
+				ImGui::SameLine();
+				if (ImGui::SmallButton("Rotate R")) { RotateSelected(stage, -1); }
+				ImGui::SetItemTooltip("Rotate 90 degrees clockwise (R).\nBlocks: swap width and height around the center.\nLamps / mirrors: turn the angle.");
+			}
+
+			// ---- 数値 ----
+			if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				DrawProperties(stage);
+			}
+
+			ImGui::PopID();
+		}
+
+
+		void StageEditor::DrawInspectorSplitter(const float height)
+		{
+			// 見えないボタンを境目に置いて、ドラッグした分だけ詳細パネルの幅を変える（左へドラッグ → 広がる）
+			ImGui::InvisibleButton("##InspectorSplitter", ImVec2(SPLITTER_WIDTH, math::Max(1.0f, height)));
+			const bool isHovered = ImGui::IsItemHovered();
+			const bool isActive = ImGui::IsItemActive();
+			if (isHovered || isActive)
+			{
+				ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+			}
+			if (isActive)
+			{
+				m_inspectorWidth -= ImGui::GetIO().MouseDelta.x;
+			}
+
+			// つかめる場所がわかるように、真ん中に線を描く
+			const ImVec2 min = ImGui::GetItemRectMin();
+			const ImVec2 max = ImGui::GetItemRectMax();
+			const float x = (min.x + max.x) * 0.5f;
+			const ImU32 color = ImGui::GetColorU32(isActive ? ImGuiCol_SeparatorActive : (isHovered ? ImGuiCol_SeparatorHovered : ImGuiCol_Separator));
+			ImGui::GetWindowDrawList()->AddLine(ImVec2(x, min.y), ImVec2(x, max.y), color, isActive || isHovered ? 2.0f : 1.0f);
+		}
+
+
+		/************************************/
 		// 選択中の物の数値
 
 
@@ -350,7 +480,7 @@ namespace app
 				{
 					break;
 				}
-				ImGui::TextDisabled("%s", gimmick->GetTypeName());
+				// 種類（クラス名）は詳細パネルの見出しに出している
 
 				// 名前（信号を出す物の名前を変えたら、扉や霧のつながりも新しい名前に付け替える）
 				const std::string oldName = gimmick->name;
@@ -383,6 +513,7 @@ namespace app
 			if (canvasSize.y < 50.0f) { canvasSize.y = 50.0f; }
 			const ImVec2 canvasMax(canvasMin.x + canvasSize.x, canvasMin.y + canvasSize.y);
 			m_canvasCenter = ImVec2(canvasMin.x + canvasSize.x * 0.5f, canvasMin.y + canvasSize.y * 0.5f);
+			m_canvasSize = canvasSize;
 
 			// マウス入力を受ける透明なボタン
 			ImGui::InvisibleButton("##canvas", canvasSize,
@@ -936,6 +1067,8 @@ namespace app
 			: m_viewCenter(600.0f, 250.0f)
 			, m_zoom(0.45f)
 			, m_canvasCenter(0.0f, 0.0f)
+			, m_canvasSize(0.0f, 0.0f)
+			, m_inspectorWidth(INSPECTOR_DEFAULT_WIDTH)
 			, m_isSnap(true)
 			, m_gridSize(25.0f)
 			, m_isShowLight(true)
