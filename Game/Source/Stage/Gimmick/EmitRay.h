@@ -26,6 +26,8 @@ namespace app
 			bool isWideBeam = false;
 			/** 太い光の太さ（偽物の壁を Band にすると、この太さで壁が消える。プレイヤーが通るなら体の高さより少し大きく） */
 			float wideBeamWidth = 140.0f;
+			/** 光の色（色センサー ColorReceiver は、決められた色の光でだけ点灯する） */
+			LightColor color = LightColor::White;
 
 
 		public:
@@ -34,6 +36,7 @@ namespace app
 
 			bool GetEmittedRay(math::Vec2& outOrigin, math::Vec2& outDirection) const override;
 			float GetEmittedBeamWidth() const override { return isWideBeam ? wideBeamWidth : 0.0f; }
+			LightColor GetEmittedColor() const override { return color; }
 
 			math::Vec2 GetAnchor() const override { return position; }
 			void SetAnchor(const math::Vec2& anchor) override { position = anchor; }

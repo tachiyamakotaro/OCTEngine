@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GimmickRenderer.cpp
  * @brief ステージのギミックをモデルで描く
  */
@@ -45,6 +45,16 @@ namespace app
 				m_reflectionPools[i].upAxis = config.upAxis;
 				m_reflectionPools[i].cullMode = D3D12_CULL_MODE_FRONT;
 			}
+			// 氷は IceRenderer が描く（モデルは同じものを使う）
+			render::IceRenderer::Config iceConfig;
+			iceConfig.meltModelPath = config.modelPaths[static_cast<int>(ModelKind::IceMelt)];
+			iceConfig.meltLitModelPath = config.modelPaths[static_cast<int>(ModelKind::IceMeltLit)];
+			iceConfig.keepModelPath = config.modelPaths[static_cast<int>(ModelKind::IceKeep)];
+			iceConfig.keepLitModelPath = config.modelPaths[static_cast<int>(ModelKind::IceKeepLit)];
+			iceConfig.modelSize = config.modelSize;
+			iceConfig.depth = config.iceDepth;
+			iceConfig.isDrawReflection = config.isDrawReflection;
+			m_iceRenderer.Init(iceConfig);
 			m_isInited = true;
 		}
 
@@ -149,6 +159,38 @@ namespace app
 				PutRect(ModelKind::Goal, goal.rect, m_config.goalDepth);
 			}
 
+			// 暗がりの足場：見えている間だけ描く。ふだんは暗い石のモデル、プレイヤーが乗っている間だけ明るい石のモデル
+			// （光に近いだけで明るくすると特別な床に見えるので、明るさは暗がりの透け具合だけで見せる）
+			for (const HiddenFloor& floor : stage.GetGimmicks().View<HiddenFloor>())
+			{
+				if (floor.IsVisible())
+				{
+					PutRect(floor.isPlayerOn ? ModelKind::HiddenFloor : ModelKind::HiddenFloorDim, floor.rect, m_config.hiddenFloorDepth);
+				}
+			}
+
+			// 氷：穴の縁がなめらかに消えていくように、IceRenderer が専用のシェーダーで描く
+			{
+				render::IceRenderer::Config& iceConfig = m_iceRenderer.GetConfig();
+				iceConfig.depth = m_config.iceDepth;
+				iceConfig.modelSize = m_config.modelSize;
+				iceConfig.isDrawReflection = m_config.isDrawReflection;
+				m_iceRenderer.Update(stage);
+			}
+
+			// 日よけ板
+			for (const ShadeBoard& board : stage.GetGimmicks().View<ShadeBoard>())
+			{
+				PutRect(ModelKind::ShadeBoard, board.rect, m_config.shadeBoardDepth);
+			}
+
+			// 日光の窓：窓の線に沿った細長い板（モデルの +X を窓の向きに回す）。光は LightBeamRenderer が描く
+			for (const SunLight& sun : stage.GetGimmicks().View<SunLight>())
+			{
+				Put(ModelKind::SunWindow, sun.center, 0.0f, sun.windowAngleDeg,
+					Vector3(sun.width, m_config.sunWindowThickness, m_config.sunWindowDepth));
+			}
+
 			// 奥の鏡の枠
 			if (backMirror.isEnabled)
 			{
@@ -170,6 +212,7 @@ namespace app
 					m_reflectionPools[i].models[n]->Draw(rc);
 				}
 			}
+			m_iceRenderer.Draw(rc);
 		}
 
 
@@ -180,7 +223,7 @@ namespace app
 			{
 				count += m_pools[i].usedCount + m_reflectionPools[i].usedCount;
 			}
-			return count;
+			return count + m_iceRenderer.GetDrawCount();
 		}
 
 

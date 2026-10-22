@@ -52,6 +52,8 @@ namespace app
 			float ledgeTopY = 0.0f;
 			/** 崖の方向（右なら 1、左なら -1） */
 			int facing = 1;
+			/** つかんだ角（崖の上面の、手前側の端） */
+			math::Vec2 corner;
 		};
 
 
@@ -143,6 +145,20 @@ namespace app
 			 */
 			bool FindLedge(int facing, const LedgeQuery& query, LedgeInfo& out) const;
 
+			// ---- 崖につかまっている間、つかんだ床と一緒に動く ----
+			/**
+			 * @brief つかんだ角が動く床なら、一緒に動くようにする（ぶら下がり・崖登りの間）
+			 * @param corner つかんだ角（LedgeInfo::corner）
+			 * @param facing 崖の方向（右なら 1、左なら -1）
+			 */
+			void BeginLedgeCarry(const math::Vec2& corner, int facing);
+			/** @brief 一緒に動くのをやめる（運ばれた量 GetLedgeCarryOffset は、次に Begin するまで残る） */
+			inline void EndLedgeCarry() { m_isLedgeCarry = false; }
+			/** @brief BeginLedgeCarry してから、つかんだ床と一緒に動いた量 */
+			inline const math::Vec2& GetLedgeCarryOffset() const { return m_ledgeCarryOffset; }
+			/** @brief 床と一緒に動こうとしたら地形にぶつかって、崖から手が離れたか */
+			inline bool IsLedgeLost() const { return m_isLedgeLost; }
+
 
 		public:
 			CharacterController();
@@ -161,6 +177,12 @@ namespace app
 			void ResolvePenetration();
 			/** 接地・壁の状態を更新 */
 			void UpdateContacts();
+			/** 足元のすぐ下の薄い箱（接地の判定と、乗っている動く床を探すのに使う） */
+			math::Rect GetGroundProbe() const;
+			/** つかんだ角のすぐ内側の小さな箱（つかんでいる動く床を探すのに使う） */
+			math::Rect GetLedgeProbe() const;
+			/** つかんだ角が動く床なら、動いた分だけ一緒に動く */
+			void CarryWithLedge();
 
 
 		private:
@@ -195,6 +217,17 @@ namespace app
 			bool m_isTouchingWallLeft;
 			/** 右の壁に接しているか */
 			bool m_isTouchingWallRight;
+
+			/** 崖につかまって、つかんだ床と一緒に動いているか */
+			bool m_isLedgeCarry;
+			/** 床と一緒に動けずに、崖から手が離れたか */
+			bool m_isLedgeLost;
+			/** つかんだ角（床と一緒に動かしていく） */
+			math::Vec2 m_ledgeCorner;
+			/** 崖の方向（右なら 1、左なら -1） */
+			int m_ledgeFacing;
+			/** BeginLedgeCarry してから、一緒に動いた量 */
+			math::Vec2 m_ledgeCarryOffset;
 		};
 	}
 }

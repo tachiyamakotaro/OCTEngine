@@ -2,14 +2,19 @@
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Input/GamePadInputDevice.h"
+#include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/LightBeamRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Scene/IScene.h"
 #include "Source/Sound/GameplaySEPlayer.h"
 #include "Source/Stage/Editor/StageDebugOverlay.h"
 #include "Source/Stage/Editor/StageEditor.h"
+#include "Source/Stage/ColorLightRenderer.h"
+#include "Source/Stage/ColorGlassRenderer.h"
+#include "Source/Stage/FireGimmickRenderer.h"
 #include "Source/Stage/GimmickRenderer.h"
 #include "Source/Stage/MirrorInteractor.h"
+#include "Source/Stage/ShadeInteractor.h"
 #include "Source/Stage/Stage.h"
 #include "Source/Stage/StageRenderer.h"
 #include <random>
@@ -30,6 +35,7 @@
   *          ・StageRenderer    … 地形をモデル（Box.tkm）で描く（鏡に映った床も）
   *          ・GimmickRenderer  … 扉・受光器・光の足場・光源・反射鏡・鏡の枠をモデルで描く
   *          ・LightBeamRenderer… 光源から出る光を半透明で描く（Assets/shader/lightBeam.fx）
+  *          ・FireGimmickRenderer… 虫眼鏡・草・ロープ・吊るされた板と、集まる光・炎を描く（煙と音は UpdateFireEffects）
   *          ・MirrorGlass      … 本物の世界と鏡の中の世界の境目（奥の鏡の面）に置く、ステージ全体ほどの半透明のガラス
   *          ・霧のエフェクト   … 霧が吹いている間、Effekseer の煙（Assets/effect/Mist.efk）を霧の先端あたりに出し続ける
   *          ・StageDebugOverlay… 当たり判定などを画面に重ねて描く（デバッグ用）
@@ -84,6 +90,8 @@ namespace app
 		 * @param scale 大きさ
 		 */
 		void PlayMistPuff(const Vector3& position, float scale);
+		/** 虫眼鏡で燃やす物の煙と音（温まっている・燃えている・燃え尽きた・板が落ちた） */
+		void UpdateFireEffects(float deltaTime);
 		/** -1〜1 の乱数 */
 		float RandomSigned();
 		/** 0〜1 の乱数 */
@@ -111,6 +119,8 @@ namespace app
 		app::actor::Player m_player;
 		/** 反射鏡の操作 */
 		app::stage::MirrorInteractor m_mirrorInteractor;
+		/** 日よけ板の操作 */
+		app::stage::ShadeInteractor m_shadeInteractor;
 		/** 地形の描画 */
 		app::stage::StageRenderer m_stageRenderer;
 		/** ギミックの描画 */
@@ -119,6 +129,14 @@ namespace app
 		app::render::MirrorGlass m_mirrorGlass;
 		/** 光の描画（半透明） */
 		app::render::LightBeamRenderer m_lightBeamRenderer;
+		/** 色の光のギミック（色センサー・扉の色の印・色の付いた光源）の描画 */
+		app::stage::ColorLightRenderer m_colorLightRenderer;
+		/** 色ガラスの描画 */
+		app::stage::ColorGlassRenderer m_colorGlassRenderer;
+		/** 虫眼鏡のギミックと、集まる光・炎の描画 */
+		app::stage::FireGimmickRenderer m_fireRenderer;
+		/** 暗がりの描画（半透明。光の前に描く） */
+		app::render::DarknessRenderer m_darknessRenderer;
 		/** デバッグ表示 */
 		app::stage::StageDebugOverlay m_overlay;
 		/** ステージエディタ */
@@ -160,6 +178,8 @@ namespace app
 		std::mt19937 m_random;
 		/** 出した煙の数（確認用） */
 		int m_mistPuffCount;
+		/** 燃える物ごとの、次に煙を出すまでの時間 */
+		std::vector<float> m_firePuffTimers;
 
 		/** カメラ（追従・投影の設定・調整用の ImGui） */
 		app::camera::GameCamera m_gameCamera;

@@ -113,7 +113,13 @@ namespace app
 				const float boxLength = length + startExtension + endExtension;
 
 				BeamModel& beam = AcquireBeam();
-				Set4(beam.constants.color, c.color[0], c.color[1], c.color[2], c.color[3]);
+				// 白い光は今まで通り Config の色。色の付いた光は、その色を Config の明るさで描く
+				float rgb[3] = { c.color[0], c.color[1], c.color[2] };
+				if (segment.color != stage::LightColor::White)
+				{
+					stage::GetLightColorRGB(segment.color, rgb);
+				}
+				Set4(beam.constants.color, rgb[0], rgb[1], rgb[2], c.color[3]);
 				Set4(beam.constants.param, math::Clamp01(c.frontOpacity), math::Max(c.edgeGlow, 0.0f), 0.0f, 0.0f);
 				SetCap(beam.constants.startCap, segment.startNormal, segment.start);
 				SetCap(beam.constants.endCap, segment.endNormal, segment.end);

@@ -1,0 +1,17 @@
+﻿{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "RedLamp1", "position": [200.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Red" },
+		{ "type": "EmitRay", "name": "GreenLamp1", "position": [400.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Green" },
+		{ "type": "EmitRay", "name": "BlueLamp1", "position": [600.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Blue" },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [300.0, 150.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 150.0, "railMaxX": 650.0 },
+		{ "type": "ColorReceiver", "name": "GreenSensor1", "position": [770.0, 130.0], "size": [30.0, 40.0], "requiredColor": "Green" },
+		{ "type": "Door", "name": "Door1", "position": [800.0, 0.0], "size": [40.0, 130.0], "requiredReceivers": ["GreenSensor1"], "openSpeed": 2.0, "isLatch": false },
+		{ "type": "Checkpoint", "name": "Room2Entrance", "position": [900.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "WhiteLamp2", "position": [1100.0, 580.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [1100.0, 150.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false },
+		{ "type": "ColorGlass", "name": "RedGlass2", "position": [1400.0, 135.0], "size": [20.0, 465.0], "color": "Red", "isSolid": true },
+		{ "type": "ColorReceiver", "name": "RedSensor2", "position": [1830.0, 130.0], "size": [30.0, 40.0], "requiredColor": "Red" },
+		{ "type": "Door", "name": "Door2", "position": [1860.0, 0.0], "size": [40.0, 130.0], "requiredReceivers": ["RedSensor2"], "openSpeed": 2.0, "isLatch": false },
+		{ "type": "Goal", "name": "Goal", "position": [2000.0, 0.0], "size": [150.0, 250.0] }
+	]
+}

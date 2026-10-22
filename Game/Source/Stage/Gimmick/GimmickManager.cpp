@@ -176,6 +176,20 @@ namespace app
 		}
 
 
+		bool GimmickManager::GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const
+		{
+			// 最初に見つかった動く床に運ばれる（2つの動く床にまたがって立つことはあまりないので）
+			for (const std::unique_ptr<GimmickBase>& gimmick : m_gimmicks)
+			{
+				if (gimmick->GetCarryDelta(groundProbe, outDelta))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+
 		std::string GimmickManager::MakeUniqueName(const char* prefix) const
 		{
 			for (int n = 1; ; ++n)

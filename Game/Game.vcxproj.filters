@@ -255,6 +255,75 @@
     <ClCompile Include="Source\Camera\GameCamera.cpp">
       <Filter>Source\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Stage\ColorGlassRenderer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\ColorLightRenderer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\LightColor.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\ColorGlass.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\ColorReceiver.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\ColorBoxRenderer.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\BurnableGimmick.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Grass.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\HangingBlock.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Magnifier.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\Rope.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\FireGimmickRenderer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\MovePath.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\MovingBlock.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\SolarPanel.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\DarkZone.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\HiddenFloor.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\DarknessRenderer.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\IceBlock.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\ShadeBoard.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Gimmick\SunLight.cpp">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\ShadeInteractor.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\IceRenderer.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -486,6 +555,75 @@
     </ClInclude>
     <ClInclude Include="Source\Camera\GameCamera.h">
       <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\ColorGlassRenderer.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\ColorLightRenderer.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\LightColor.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\ColorGlass.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\ColorReceiver.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\ColorBoxRenderer.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\BurnableGimmick.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Grass.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\HangingBlock.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Magnifier.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\Rope.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\FireGimmickRenderer.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\MovePath.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\MovingBlock.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\SolarPanel.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\DarkZone.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\HiddenFloor.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\DarknessRenderer.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\IceBlock.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\ShadeBoard.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Gimmick\SunLight.h">
+      <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\ShadeInteractor.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\IceRenderer.h">
+      <Filter>Source\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

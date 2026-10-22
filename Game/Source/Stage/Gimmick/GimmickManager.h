@@ -103,6 +103,8 @@ namespace app
 			bool AnyOverlap(const math::Rect& box) const;
 			/** @brief box と重なる地形があるか（光の足場は含めない） */
 			bool OverlapsTerrain(const math::Rect& box) const;
+			/** @brief 足元の動く床が、このフレームでどれだけ動いたか（乗っていなければ false） */
+			bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const;
 
 
 		public:

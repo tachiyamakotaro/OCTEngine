@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GimmickRegistry.cpp
  * @brief エディタで置けるギミックの一覧
  */
@@ -29,6 +29,8 @@ namespace app
 				{ "Emit Ray", "Lamp", [](const math::Vec2& p) { return std::make_unique<EmitRay>("", p.x, p.y, 0.0f); } },
 				{ "Light Mirror", "Mirror", [](const math::Vec2& p) { return std::make_unique<LightMirror>("", p.x, p.y, 45.0f, 80.0f); } },
 				{ "Receiver", "Receiver", [](const math::Vec2& p) { return std::make_unique<LightReceiver>("", p.x, p.y, 40.0f, 40.0f); } },
+				{ "Color Receiver", "ColorReceiver", [](const math::Vec2& p) { return std::make_unique<ColorReceiver>("", p.x, p.y, 30.0f, 40.0f, LightColor::Red); } },
+				{ "Color Glass", "ColorGlass", [](const math::Vec2& p) { return std::make_unique<ColorGlass>("", p.x, p.y, 20.0f, 120.0f, LightColor::Red); } },
 				{ "Door", "Door", [](const math::Vec2& p) { return std::make_unique<Door>("", p.x, p.y, 40.0f, 200.0f); } },
 				{ "Light Platform", "LightPlatform", [](const math::Vec2& p) { return std::make_unique<LightPlatform>("", p.x, p.y, 150.0f, 25.0f); } },
 				{ "Switch", "Switch", [](const math::Vec2& p) { return std::make_unique<FloorSwitch>("", p.x, p.y, 70.0f, 8.0f); } },
@@ -38,6 +40,24 @@ namespace app
 				{ "Warp", "Warp", [](const math::Vec2& p) { return std::make_unique<WarpZone>("", p.x, p.y, 150.0f, 200.0f, p.x - 300.0f, p.y); } },
 				{ "Lamp", "Lamp", [](const math::Vec2& p) { return std::make_unique<Indicator>("", p.x, p.y, 40.0f, 30.0f, ""); } },
 				{ "Goal", "Goal", [](const math::Vec2& p) { return std::make_unique<Goal>("", p.x, p.y, 150.0f, 250.0f); } },
+				{ "Magnifier", "Magnifier", [](const math::Vec2& p) { return std::make_unique<Magnifier>("", p.x, p.y, 0.0f); } },
+				{ "Grass", "Grass", [](const math::Vec2& p) { return std::make_unique<Grass>("", p.x, p.y, 100.0f, 200.0f); } },
+				{ "Rope", "Rope", [](const math::Vec2& p) { return std::make_unique<Rope>("", p.x, p.y, 12.0f, 200.0f); } },
+				{ "Hanging Block", "HangingBlock", [](const math::Vec2& p) { return std::make_unique<HangingBlock>("", p.x, p.y, 300.0f, 30.0f); } },
+				{ "Moving Block", "MovingBlock", [](const math::Vec2& p) { return std::make_unique<MovingBlock>("", p.x, p.y, 200.0f, 30.0f); } },
+				// 暗がりと、光で照らすと見える足場
+				{ "Dark Zone", "Dark", [](const math::Vec2& p) { return std::make_unique<DarkZone>("", p.x, p.y, 800.0f, 600.0f); } },
+				{ "Hidden Floor", "HiddenFloor", [](const math::Vec2& p) { return std::make_unique<HiddenFloor>("", p.x, p.y, 150.0f, 25.0f); } },
+				// 光の現象のギミック（氷・日光・日よけ板）
+				{ "Ice (Melt)", "IceWall", [](const math::Vec2& p) { return std::make_unique<IceBlock>("", p.x, p.y, 80.0f, 300.0f, IceKind::Melt); } },
+				{ "Ice (Keep)", "IceFloor", [](const math::Vec2& p)
+					{
+						auto ice = std::make_unique<IceBlock>("", p.x, p.y, 200.0f, 40.0f, IceKind::Keep);
+						ice->meltTime = 5.0f;
+						return ice;
+					} },
+				{ "Sun Light", "Sun", [](const math::Vec2& p) { return std::make_unique<SunLight>("", p.x, p.y, 400.0f, -60.0f); } },
+				{ "Shade Board", "Shade", [](const math::Vec2& p) { return std::make_unique<ShadeBoard>("", p.x, p.y, 300.0f, 20.0f); } },
 			};
 			return REGISTRY;
 		}

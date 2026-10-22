@@ -255,8 +255,26 @@ namespace app
 
 			// 種類ごと（GimmickRegistry.cpp の並び順）に、その種類のギミックを並べる
 			const GimmickManager& gimmicks = stage.GetGimmicks();
-			for (const GimmickRegistryEntry& entry : GetGimmickRegistry())
+			const std::vector<GimmickRegistryEntry>& registry = GetGimmickRegistry();
+			for (size_t entryIndex = 0; entryIndex < registry.size(); ++entryIndex)
 			{
+				const GimmickRegistryEntry& entry = registry[entryIndex];
+				// 同じクラスを初期値違いで2つ登録しているとき（Ice (Melt) と Ice (Keep) など）は、一覧には1回だけ出す
+				// （2回出すと、同じ ID の項目が2つになって ImGui が警告を出す）
+				bool isAlreadyListed = false;
+				for (size_t previous = 0; previous < entryIndex; ++previous)
+				{
+					if (std::strcmp(registry[previous].typeName, entry.typeName) == 0)
+					{
+						isAlreadyListed = true;
+						break;
+					}
+				}
+				if (isAlreadyListed)
+				{
+					continue;
+				}
+
 				int count = 0;
 				for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
 				{

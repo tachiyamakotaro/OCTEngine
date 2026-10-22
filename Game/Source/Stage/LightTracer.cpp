@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file LightTracer.cpp
  * @brief 光の経路を計算する（レイを飛ばして鏡で反射させる）
  */
@@ -87,22 +87,28 @@ namespace app
 		void LightTracer::Trace(const GimmickManager& gimmicks, LightTraceResult& out) const
 		{
 			out.Clear();
-			for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
-			{
-				math::Vec2 origin;
-				math::Vec2 direction;
-				if (gimmick->GetEmittedRay(origin, direction))
-				{
-					TraceBeam(gimmicks, origin, direction, gimmick->GetEmittedBeamWidth(), out);
-				}
-			}
+			// 光源が出す光を全部集める（ふつうの光源は1本、日光は何本も）
+			            std::vector<EmittedRay> rays;
+            for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
+            {
+                // 光の色は光源ごとに決まるので、光源ごとに集めてすぐ追跡する
+                rays.clear();
+                gimmick->CollectEmittedRays(rays);
+                const LightColor color = gimmick->GetEmittedColor();
+                for (const EmittedRay& ray : rays)
+                {
+                    TraceBeam(gimmicks, ray.origin, ray.direction, ray.width, color, out);
+                }
+            }
 		}
 
 
-		void LightTracer::TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, const float width, LightTraceResult& out) const
+		void LightTracer::TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, const float width, LightColor color, LightTraceResult& out) const
 		{
 			// 今の線分の始点で反射した鏡の面の向き（光源から出た最初の線分は 0）
 			math::Vec2 startNormal = math::Vec2::Zero();
+			// 今通り抜けている途中の色ガラス（光の始点がガラスの中にあるので、もう一度当たらないように飛ばす）
+			const GimmickBase* insideFilter = nullptr;
 			for (int bounce = 0; bounce <= maxBounces; ++bounce)
 			{
 				// 光が止まる・反射する物のうち、一番近い物を探す（通り抜ける物は飛ばす）
@@ -111,6 +117,10 @@ namespace app
 				LightHit nearestHit;
 				for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
 				{
+					if (gimmick.get() == insideFilter)
+					{
+						continue;
+					}
 					LightHit hit;
 					if (gimmick->IntersectLight(origin, direction, hit)
 						&& hit.response != LightResponse::PassThrough
@@ -126,7 +136,7 @@ namespace app
 				const math::Vec2 hitPoint = origin + direction * nearestDistance;
 				const bool isReflect = nearestGimmick != nullptr && nearestHit.response == LightResponse::Reflect;
 				const math::Vec2 endNormal = isReflect ? nearestHit.normal : math::Vec2::Zero();
-				out.segments.push_back({ origin, hitPoint, bounce, width, startNormal, endNormal });
+				out.segments.push_back({ origin, hitPoint, bounce, width, startNormal, endNormal, color });
 
 				// 線分が通り抜けた物（光の足場など）を点灯
 				for (const std::unique_ptr<GimmickBase>& gimmick : gimmicks.GetAll())
@@ -136,7 +146,7 @@ namespace app
 						&& hit.response == LightResponse::PassThrough
 						&& hit.distance <= nearestDistance)
 					{
-						out.litGimmicks.push_back(gimmick.get());
+						out.AddLit(gimmick.get(), color);
 					}
 				}
 
@@ -149,13 +159,27 @@ namespace app
 				switch (nearestHit.response)
 				{
 				case LightResponse::Absorb:
-					out.litGimmicks.push_back(nearestGimmick);
+					out.AddLit(nearestGimmick, color);
 					return;
 
 				case LightResponse::Reflect:
 					direction = math::Normalize(math::Reflect(direction, nearestHit.normal));
 					origin = hitPoint + direction * RAY_EPSILON;
 					startNormal = nearestHit.normal;
+					insideFilter = nullptr;
+					break;
+
+				case LightResponse::Filter:
+					// 色ガラス：まっすぐ通り抜けて、ガラスと同じ色の成分だけ残る（全部さえぎられたらそこで止まる）
+					out.AddLit(nearestGimmick, color);
+					color = FilterLightColor(color, nearestHit.filterColor);
+					if (color == LightColor::None)
+					{
+						return;
+					}
+					origin = hitPoint + direction * RAY_EPSILON;
+					startNormal = math::Vec2::Zero();
+					insideFilter = nearestGimmick;
 					break;
 
 				case LightResponse::Stop:

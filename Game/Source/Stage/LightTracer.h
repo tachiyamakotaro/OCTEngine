@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file LightTracer.h
  * @brief 光の経路を計算する（レイを飛ばして鏡で反射させる）
  * @details 光を出すギミック（GetEmittedRay）からまっすぐレイを飛ばし、
@@ -7,12 +7,15 @@
  *          ・Stop        … 止まる（ブロック・閉じた扉・鏡の裏）
  *          ・Absorb      … 止まって、そのギミックを点灯させる（受光器）
  *          ・PassThrough … 止まらずに通り抜け、そのギミックを点灯させる（光の足場）
+ *          ・Filter      … 止まらずに通り抜けるが、そこから先の光の色が変わる（色ガラス）
+ *          光には色があり（光源の GetEmittedColor）、点灯したギミックには「どの色の光が当たったか」も記録する。
  *          光の計算はギミックの種類を知らないので、光に反応する新しいギミックを足しても、ここは書き換えなくてよい。
  */
 #pragma once
 #include <algorithm>
 #include <vector>
 #include "Source/Core/Math/Rect.h"
+#include "LightColor.h"
 
 
 namespace app
@@ -40,6 +43,18 @@ namespace app
 			math::Vec2 startNormal;
 			/** 終点で反射する鏡の面の向き（光が来た側を向く。鏡で終わらない線分は 0） */
 			math::Vec2 endNormal;
+			/** 光の色 */
+			LightColor color = LightColor::White;
+		};
+
+
+		/**
+		 * @brief 光が当たったギミックと、その光の色
+		 */
+		struct LitColor
+		{
+			const GimmickBase* gimmick = nullptr;
+			LightColor color = LightColor::White;
 		};
 
 
@@ -52,6 +67,8 @@ namespace app
 			std::vector<LightSegment> segments;
 			/** 光が当たって点灯したギミック（受光器・光の足場など） */
 			std::vector<const GimmickBase*> litGimmicks;
+			/** 光が当たったギミックと、その光の色（litGimmicks と同じ順番・同じ数） */
+			std::vector<LitColor> litColors;
 
 
 			/** そのギミックに光が当たったか */
@@ -59,10 +76,33 @@ namespace app
 			{
 				return std::find(litGimmicks.begin(), litGimmicks.end(), &gimmick) != litGimmicks.end();
 			}
+			/**
+			 * @brief そのギミックに当たった光の色（何本も当たっていれば、全部重ねた色。当たっていなければ None）
+			 * @details 赤い光と緑の光が両方当たっていれば黄色（光の混色）
+			 */
+			LightColor GetLitColor(const GimmickBase& gimmick) const
+			{
+				LightColor mixed = LightColor::None;
+				for (const LitColor& lit : litColors)
+				{
+					if (lit.gimmick == &gimmick)
+					{
+						mixed = MixLightColor(mixed, lit.color);
+					}
+				}
+				return mixed;
+			}
+			/** 光が当たったことを記録する */
+			void AddLit(const GimmickBase* gimmick, const LightColor color)
+			{
+				litGimmicks.push_back(gimmick);
+				litColors.push_back({ gimmick, color });
+			}
 			void Clear()
 			{
 				segments.clear();
 				litGimmicks.clear();
+				litColors.clear();
 			}
 		};
 
@@ -90,8 +130,9 @@ namespace app
 			/**
 			 * @brief 1本の光を追いかける
 			 * @param width 光の太さ（線分に記録するだけ。光の進み方には関係しない）
+			 * @param color 光の色（色ガラスを通ると変わる）
 			 */
-			void TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, float width, LightTraceResult& out) const;
+			void TraceBeam(const GimmickManager& gimmicks, math::Vec2 origin, math::Vec2 direction, float width, LightColor color, LightTraceResult& out) const;
 		};
 
 
