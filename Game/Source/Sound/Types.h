@@ -55,6 +55,8 @@ namespace app
 		enSoundKind_Warp,				// ワープした
 		enSoundKind_Checkpoint,			// 新しいチェックポイントに触れた
 		enSoundKind_Goal,				// ゴールした
+		enSoundKind_TimerTick,			// 時間制限：残りわずかのとき1秒ごとに鳴る「ピッ」
+		enSoundKind_TimeUp,				// 時間制限：時間切れ
 
 		enSoundKind_SE_Max,
 
@@ -112,6 +114,8 @@ namespace app
 		case enSoundKind_Warp:					return "Assets/sound/SE/progress/warp.wav";
 		case enSoundKind_Checkpoint:			return "Assets/sound/SE/progress/checkpoint.wav";
 		case enSoundKind_Goal:					return "Assets/sound/SE/progress/goal.wav";
+		case enSoundKind_TimerTick:				return "Assets/sound/SE/progress/timerTick.wav";
+		case enSoundKind_TimeUp:				return "Assets/sound/SE/progress/timeUp.wav";
 		// --- BGM ---
 		case enSoundKind_InGame:				return "Assets/sound/BGM/inGame.wav";
 		case enSoundKind_Title:					return "Assets/sound/BGM/title.wav";

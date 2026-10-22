@@ -58,6 +58,9 @@
     <Filter Include="Source\Camera">
       <UniqueIdentifier>{baace086-e7da-4c57-a55d-79077920bc84}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Timer">
+      <UniqueIdentifier>{0ddcdd65-4670-4141-a5e9-d02c69d6c71b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -323,6 +326,12 @@
     </ClCompile>
     <ClCompile Include="Source\Render\IceRenderer.cpp">
       <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\TimerUI.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Timer\StageTimer.cpp">
+      <Filter>Source\Timer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -624,6 +633,15 @@
     </ClInclude>
     <ClInclude Include="Source\Render\IceRenderer.h">
       <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\TimerUI.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Timer\StageTimer.h">
+      <Filter>Source\Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Timer\TimerParameter.h">
+      <Filter>Source\Timer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

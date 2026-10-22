@@ -347,9 +347,11 @@
     <ClCompile Include="Source\Stage\StageLoader.cpp" />
     <ClCompile Include="Source\Stage\StageRenderer.cpp" />
     <ClCompile Include="Source\Stage\Stages\Stage01.cpp" />
+    <ClCompile Include="Source\Timer\StageTimer.cpp" />
     <ClCompile Include="Source\UI\MenuInput.cpp" />
     <ClCompile Include="Source\UI\PauseMenu.cpp" />
     <ClCompile Include="Source\UI\SoundOptionMenu.cpp" />
+    <ClCompile Include="Source\UI\TimerUI.cpp" />
     <ClCompile Include="Source\UI\TitleMenu.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -453,9 +455,12 @@
     <ClInclude Include="Source\Stage\StageObjects.h" />
     <ClInclude Include="Source\Stage\StageRenderer.h" />
     <ClInclude Include="Source\Stage\Stages\Stage01.h" />
+    <ClInclude Include="Source\Timer\StageTimer.h" />
+    <ClInclude Include="Source\Timer\TimerParameter.h" />
     <ClInclude Include="Source\UI\MenuInput.h" />
     <ClInclude Include="Source\UI\PauseMenu.h" />
     <ClInclude Include="Source\UI\SoundOptionMenu.h" />
+    <ClInclude Include="Source\UI\TimerUI.h" />
     <ClInclude Include="Source\UI\TitleMenu.h" />
     <ClInclude Include="Source\UI\UISprite.h" />
     <ClInclude Include="stdafx.h" />

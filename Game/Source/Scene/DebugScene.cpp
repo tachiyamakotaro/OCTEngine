@@ -13,6 +13,8 @@
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
 #include "Source/Stage/StageLoader.h"
+#include "Source/Scene/SceneManager.h"
+#include "Source/Timer/TimerParameter.h"
 #include <cmath>
 
 
@@ -29,14 +31,11 @@ namespace
 	constexpr int MIST_EFFECT_NUMBER = 0;
 	/** 霧のエフェクトのファイル（テクスチャは Assets/effect/Texture/Smoke.png を読む） */
 	const char16_t* const MIST_EFFECT_PATH = u"Assets/effect/Mist.efk";
-	/** 氷が溶けきったときに出す湯気の大きさ（霧の煙に対する割合） */
-	constexpr float ICE_STEAM_PUFF_RATE = 0.6f;
 
 	/** ゴールしてからリザルトへ移り始めるまでの時間 */
 	constexpr float CLEAR_WAIT_TIME = 1.2f;
 	/** リザルトへ移るときのフェードの時間 */
 	constexpr float CLEAR_FADE_TIME = 1.0f;
-
 }
 
 
@@ -60,13 +59,13 @@ namespace app
 		, m_ventPositions()
 		, m_random(12345u)
 		, m_mistPuffCount(0)
-		, m_gameCamera()
 		, m_isAutoRestart(true)
 		, m_deadTimer(0.0f)
 		, m_isShowDebugWindow(true)
 		, m_isCleared(false)
 		, m_clearTimer(0.0f)
 		, m_warpCount(0)
+		, m_timeUpTimer(0.0f)
 	{}
 
 
@@ -93,16 +92,9 @@ namespace app
 
 		// 光（半透明。Assets/shader/lightBeam.fx）
 		m_lightBeamRenderer.Init(app::render::LightBeamRenderer::Config());
-		// 暗がり（半透明。Assets/shader/darkness.fx）
-		m_darknessRenderer.Init(app::render::DarknessRenderer::Config());
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
-		// 色の光のギミック（色センサー・扉の色の印・色の付いた光源）
-		m_colorLightRenderer.Init(app::stage::ColorLightRenderer::Config());
-		m_colorGlassRenderer.Init(app::stage::ColorGlassRenderer::Config());
-		// 虫眼鏡のギミック（虫眼鏡・草・ロープ・吊るされた板）と、集まる光・炎
-		m_fireRenderer.Init(app::stage::FireGimmickRenderer::Config());
 		// 鏡の境目の半透明ガラス（Assets/shader/mirrorGlass.fx）
 		m_mirrorGlass.Init();
 		// モデルで描くようになったので、デバッグ表示は当たり判定の枠とキャラクターだけにする（Display で切り替えられる）
@@ -126,10 +118,14 @@ namespace app
 		// SE：今の状態を覚えておく（ここからの変化で鳴らす）
 		m_sePlayer.Reset(m_stage, m_player);
 
-		// カメラ（投影の設定。ズームや近平面・遠平面などの値は CameraParameter.h）
+		// カメラ（投影の設定。ズームなどの値は CameraParameter.h）
 		m_gameCamera.Init(g_camera3D);
 		// 最初のフレームからプレイヤーを映す（原点からすべってこないように）
 		UpdateCamera(0.0f, true);
+
+		// 時間制限（制限時間は StageCatalog.h の表）と、その表示
+		m_timerUI.Init();
+		StartTimer();
 
 		return true;
 	}
@@ -158,45 +154,26 @@ namespace app
 			m_player.SetReflectionPlane(backMirror.isEnabled, backMirror.planeZ);
 		}
 		m_player.Update();
-		// 日よけ板と反射鏡は同じボタン（RB1）でつかむので、同時につかまないようにする
-		// ・反射鏡を引きずっている間は、日よけ板をつかまない
-		// ・日よけ板を引きずっている間は、反射鏡を操作しない（Reset で「回した」などの印も消しておく）
-		m_shadeInteractor.Update(m_stage, m_player, !m_mirrorInteractor.IsDragging());
-		if (m_shadeInteractor.IsDragging())
-		{
-			m_mirrorInteractor.Reset();
-		}
-		else
-		{
-			m_mirrorInteractor.Update(m_stage, m_player);
-		}
+		m_mirrorInteractor.Update(m_stage, m_player);
 
 		UpdateWarpAndGoal();
 		UpdateCheckpoint();
 		UpdateStageEvents(deltaTime);
-		UpdateFireEffects(deltaTime);
 		// SE：ステージ・プレイヤー・鏡の操作が全部終わってから、変化を見て鳴らす
 		m_sePlayer.Update(deltaTime, m_stage, m_player, m_mirrorInteractor);
 		if (m_isCleared)
 		{
 			m_clearTimer += deltaTime;
 		}
+		UpdateTimer(deltaTime);
 		UpdateRestart(deltaTime);
 
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
 		m_lightBeamRenderer.Update(m_stage);
-		m_colorLightRenderer.Update(m_stage, deltaTime);
-		m_colorGlassRenderer.Update(m_stage);
-		m_fireRenderer.Update(m_stage, deltaTime);
 		UpdateCamera(deltaTime, false);
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
 		m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
-		{
-			// 暗がりもカメラの向きを使うので、カメラを動かしたあとに更新する（プレイヤーのまわりは少し明るくする）
-			const app::math::Rect body = m_player.GetController().GetBounds();
-			m_darknessRenderer.Update(m_stage, (body.min + body.max) * 0.5f, m_gameCamera.GetParameter().isOrtho);
-		}
 		SceneLight::GetInstance()->Update();
 
 		if (isDebugUI)
@@ -210,21 +187,13 @@ namespace app
 	{
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
-		m_fireRenderer.DrawOpaque(rc);
-		m_colorLightRenderer.DrawOpaque(rc);
 		m_player.Render(rc);
 		// 半透明のガラスは、ほかのモデルを全部登録したあとに登録する（エンジンは登録した順に描く）
 		m_mirrorGlass.Draw(rc);
-		// 色センサーの窓・扉の色の印（半透明）
-		m_colorLightRenderer.DrawTranslucent(rc);
-		// 色ガラス（半透明）
-		m_colorGlassRenderer.Draw(rc);
-		// 暗がり（半透明。光より先に登録して、暗がりの中でも光の筋が見えるようにする）
-		m_darknessRenderer.Draw(rc);
 		// 光（半透明。最後に登録する）
 		m_lightBeamRenderer.Draw(rc);
-		// 集まる光・炎（半透明）
-		m_fireRenderer.DrawTranslucent(rc);
+		// 時間制限の表示（2D の画像は 3D のあとに描かれる。ポーズ画面はこの上に出る）
+		m_timerUI.Render(rc);
 	}
 
 
@@ -281,6 +250,8 @@ namespace app
 		m_respawnPosition = m_playerStartPosition;
 		m_respawnName.clear();
 		RestartPlayers();
+		// 時間制限も最初から（ステージを切り替えたときは、そのステージの制限時間になる）
+		StartTimer();
 	}
 
 
@@ -297,7 +268,6 @@ namespace app
 	{
 		m_stage.ResetRuntimeState();
 		m_mirrorInteractor.Reset();
-		m_shadeInteractor.Reset();
 
 		m_player.SetPosition(m_respawnPosition);
 		m_player.SetFacing(1);
@@ -341,6 +311,8 @@ namespace app
 			m_isCleared = true;
 			m_clearTimer = 0.0f;
 			m_player.GetPlayerController().SetEnabled(false);
+			// 時間を止める（残り時間はそのまま表示しておく）
+			m_stageTimer.SetRunning(false);
 			// 鏡を引きずっていたら音を止めて、ゴールの音を鳴らす
 			m_sePlayer.StopLoops();
 			m_sePlayer.Play(enSoundKind_Goal);
@@ -353,9 +325,8 @@ namespace app
 		// 体の位置（コントローラー）と見た目の位置の両方を動かす。速度はそのままなので走り続ける
 		m_player.GetController().SetPosition(destination);
 		m_player.SetPosition(destination);
-		// 鏡や日よけ板を引きずっていたら離す
+		// 鏡を引きずっていたら離す
 		m_mirrorInteractor.Reset();
-		m_shadeInteractor.Reset();
 		UpdateCamera(0.0f, true);
 	}
 
@@ -382,16 +353,6 @@ namespace app
 
 	void DebugScene::UpdateStageEvents(const float deltaTime)
 	{
-		// ---- 氷が溶けきった瞬間：湯気（霧の煙を小さくした物）を出す ----
-		for (const app::stage::IceBlock& ice : m_stage.GetGimmicks().View<app::stage::IceBlock>())
-		{
-			if (ice.isMeltedThisFrame)
-			{
-				const app::math::Vec2 bottom((ice.rect.min.x + ice.rect.max.x) * 0.5f, ice.rect.min.y);
-				PlayMistPuff(Vector3(bottom.x, bottom.y + 20.0f, 0.0f), m_mistPuffScale * ICE_STEAM_PUFF_RATE);
-			}
-		}
-
 		if (!m_isMistEffectEnabled)
 		{
 			return;
@@ -505,7 +466,8 @@ namespace app
 			m_player.GetStatus()->Kill();
 		}
 
-		if (!m_player.GetStatus()->IsDead())
+		// 時間切れのやり直しは UpdateTimer がする（ここで先にリスタートすると TIME UP の途中で動けてしまう）
+		if (!m_player.GetStatus()->IsDead() || m_stageTimer.IsTimeUp())
 		{
 			m_deadTimer = 0.0f;
 			return;
@@ -516,6 +478,61 @@ namespace app
 		{
 			RestartPlayers();
 		}
+	}
+
+
+	void DebugScene::UpdateTimer(const float deltaTime)
+	{
+		// フェードで画面が切り替わっている間（ステージに入った直後など）は数えない
+		// ゴールしたあとは止めたまま（RestartPlayers で m_isCleared が戻ったら、また数える）
+		const bool isTransitioning = SceneManager::GetInstance() != nullptr && SceneManager::GetInstance()->IsTransitioning();
+		m_stageTimer.SetRunning(!m_isCleared && !isTransitioning);
+		// デバッグの Stop Timer で止めていても、デバッグ表示を OFF にしたら動かす（止めたまま忘れないように）
+		if (!app::debug::IsDebugUIVisible())
+		{
+			m_stageTimer.SetPaused(false);
+		}
+		m_stageTimer.Update(deltaTime);
+
+		// 残りわずか（危険）の間は、表示の秒数が変わるたびに「ピッ」
+		if (m_stageTimer.GetLevel() == app::timer::TimeLevel::Danger && m_stageTimer.IsSecondChangedThisFrame())
+		{
+			m_sePlayer.Play(enSoundKind_TimerTick);
+		}
+
+		// 時間切れになった瞬間：操作を止めて、鳴り続けている音を止めて、時間切れの音
+		if (m_stageTimer.IsTimeUpThisFrame())
+		{
+			m_timeUpTimer = 0.0f;
+			m_player.GetPlayerController().SetEnabled(false);
+			m_mirrorInteractor.Reset();
+			m_sePlayer.StopLoops();
+			m_sePlayer.Play(enSoundKind_TimeUp);
+		}
+
+		// TIME UP を少し見せてから、ステージを最初からやり直す（チェックポイントも消す）
+		if (m_stageTimer.IsTimeUp())
+		{
+			m_timeUpTimer += deltaTime;
+			if (m_timeUpTimer >= app::timer::TIME_UP_WAIT)
+			{
+				m_respawnPosition = m_playerStartPosition;
+				m_respawnName.clear();
+				RestartPlayers();
+				m_stageTimer.Restart();
+				m_timeUpTimer = 0.0f;
+			}
+		}
+
+		// 表示（タイマーを進めたあとに更新する）
+		m_timerUI.Update(m_stageTimer, deltaTime);
+	}
+
+
+	void DebugScene::StartTimer()
+	{
+		m_stageTimer.Start(app::stage::GetCurrentStageTimeLimit());
+		m_timeUpTimer = 0.0f;
 	}
 
 
@@ -647,6 +664,7 @@ namespace app
 			m_isCleared = true;
 			m_clearTimer = 0.0f;
 			m_player.GetPlayerController().SetEnabled(false);
+			m_stageTimer.SetRunning(false);
 		}
 		ImGui::EndDisabled();
 		ImGui::SetItemTooltip("Same as touching the goal: next stage, or the result screen after the last stage.");
@@ -688,6 +706,13 @@ namespace app
 				}
 				ImGui::PopID();
 			}
+		}
+
+		// ---- 時間制限（中身はタイマーと表示のクラスが作る） ----
+		if (ImGui::CollapsingHeader("Timer", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			m_stageTimer.DrawSettingsUI();
+			m_timerUI.DrawSettingsUI();
 		}
 
 		// ---- 動きの調整 ----
@@ -792,86 +817,5 @@ namespace app
 		}
 
 		ImGui::End();
-	}
-
-
-	void DebugScene::UpdateFireEffects(const float deltaTime)
-	{
-		// 虫眼鏡で燃やす物の煙と音。煙は霧と同じ Mist.efk を小さくして使う
-		// 音は今ある SE の仮使い（火がつく = 霧の吹き出し、板が落ちた = 高い所からの着地）
-		constexpr float SMOKE_START_HEAT = 0.15f;	// これより温まったら煙を出し始める
-		constexpr float BURNING_PUFF_INTERVAL = 0.15f;	// 燃えている間に煙を出す間隔
-		constexpr float SMOKE_Z = -20.0f;			// 煙を出す奥行き（物の少し手前）
-		const float puffScale = m_mistPuffScale;
-
-		auto puff = [&](const app::math::Vec2& at, const float scale)
-			{
-				if (m_isMistEffectEnabled)
-				{
-					PlayMistPuff(Vector3(at.x, at.y, SMOKE_Z), scale);
-				}
-			};
-
-		const auto burnables = m_stage.GetGimmicks().View<app::stage::BurnableGimmick>();
-		m_firePuffTimers.resize(burnables.size(), 0.0f);
-		size_t index = 0;
-		for (const app::stage::BurnableGimmick& burnable : burnables)
-		{
-			float& timer = m_firePuffTimers[index++];
-			if (burnable.isIgnitedThisFrame)
-			{
-				m_sePlayer.Play(enSoundKind_MistBurst);
-				timer = 0.0f;
-			}
-			if (burnable.isBurntThisFrame)
-			{
-				// 燃え尽きた瞬間：元の範囲に煙をまとめて出す
-				for (int n = 0; n < 3; ++n)
-				{
-					const app::math::Rect& r = burnable.rect;
-					puff({ r.min.x + r.Width() * Random01(), r.min.y + r.Height() * Random01() }, puffScale * 0.5f);
-				}
-				continue;
-			}
-			if (burnable.isBurnt || (!burnable.isBurning && burnable.heat <= SMOKE_START_HEAT))
-			{
-				timer = 0.0f;
-				continue;
-			}
-
-			timer -= deltaTime;
-			if (timer > 0.0f)
-			{
-				continue;
-			}
-			if (burnable.isBurning)
-			{
-				// 燃えている：今の形の上の辺から煙が立ちのぼる
-				timer += BURNING_PUFF_INTERVAL;
-				const app::math::Rect r = burnable.GetCurrentRect();
-				puff({ r.min.x + r.Width() * Random01(), r.max.y }, puffScale * 0.35f);
-			}
-			else
-			{
-				// 温まっている：焦点から細い煙。熱いほど多く・大きく
-				timer += app::math::Lerp(0.5f, 0.15f, burnable.heat);
-				puff(burnable.heatPoint, puffScale * (0.1f + 0.2f * burnable.heat));
-			}
-		}
-
-		// 吊るされた板が落ちて乗った瞬間：下の辺に土ぼこり
-		for (const app::stage::HangingBlock& block : m_stage.GetGimmicks().View<app::stage::HangingBlock>())
-		{
-			if (!block.isLandedThisFrame)
-			{
-				continue;
-			}
-			m_sePlayer.Play(enSoundKind_PlayerHardLand);
-			const app::math::Rect r = block.GetCurrentRect();
-			for (int n = 0; n < 5; ++n)
-			{
-				puff({ r.min.x + r.Width() * (static_cast<float>(n) + 0.5f) / 5.0f, r.min.y }, puffScale * 0.3f);
-			}
-		}
 	}
 }
