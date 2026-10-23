@@ -312,6 +312,7 @@
     <ClCompile Include="Source\Stage\Gimmick\Door.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\EmitRay.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\FloorSwitch.cpp" />
+    <ClCompile Include="Source\Stage\Gimmick\FrontWall.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickArchive.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickBase.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\GimmickEditTools.cpp" />
@@ -418,6 +419,7 @@
     <ClInclude Include="Source\Stage\Gimmick\Door.h" />
     <ClInclude Include="Source\Stage\Gimmick\EmitRay.h" />
     <ClInclude Include="Source\Stage\Gimmick\FloorSwitch.h" />
+    <ClInclude Include="Source\Stage\Gimmick\FrontWall.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickArchive.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickBase.h" />
     <ClInclude Include="Source\Stage\Gimmick\GimmickEditTools.h" />

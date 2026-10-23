@@ -2,14 +2,19 @@
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Input/GamePadInputDevice.h"
+#include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/LightBeamRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Scene/IScene.h"
 #include "Source/Sound/GameplaySEPlayer.h"
 #include "Source/Stage/Editor/StageDebugOverlay.h"
 #include "Source/Stage/Editor/StageEditor.h"
+#include "Source/Stage/ColorLightRenderer.h"
+#include "Source/Stage/ColorGlassRenderer.h"
+#include "Source/Stage/FireGimmickRenderer.h"
 #include "Source/Stage/GimmickRenderer.h"
 #include "Source/Stage/MirrorInteractor.h"
+#include "Source/Stage/ShadeInteractor.h"
 #include "Source/Stage/Stage.h"
 #include "Source/Stage/StageRenderer.h"
 #include "Source/Timer/StageTimer.h"
@@ -32,6 +37,7 @@
   *          ・StageRenderer    … 地形をモデル（Box.tkm）で描く（鏡に映った床も）
   *          ・GimmickRenderer  … 扉・受光器・光の足場・光源・反射鏡・鏡の枠をモデルで描く
   *          ・LightBeamRenderer… 光源から出る光を半透明で描く（Assets/shader/lightBeam.fx）
+  *          ・FireGimmickRenderer… 虫眼鏡・草・ロープ・吊るされた板と、集まる光・炎を描く（煙と音は UpdateFireEffects）
   *          ・MirrorGlass      … 本物の世界と鏡の中の世界の境目（奥の鏡の面）に置く、ステージ全体ほどの半透明のガラス
   *          ・霧のエフェクト   … 霧が吹いている間、Effekseer の煙（Assets/effect/Mist.efk）を霧の先端あたりに出し続ける
   *          ・StageDebugOverlay… 当たり判定などを画面に重ねて描く（デバッグ用）
@@ -82,6 +88,26 @@ namespace app
 		void UpdateWarpAndGoal();
 		/** プレイヤーを別の場所へ動かす（走る勢いはそのまま。カメラはすぐに追いつく） */
 		void TeleportPlayer(const app::math::Vec2& destination);
+		/**
+		 * @brief デバッグ用：マウスでプレイヤーを動かす（デバッグ表示が ON のときだけ）
+		 * @details ・ゲーム画面のプレイヤーを左ドラッグ … つかんで動かす（離した所から、止まった状態で落ちる）
+		 *          ・Ctrl + 左クリック … クリックした所へワープ（足元がクリックした点になる）
+		 *          ステージの仕掛け（扉・氷・鏡など）は今の状態のまま（チェックポイントへのワープとの違い）
+		 */
+		void UpdatePlayerDrag();
+		/**
+		 * @brief デバッグ用：画面の位置（ピクセル）から、ステージの面（z = 0）の上の位置を求める
+		 * @return 求められたら true
+		 */
+		bool ScreenToStage(float screenX, float screenY, app::math::Vec2& outWorld) const;
+		/**
+		 * @brief デバッグ用：プレイヤーを foot の位置に、止まった状態で置き直す（落下の高さ・速さも消す）
+		 */
+		void DropPlayerAt(const app::math::Vec2& foot);
+		/**
+		 * @brief デバッグ用：プレイヤーをつかんでいる間のカメラ（マウスを画面の端に近づけると、その向きへカメラが動く）
+		 */
+		void UpdateDragCamera(float deltaTime);
 		/** ステージで起きた出来事（霧が吹いている・鏡の足場が見えた）に合わせてエフェクトを出す */
 		void UpdateStageEvents(float deltaTime);
 		/**
@@ -90,6 +116,8 @@ namespace app
 		 * @param scale 大きさ
 		 */
 		void PlayMistPuff(const Vector3& position, float scale);
+		/** 虫眼鏡で燃やす物の煙と音（温まっている・燃えている・燃え尽きた・板が落ちた） */
+		void UpdateFireEffects(float deltaTime);
 		/** -1〜1 の乱数 */
 		float RandomSigned();
 		/** 0〜1 の乱数 */
@@ -121,6 +149,8 @@ namespace app
 		app::actor::Player m_player;
 		/** 反射鏡の操作 */
 		app::stage::MirrorInteractor m_mirrorInteractor;
+		/** 日よけ板の操作 */
+		app::stage::ShadeInteractor m_shadeInteractor;
 		/** 地形の描画 */
 		app::stage::StageRenderer m_stageRenderer;
 		/** ギミックの描画 */
@@ -129,6 +159,14 @@ namespace app
 		app::render::MirrorGlass m_mirrorGlass;
 		/** 光の描画（半透明） */
 		app::render::LightBeamRenderer m_lightBeamRenderer;
+		/** 色の光のギミック（色センサー・扉の色の印・色の付いた光源）の描画 */
+		app::stage::ColorLightRenderer m_colorLightRenderer;
+		/** 色ガラスの描画 */
+		app::stage::ColorGlassRenderer m_colorGlassRenderer;
+		/** 虫眼鏡のギミックと、集まる光・炎の描画 */
+		app::stage::FireGimmickRenderer m_fireRenderer;
+		/** 暗がりの描画（半透明。光の前に描く） */
+		app::render::DarknessRenderer m_darknessRenderer;
 		/** デバッグ表示 */
 		app::stage::StageDebugOverlay m_overlay;
 		/** ステージエディタ */
@@ -174,6 +212,8 @@ namespace app
 		std::mt19937 m_random;
 		/** 出した煙の数（確認用） */
 		int m_mistPuffCount;
+		/** 燃える物ごとの、次に煙を出すまでの時間 */
+		std::vector<float> m_firePuffTimers;
 
 		/** カメラ（追従・投影の設定・調整用の ImGui） */
 		app::camera::GameCamera m_gameCamera;
@@ -190,6 +230,12 @@ namespace app
 		float m_clearTimer;
 		/** ワープした回数（確認用） */
 		int m_warpCount;
+		/** デバッグ用：マウスでプレイヤーをつかんでいるか */
+		bool m_isDraggingPlayer;
+		/** デバッグ用：つかんだ点から足元までのずれ（つかんだ瞬間にプレイヤーが飛ばないように） */
+		app::math::Vec2 m_dragGrabOffset;
+		/** デバッグ用：つかんでいる間にカメラが見る位置（画面の端にマウスを近づけると動く） */
+		app::math::Vec2 m_dragCameraTarget;
 		/** 時間切れになってからの時間（TIME UP を見せてからやり直す） */
 		float m_timeUpTimer;
 	};

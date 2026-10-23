@@ -9,6 +9,10 @@
  *          ・ピクセルごとに「光の線分・プレイヤー・見えた暗がりの足場（HiddenFloor）」までの距離を調べて、近いほど透明にする。
 		 *            プレイヤーのまわりは、マリオの暗闇ステージのように、いつもはっきり見える丸にする。
  *            板は手前にあるので、カメラから見て z=0（ギミックやプレイヤーがいる面）のどこに重なるかに直してから距離を測る。
+ *          ・暗がりの左右の端は斜めにできる（DarkZone::slantLeft / slantRight）。板は斜めの分も入る大きさにして、
+ *            シェーダーで斜めの端の外側を透明にする（端は edgeFeather で、端に直角な向きにぼかす）。
+ *          ・手前の壁（FrontWall）も、同じシェーダーの別の入り口（PSMainFrontWall）で描く。
+ *            壁は光や半透明の物よりも手前に見せたいので、DrawFrontWalls で一番最後に登録する。
  *          ・光は LightBeamRenderer が板のあとに描くので、暗がりの中でも光の筋ははっきり見える。
  *          ・LightBeamRenderer と同じく、エンジンの ModelRender は model.fx 固定なので Model を直接持っている。
  */
@@ -63,6 +67,8 @@ namespace app
 				float rectSoftWidth = 35.0f;
 				/** ステージ全体の暗がりの板の大きさ（プレイヤーを真ん中に、この幅と高さで置く。画面より十分大きくする） */
 				float wholeStageSize = 40000.0f;
+				/** 手前の壁（FrontWall）の板を置く奥行き（暗がりの板より手前にする） */
+				float frontWallZ = -180.0f;
 			};
 
 
@@ -78,6 +84,8 @@ namespace app
 			void Update(const stage::Stage& stage, const math::Vec2& playerCenter, bool isOrtho);
 			/** @brief 描く（半透明。ほかのモデルのあと、光の前に呼ぶ） */
 			void Draw(RenderContext& rc);
+			/** @brief 手前の壁（FrontWall）を描く（半透明。光や炎など、ほかの半透明の物を全部登録したあとに呼ぶ） */
+			void DrawFrontWalls(RenderContext& rc);
 			/** @brief 設定（ImGui での調整用） */
 			inline Config& GetConfig() { return m_config; }
 			/** @brief 今フレーム描く暗がりの数 */
@@ -107,6 +115,7 @@ namespace app
 				float zone[4];						// xy = 暗がりの左下, zw = 右上
 				float color[4];						// rgb = 暗がりの色, a = 見えた足場のまわりのぼかしの幅（rectSoftWidth）
 				float playerLight[4];				// x = プレイヤーのまわりの丸の半径（境目の真ん中）, y = 丸の境目のぼかしの幅, z = ステージ全体なら 1
+				float slant[4];						// x = 左の端の傾き（上の辺でのずれ）, y = 右の端の傾き, zw = 使わない
 				float segments[MAX_SEGMENTS][4];	// xy = 光の線分の始点, zw = 終点
 				float rects[MAX_RECTS][4];			// xy = 見えた足場の左下, zw = 右上（まわりの広さを足した後）
 				float rectVisibility[MAX_RECTS][4];	// x = 見え具合（0〜1）
@@ -126,6 +135,10 @@ namespace app
 		private:
 			/** @brief 暗がりのモデルを1つ取り出す（足りなければ作る） */
 			ZoneModel& AcquireZone();
+			/** @brief 手前の壁のモデルを1つ取り出す（足りなければ作る） */
+			ZoneModel& AcquireWall();
+			/** @brief 板のモデルを作る（psEntry はピクセルシェーダーの入り口） */
+			std::unique_ptr<ZoneModel> CreateModel(const char* psEntry);
 
 
 		private:
@@ -133,6 +146,10 @@ namespace app
 			Config m_config;
 			/** 暗がりのモデル（unique_ptr なので、増えても constants の場所は変わらない。Model はこの場所を覚えている） */
 			std::vector<std::unique_ptr<ZoneModel>> m_zones;
+			/** 手前の壁のモデル */
+			std::vector<std::unique_ptr<ZoneModel>> m_walls;
+			/** 今フレーム使っている手前の壁の数 */
+			size_t m_wallCount;
 			/** 今フレーム使っている数 */
 			size_t m_zoneCount;
 			/** 初期化済みか */

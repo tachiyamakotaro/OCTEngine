@@ -31,11 +31,20 @@ namespace
 	constexpr int MIST_EFFECT_NUMBER = 0;
 	/** 霧のエフェクトのファイル（テクスチャは Assets/effect/Texture/Smoke.png を読む） */
 	const char16_t* const MIST_EFFECT_PATH = u"Assets/effect/Mist.efk";
+	/** 氷が溶けきったときに出す湯気の大きさ（霧の煙に対する割合） */
+	constexpr float ICE_STEAM_PUFF_RATE = 0.6f;
 
 	/** ゴールしてからリザルトへ移り始めるまでの時間 */
 	constexpr float CLEAR_WAIT_TIME = 1.2f;
 	/** リザルトへ移るときのフェードの時間 */
 	constexpr float CLEAR_FADE_TIME = 1.0f;
+
+	/** マウスでプレイヤーをつかむとき、体の箱をどれだけ広げてつかめるようにするか */
+	constexpr float PLAYER_PICK_MARGIN = 20.0f;
+	/** プレイヤーをつかんでいる間、画面の端からこのピクセル以内にマウスがあると、カメラがその向きへ動く */
+	constexpr float DRAG_EDGE_MARGIN = 120.0f;
+	/** そのときのカメラの速さ（画面のいちばん端での速さ。端に近いほど速い） */
+	constexpr float DRAG_EDGE_SPEED = 1500.0f;
 }
 
 
@@ -65,6 +74,9 @@ namespace app
 		, m_isCleared(false)
 		, m_clearTimer(0.0f)
 		, m_warpCount(0)
+		, m_isDraggingPlayer(false)
+		, m_dragGrabOffset()
+		, m_dragCameraTarget()
 		, m_timeUpTimer(0.0f)
 	{}
 
@@ -92,9 +104,16 @@ namespace app
 
 		// 光（半透明。Assets/shader/lightBeam.fx）
 		m_lightBeamRenderer.Init(app::render::LightBeamRenderer::Config());
+		// 暗がり（半透明。Assets/shader/darkness.fx）
+		m_darknessRenderer.Init(app::render::DarknessRenderer::Config());
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
+		// 色の光のギミック（色センサー・扉の色の印・色の付いた光源）
+		m_colorLightRenderer.Init(app::stage::ColorLightRenderer::Config());
+		m_colorGlassRenderer.Init(app::stage::ColorGlassRenderer::Config());
+		// 虫眼鏡のギミック（虫眼鏡・草・ロープ・吊るされた板）と、集まる光・炎
+		m_fireRenderer.Init(app::stage::FireGimmickRenderer::Config());
 		// 鏡の境目の半透明ガラス（Assets/shader/mirrorGlass.fx）
 		m_mirrorGlass.Init();
 		// モデルで描くようになったので、デバッグ表示は当たり判定の枠とキャラクターだけにする（Display で切り替えられる）
@@ -154,11 +173,36 @@ namespace app
 			m_player.SetReflectionPlane(backMirror.isEnabled, backMirror.planeZ);
 		}
 		m_player.Update();
-		m_mirrorInteractor.Update(m_stage, m_player);
+		// デバッグ用：マウスでプレイヤーを動かす（プレイヤーの更新のあとに位置を上書きする）
+		if (isDebugUI)
+		{
+			UpdatePlayerDrag();
+		}
+		else
+		{
+			m_isDraggingPlayer = false;
+		}
+		// 日よけ板と反射鏡は同じボタン（RB1）でつかむので、同時につかまないようにする
+		// ・反射鏡を引きずっている間は、日よけ板をつかまない
+		// ・日よけ板を引きずっている間は、反射鏡を操作しない（Reset で「回した」などの印も消しておく）
+		m_shadeInteractor.Update(m_stage, m_player, !m_mirrorInteractor.IsDragging());
+		if (m_shadeInteractor.IsDragging())
+		{
+			m_mirrorInteractor.Reset();
+		}
+		else
+		{
+			m_mirrorInteractor.Update(m_stage, m_player);
+		}
 
-		UpdateWarpAndGoal();
-		UpdateCheckpoint();
+		// つかんで動かしている間は、ワープ・ゴール・チェックポイントに触れても反応しない（離したあとで反応する）
+		if (!m_isDraggingPlayer)
+		{
+			UpdateWarpAndGoal();
+			UpdateCheckpoint();
+		}
 		UpdateStageEvents(deltaTime);
+		UpdateFireEffects(deltaTime);
 		// SE：ステージ・プレイヤー・鏡の操作が全部終わってから、変化を見て鳴らす
 		m_sePlayer.Update(deltaTime, m_stage, m_player, m_mirrorInteractor);
 		if (m_isCleared)
@@ -171,9 +215,26 @@ namespace app
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
 		m_lightBeamRenderer.Update(m_stage);
-		UpdateCamera(deltaTime, false);
+		m_colorLightRenderer.Update(m_stage, deltaTime);
+		m_colorGlassRenderer.Update(m_stage);
+		m_fireRenderer.Update(m_stage, deltaTime);
+		// つかんで動かしている間は、プレイヤーを追いかけない（追いかけると、マウスの下のステージの位置がずれ続けてしまうため）
+		// 代わりに、マウスを画面の端に近づけたときだけカメラを動かす
+		if (m_isDraggingPlayer)
+		{
+			UpdateDragCamera(deltaTime);
+		}
+		else
+		{
+			UpdateCamera(deltaTime, false);
+		}
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
 		m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
+		{
+			// 暗がりもカメラの向きを使うので、カメラを動かしたあとに更新する（プレイヤーのまわりは少し明るくする）
+			const app::math::Rect body = m_player.GetController().GetBounds();
+			m_darknessRenderer.Update(m_stage, (body.min + body.max) * 0.5f, m_gameCamera.GetParameter().isOrtho);
+		}
 		SceneLight::GetInstance()->Update();
 
 		if (isDebugUI)
@@ -187,11 +248,23 @@ namespace app
 	{
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
+		m_fireRenderer.DrawOpaque(rc);
+		m_colorLightRenderer.DrawOpaque(rc);
 		m_player.Render(rc);
 		// 半透明のガラスは、ほかのモデルを全部登録したあとに登録する（エンジンは登録した順に描く）
 		m_mirrorGlass.Draw(rc);
+		// 色センサーの窓・扉の色の印（半透明）
+		m_colorLightRenderer.DrawTranslucent(rc);
+		// 色ガラス（半透明）
+		m_colorGlassRenderer.Draw(rc);
+		// 暗がり（半透明。光より先に登録して、暗がりの中でも光の筋が見えるようにする）
+		m_darknessRenderer.Draw(rc);
 		// 光（半透明。最後に登録する）
 		m_lightBeamRenderer.Draw(rc);
+		// 集まる光・炎（半透明）
+		m_fireRenderer.DrawTranslucent(rc);
+		// 暗い部屋の手前の壁（半透明。中の光や炎も隠したいので、3D の一番最後に登録する）
+		m_darknessRenderer.DrawFrontWalls(rc);
 		// 時間制限の表示（2D の画像は 3D のあとに描かれる。ポーズ画面はこの上に出る）
 		m_timerUI.Render(rc);
 	}
@@ -268,6 +341,7 @@ namespace app
 	{
 		m_stage.ResetRuntimeState();
 		m_mirrorInteractor.Reset();
+		m_shadeInteractor.Reset();
 
 		m_player.SetPosition(m_respawnPosition);
 		m_player.SetFacing(1);
@@ -325,9 +399,156 @@ namespace app
 		// 体の位置（コントローラー）と見た目の位置の両方を動かす。速度はそのままなので走り続ける
 		m_player.GetController().SetPosition(destination);
 		m_player.SetPosition(destination);
-		// 鏡を引きずっていたら離す
+		// 鏡や日よけ板を引きずっていたら離す
 		m_mirrorInteractor.Reset();
+		m_shadeInteractor.Reset();
 		UpdateCamera(0.0f, true);
+	}
+
+
+	void DebugScene::UpdatePlayerDrag()
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		// 死んでいる・ゴールした・時間切れの間は動かさない
+		const bool canDrag = !m_player.GetStatus()->IsDead() && !m_isCleared && !m_stageTimer.IsTimeUp();
+		app::math::Vec2 mouseWorld;
+		const bool hasMouse = ScreenToStage(io.MousePos.x, io.MousePos.y, mouseWorld);
+
+		if (!m_isDraggingPlayer)
+		{
+			// ImGui のウィンドウの上でのクリックは、ウィンドウの操作なので使わない
+			if (!canDrag || !hasMouse || io.WantCaptureMouse)
+			{
+				return;
+			}
+			app::math::Rect body = m_player.GetController().GetBounds();
+			body.min -= app::math::Vec2(PLAYER_PICK_MARGIN, PLAYER_PICK_MARGIN);
+			body.max += app::math::Vec2(PLAYER_PICK_MARGIN, PLAYER_PICK_MARGIN);
+			const bool isOverPlayer = mouseWorld.x >= body.min.x && mouseWorld.x <= body.max.x
+				&& mouseWorld.y >= body.min.y && mouseWorld.y <= body.max.y;
+			if (isOverPlayer && !io.KeyCtrl)
+			{
+				// つかめることがわかるように、手の形のカーソルにする
+				ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+			}
+			if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				return;
+			}
+			if (io.KeyCtrl)
+			{
+				// Ctrl + クリック：クリックした所へワープ（足元をクリックした点にする）
+				DropPlayerAt(mouseWorld);
+				return;
+			}
+			if (!isOverPlayer)
+			{
+				return;
+			}
+			// つかむ（鏡や日よけ板を引きずっていたら離す）
+			m_isDraggingPlayer = true;
+			m_dragGrabOffset = m_player.GetPosition() - mouseWorld;
+			// カメラは今プレイヤーを見ているので、そこから動かし始める
+			m_dragCameraTarget = m_player.GetPosition();
+			m_mirrorInteractor.Reset();
+			m_shadeInteractor.Reset();
+		}
+
+		if (!canDrag)
+		{
+			m_isDraggingPlayer = false;
+			return;
+		}
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+		// つかんでいる間：マウスに合わせて動かし、落ちないように速さを 0 にしておく（壁や床の中にも置ける）
+		if (hasMouse)
+		{
+			const app::math::Vec2 foot = mouseWorld + m_dragGrabOffset;
+			m_player.GetController().SetPosition(foot);
+			m_player.GetController().SetVelocity(app::math::Vec2(0.0f, 0.0f));
+			m_player.SetPosition(foot);
+		}
+		// 離した：その場所に止まった状態で置き直す
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		{
+			m_isDraggingPlayer = false;
+			DropPlayerAt(m_player.GetPosition());
+		}
+	}
+
+
+	bool DebugScene::ScreenToStage(const float screenX, const float screenY, app::math::Vec2& outWorld) const
+	{
+		const ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+		if (displaySize.x <= 0.0f || displaySize.y <= 0.0f)
+		{
+			return false;
+		}
+		// 画面のピクセル → -1〜1 の座標（DrawImGui の projector の逆）
+		const float ndcX = screenX / displaySize.x * 2.0f - 1.0f;
+		const float ndcY = 1.0f - screenY / displaySize.y * 2.0f;
+		// 画面の一番手前（0）と一番奥（1）の2点をワールドに戻し、その2点を結ぶ線が z = 0 の面と交わる所を求める
+		// （透視投影でも平行投影でも同じ計算でよい）
+		const Matrix& inverse = g_camera3D->GetViewProjectionMatrixInv();
+		Vector4 nearPoint(ndcX, ndcY, 0.0f, 1.0f);
+		Vector4 farPoint(ndcX, ndcY, 1.0f, 1.0f);
+		inverse.Apply(nearPoint);
+		inverse.Apply(farPoint);
+		if (std::abs(nearPoint.w) < 0.0001f || std::abs(farPoint.w) < 0.0001f)
+		{
+			return false;
+		}
+		const Vector3 a(nearPoint.x / nearPoint.w, nearPoint.y / nearPoint.w, nearPoint.z / nearPoint.w);
+		const Vector3 b(farPoint.x / farPoint.w, farPoint.y / farPoint.w, farPoint.z / farPoint.w);
+		const float dz = b.z - a.z;
+		if (std::abs(dz) < 0.0001f)
+		{
+			// 線が z = 0 の面と平行（ふつうは起きない）
+			return false;
+		}
+		const float t = -a.z / dz;
+		outWorld = app::math::Vec2(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t);
+		return true;
+	}
+
+
+	void DebugScene::DropPlayerAt(const app::math::Vec2& foot)
+	{
+		// RestartPlayers と同じように、コントローラー・ステータス・ステートマシンを作り直す
+		// （速さ・落ちた高さ・崖つかまりなどが残っていると、置いた直後に落下ダメージを受けることがあるため）
+		// ステージの仕掛けは戻さない
+		const int facing = m_player.GetFacing();
+		m_player.SetPosition(foot);
+		m_player.SetFacing(facing);
+		m_player.SetupCharacter();
+		m_player.GetPlayerController().SetEnabled(true);
+		m_mirrorInteractor.Reset();
+		m_shadeInteractor.Reset();
+		m_deadTimer = 0.0f;
+		UpdateCamera(0.0f, true);
+	}
+
+
+	void DebugScene::UpdateDragCamera(const float deltaTime)
+	{
+		const ImGuiIO& io = ImGui::GetIO();
+		app::math::Vec2 scroll(0.0f, 0.0f);
+		// マウスがウィンドウの外（位置がない）なら動かさない
+		if (ImGui::IsMousePosValid() && DRAG_EDGE_MARGIN > 0.0f)
+		{
+			// 端からの近さ（0 = 端から DRAG_EDGE_MARGIN 以上離れている 〜 1 = いちばん端・端の外）
+			const auto edge = [](const float distance)
+				{
+					return app::math::Clamp01(1.0f - distance / DRAG_EDGE_MARGIN);
+				};
+			const ImVec2 mouse = io.MousePos;
+			const ImVec2 size = io.DisplaySize;
+			scroll.x = edge(size.x - mouse.x) - edge(mouse.x);
+			// 画面は下向きが +、ステージは上向きが + なので逆にする
+			scroll.y = edge(mouse.y) - edge(size.y - mouse.y);
+		}
+		m_dragCameraTarget += scroll * (DRAG_EDGE_SPEED * deltaTime);
+		m_gameCamera.Update(deltaTime, Vector3(m_dragCameraTarget.x, m_dragCameraTarget.y, 0.0f));
 	}
 
 
@@ -353,6 +574,16 @@ namespace app
 
 	void DebugScene::UpdateStageEvents(const float deltaTime)
 	{
+		// ---- 氷が溶けきった瞬間：湯気（霧の煙を小さくした物）を出す ----
+		for (const app::stage::IceBlock& ice : m_stage.GetGimmicks().View<app::stage::IceBlock>())
+		{
+			if (ice.isMeltedThisFrame)
+			{
+				const app::math::Vec2 bottom((ice.rect.min.x + ice.rect.max.x) * 0.5f, ice.rect.min.y);
+				PlayMistPuff(Vector3(bottom.x, bottom.y + 20.0f, 0.0f), m_mistPuffScale * ICE_STEAM_PUFF_RATE);
+			}
+		}
+
 		if (!m_isMistEffectEnabled)
 		{
 			return;
@@ -624,6 +855,7 @@ namespace app
 		}
 
 		ImGui::TextUnformatted("F1: Stage Editor   F2: This window   F5: Restart");
+		ImGui::TextUnformatted("Mouse: drag the player (screen edge = scroll) / Ctrl+Click: warp there");
 
 		// ---- プレイヤーの状態 ----
 		const app::actor::CharacterController& controller = m_player.GetController();
@@ -817,5 +1049,86 @@ namespace app
 		}
 
 		ImGui::End();
+	}
+
+
+	void DebugScene::UpdateFireEffects(const float deltaTime)
+	{
+		// 虫眼鏡で燃やす物の煙と音。煙は霧と同じ Mist.efk を小さくして使う
+		// 音は今ある SE の仮使い（火がつく = 霧の吹き出し、板が落ちた = 高い所からの着地）
+		constexpr float SMOKE_START_HEAT = 0.15f;	// これより温まったら煙を出し始める
+		constexpr float BURNING_PUFF_INTERVAL = 0.15f;	// 燃えている間に煙を出す間隔
+		constexpr float SMOKE_Z = -20.0f;			// 煙を出す奥行き（物の少し手前）
+		const float puffScale = m_mistPuffScale;
+
+		auto puff = [&](const app::math::Vec2& at, const float scale)
+			{
+				if (m_isMistEffectEnabled)
+				{
+					PlayMistPuff(Vector3(at.x, at.y, SMOKE_Z), scale);
+				}
+			};
+
+		const auto burnables = m_stage.GetGimmicks().View<app::stage::BurnableGimmick>();
+		m_firePuffTimers.resize(burnables.size(), 0.0f);
+		size_t index = 0;
+		for (const app::stage::BurnableGimmick& burnable : burnables)
+		{
+			float& timer = m_firePuffTimers[index++];
+			if (burnable.isIgnitedThisFrame)
+			{
+				m_sePlayer.Play(enSoundKind_MistBurst);
+				timer = 0.0f;
+			}
+			if (burnable.isBurntThisFrame)
+			{
+				// 燃え尽きた瞬間：元の範囲に煙をまとめて出す
+				for (int n = 0; n < 3; ++n)
+				{
+					const app::math::Rect& r = burnable.rect;
+					puff({ r.min.x + r.Width() * Random01(), r.min.y + r.Height() * Random01() }, puffScale * 0.5f);
+				}
+				continue;
+			}
+			if (burnable.isBurnt || (!burnable.isBurning && burnable.heat <= SMOKE_START_HEAT))
+			{
+				timer = 0.0f;
+				continue;
+			}
+
+			timer -= deltaTime;
+			if (timer > 0.0f)
+			{
+				continue;
+			}
+			if (burnable.isBurning)
+			{
+				// 燃えている：今の形の上の辺から煙が立ちのぼる
+				timer += BURNING_PUFF_INTERVAL;
+				const app::math::Rect r = burnable.GetCurrentRect();
+				puff({ r.min.x + r.Width() * Random01(), r.max.y }, puffScale * 0.35f);
+			}
+			else
+			{
+				// 温まっている：焦点から細い煙。熱いほど多く・大きく
+				timer += app::math::Lerp(0.5f, 0.15f, burnable.heat);
+				puff(burnable.heatPoint, puffScale * (0.1f + 0.2f * burnable.heat));
+			}
+		}
+
+		// 吊るされた板が落ちて乗った瞬間：下の辺に土ぼこり
+		for (const app::stage::HangingBlock& block : m_stage.GetGimmicks().View<app::stage::HangingBlock>())
+		{
+			if (!block.isLandedThisFrame)
+			{
+				continue;
+			}
+			m_sePlayer.Play(enSoundKind_PlayerHardLand);
+			const app::math::Rect r = block.GetCurrentRect();
+			for (int n = 0; n < 5; ++n)
+			{
+				puff({ r.min.x + r.Width() * (static_cast<float>(n) + 0.5f) / 5.0f, r.min.y }, puffScale * 0.3f);
+			}
+		}
 	}
 }

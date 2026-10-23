@@ -21,6 +21,10 @@ namespace app
 		 *            少しずつ暗くなるので、くっきり分かれない。
 		 *          ・プレイヤーのまわりは、マリオの暗闇ステージのように、いつも丸く見えている。
 		 *            isPlayerRevealingFloors が true なら、その丸の中に入った暗がりの足場も見えるようになる。
+		 *          ・slantLeft / slantRight で、左右の端を斜めにできる（ステージ全体のときは使わない）。
+		 *            rect の下の辺はそのままで、上の辺の端だけを横にずらす（平行四辺形・台形になる）。
+		 *            明るい部屋から斜めに差しこむ光が、暗い部屋の奥までは届いていない見た目にするのに使う。
+		 *            例：左の明るい部屋から光が差しこむなら slantLeft をマイナスにする（上ほど左＝床に近いほど光が奥まで届く）。
 		 *          ・暗がりの足場の見え具合は、足場の場所の明るさと同じ計算（Glow）で決める（見た目の明るさと、足場が見えるかがずれない）。
 		 *            光が離れたら、その場ですぐ暗くなる（明るいまま残らない）。
 		 */
@@ -43,6 +47,13 @@ namespace app
 			bool isPlayerRevealingFloors = true;
 			/** 範囲の端をぼかす幅（isWholeStage が false のときだけ使う。0 ならくっきり） */
 			float edgeFeather = 40.0f;
+			/**
+			 * 左の端の傾き：上の辺で、左の端を下の辺の左の端からどれだけ右へずらすか（マイナスで左。0 ならまっすぐ）
+			 * （isWholeStage が false のときだけ使う）
+			 */
+			float slantLeft = 0.0f;
+			/** 右の端の傾き：上の辺で、右の端を下の辺の右の端からどれだけ右へずらすか（マイナスで左。0 ならまっすぐ） */
+			float slantRight = 0.0f;
 
 
 		public:
@@ -70,8 +81,18 @@ namespace app
 			float GetPlayerGlow(float distance) const { return Glow(distance, playerLightRadius, playerLightSoftWidth); }
 			/** 光が届く一番遠い距離（ここより遠いと、まったく明るくならない） */
 			float GetLightReach() const { return lightRadius + math::Max(lightSoftWidth, 0.0f) * 0.5f; }
-			/** 点が暗がりの中か（ステージ全体なら、いつも中） */
+			/** 点が暗がりの中か（ステージ全体なら、いつも中。斜めの端も考える） */
 			bool Contains(const math::Vec2& point) const;
+			/** 高さ y での、左の端の X（斜めの端。y が範囲の外なら、下の辺か上の辺の値） */
+			float GetLeftX(float y) const;
+			/** 高さ y での、右の端の X */
+			float GetRightX(float y) const;
+			/** 4つの角（左下・右下・右上・左上の順。斜めの端も考える） */
+			void GetCorners(math::Vec2 outCorners[4]) const;
+			/** 斜めの端も入れた、暗がり全体を囲む矩形（板の大きさや、光の線分を渡すかを決めるのに使う） */
+			math::Rect GetDarkBounds() const;
+			/** 端が斜めになっているか */
+			bool IsSlanted() const { return slantLeft != 0.0f || slantRight != 0.0f; }
 
 
 		public:

@@ -15,6 +15,8 @@ namespace
 	const char* const SHADER_PATH = "Assets/shader/darkness.fx";
 	/** ピクセルシェーダー */
 	const char* const PS_ENTRY = "PSMainDarkness";
+	/** ピクセルシェーダー（手前の壁） */
+	const char* const PS_ENTRY_FRONT_WALL = "PSMainFrontWall";
 
 
 	void Set4(float out[4], const float x, const float y, const float z, const float w)
@@ -42,6 +44,8 @@ namespace app
 			: m_config()
 			, m_zones()
 			, m_zoneCount(0)
+			, m_walls()
+			, m_wallCount(0)
 			, m_isInited(false)
 		{}
 
@@ -56,6 +60,7 @@ namespace app
 		void DarknessRenderer::Update(const stage::Stage& stage, const math::Vec2& playerCenter, const bool isOrtho)
 		{
 			m_zoneCount = 0;
+			m_wallCount = 0;
 			if (!m_isInited)
 			{
 				return;
@@ -82,9 +87,12 @@ namespace app
 				Set4(k.zone, zone.rect.min.x, zone.rect.min.y, zone.rect.max.x, zone.rect.max.y);
 				Set4(k.color, c.color[0], c.color[1], c.color[2], math::Max(c.rectSoftWidth, 0.0f));
 				Set4(k.playerLight, math::Max(zone.playerLightRadius, 0.0f), math::Max(zone.playerLightSoftWidth, 0.0f), zone.isWholeStage ? 1.0f : 0.0f, 0.0f);
+				// 斜めの端（ステージ全体のときは使わない）
+				Set4(k.slant, zone.isWholeStage ? 0.0f : zone.slantLeft, zone.isWholeStage ? 0.0f : zone.slantRight, 0.0f, 0.0f);
 
-				// 暗くする範囲（ステージ全体なら、プレイヤーを真ん中にした大きな四角）
-				math::Rect area = zone.rect;
+				// 暗くする範囲（斜めの端も入れた矩形。ステージ全体なら、プレイヤーを真ん中にした大きな四角）
+				const math::Rect darkBounds = zone.GetDarkBounds();
+				math::Rect area = darkBounds;
 				if (zone.isWholeStage)
 				{
 					const float half = math::Max(c.wholeStageSize, 1.0f) * 0.5f;
@@ -121,7 +129,7 @@ namespace app
 					{
 						break;
 					}
-					if (!floor.IsVisible() || (!zone.isWholeStage && !Touches(floor.rect, zone.rect)))
+					if (!floor.IsVisible() || (!zone.isWholeStage && !Touches(floor.rect, darkBounds)))
 					{
 						continue;
 					}
@@ -136,13 +144,39 @@ namespace app
 
 				// 暗がりの範囲の手前に、薄い板を置く（板は端のぼかしの分だけ広くしておく。ステージ全体なら、プレイヤーを真ん中にした大きな板）
 				const float feather = zone.isWholeStage ? 0.0f : math::Max(zone.edgeFeather, 0.0f);
-				const math::Vec2 center = zone.isWholeStage ? playerCenter : (zone.rect.min + zone.rect.max) * 0.5f;
-				const float width = zone.isWholeStage ? math::Max(c.wholeStageSize, 1.0f) : zone.rect.Width() + feather * 2.0f;
-				const float height = zone.isWholeStage ? math::Max(c.wholeStageSize, 1.0f) : zone.rect.Height() + feather * 2.0f;
+				// （斜めの端があるときは、斜めの分も入る大きさにする。はみ出た所はシェーダーで透明にする）
+				const math::Vec2 center = zone.isWholeStage ? playerCenter : (darkBounds.min + darkBounds.max) * 0.5f;
+				const float width = zone.isWholeStage ? math::Max(c.wholeStageSize, 1.0f) : darkBounds.Width() + feather * 2.0f;
+				const float height = zone.isWholeStage ? math::Max(c.wholeStageSize, 1.0f) : darkBounds.Height() + feather * 2.0f;
 				model.model.UpdateWorldMatrix(
 					Vector3(center.x, center.y, c.planeZ),
 					g_quatIdentity,
 					Vector3(width / unit, height / unit, math::Max(c.thickness, 0.01f) / unit));
+			}
+
+			// ---- 手前の壁（暗い部屋に入ると透ける） ----
+			for (const stage::FrontWall& wall : stage.GetGimmicks().View<stage::FrontWall>())
+			{
+				// 完全に透けている間は描かない
+				if (wall.visibility <= 0.001f)
+				{
+					continue;
+				}
+				ZoneModel& model = AcquireWall();
+				Constants& k = model.constants;
+				const float feather = math::Max(wall.edgeFeather, 0.0f);
+				// param  : x = 見え具合, y = 岩の模様の大きさ, z = 端のぼかし, w = 縁を暗くする幅
+				Set4(k.param, math::Clamp01(wall.visibility), math::Max(wall.stoneScale, 1.0f), feather, math::Max(wall.rimWidth, 0.0f));
+				Set4(k.view, forward.x, forward.y, forward.z, isOrtho ? 1.0f : 0.0f);
+				Set4(k.zone, wall.rect.min.x, wall.rect.min.y, wall.rect.max.x, wall.rect.max.y);
+				Set4(k.color, wall.color[0], wall.color[1], wall.color[2], 1.0f);
+
+				// 壁の範囲の手前に板を置く（端のぼかしの分だけ広くする）。はみ出た所はシェーダーで透明にする
+				const math::Vec2 center = (wall.rect.min + wall.rect.max) * 0.5f;
+				model.model.UpdateWorldMatrix(
+					Vector3(center.x, center.y, c.frontWallZ),
+					g_quatIdentity,
+					Vector3((wall.rect.Width() + feather * 2.0f) / unit, (wall.rect.Height() + feather * 2.0f) / unit, math::Max(c.thickness, 0.01f) / unit));
 			}
 		}
 
@@ -160,38 +194,66 @@ namespace app
 		}
 
 
+		void DarknessRenderer::DrawFrontWalls(RenderContext& rc)
+		{
+			(void)rc;
+			// 壁は一番手前に見せたいので、ほかの半透明の物（光・炎）を全部登録したあとに登録する
+			const SceneLightData& light = SceneLight::GetInstance()->GetSceneLight();
+			for (size_t i = 0; i < m_wallCount; ++i)
+			{
+				m_walls[i]->constants.light = light;
+				RenderingEngine::GetInstance()->AddRenderObject(m_walls[i]->model);
+			}
+		}
+
+
 		DarknessRenderer::ZoneModel& DarknessRenderer::AcquireZone()
 		{
 			// Model の初期化は重いので、足りなくなったときだけ増やし、毎フレーム使い回す
 			if (m_zoneCount >= m_zones.size())
 			{
-				auto zone = std::make_unique<ZoneModel>();
-				zone->constants = Constants();
-
-				ModelInitData initData;
-				initData.m_tkmFilePath = m_config.modelPath.c_str();
-				initData.m_fxFilePath = SHADER_PATH;
-				initData.m_vsEntryPointFunc = "VSMain";
-				initData.m_vsSkinEntryPointFunc = "VSMain";
-				initData.m_psEntryPointFunc = PS_ENTRY;
-				initData.m_modelUpAxis = enModelUpAxisY;
-				initData.m_cullMode = D3D12_CULL_MODE_BACK;
-				// メインのレンダーターゲット（RenderingEngine の m_mainRenderTarget）と同じ形式
-				initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-				// シェーダーに渡す値（b1）。Draw のたびに中身が GPU に送られる
-				initData.m_expandConstantBuffer = &zone->constants;
-				initData.m_expandConstantBufferSize = sizeof(Constants);
-				// model.fx は t10 のシャドウマップを使うので、ModelRender と同じくつないでおく
-				initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
-				// 半透明：後ろの絵と混ぜる。深度は書かない
-				initData.m_alphaBlendMode = AlphaBlendMode_Trans;
-				initData.m_isDepthWrite = false;
-				initData.m_isDepthTest = true;
-				zone->model.Init(initData);
-
-				m_zones.push_back(std::move(zone));
+				m_zones.push_back(CreateModel(PS_ENTRY));
 			}
 			return *m_zones[m_zoneCount++];
+		}
+
+
+		DarknessRenderer::ZoneModel& DarknessRenderer::AcquireWall()
+		{
+			if (m_wallCount >= m_walls.size())
+			{
+				m_walls.push_back(CreateModel(PS_ENTRY_FRONT_WALL));
+			}
+			return *m_walls[m_wallCount++];
+		}
+
+
+		std::unique_ptr<DarknessRenderer::ZoneModel> DarknessRenderer::CreateModel(const char* psEntry)
+		{
+			auto zone = std::make_unique<ZoneModel>();
+			zone->constants = Constants();
+
+			ModelInitData initData;
+			initData.m_tkmFilePath = m_config.modelPath.c_str();
+			initData.m_fxFilePath = SHADER_PATH;
+			initData.m_vsEntryPointFunc = "VSMain";
+			initData.m_vsSkinEntryPointFunc = "VSMain";
+			initData.m_psEntryPointFunc = psEntry;
+			initData.m_modelUpAxis = enModelUpAxisY;
+			initData.m_cullMode = D3D12_CULL_MODE_BACK;
+			// メインのレンダーターゲット（RenderingEngine の m_mainRenderTarget）と同じ形式
+			initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			// シェーダーに渡す値（b1）。Draw のたびに中身が GPU に送られる
+			initData.m_expandConstantBuffer = &zone->constants;
+			initData.m_expandConstantBufferSize = sizeof(Constants);
+			// model.fx は t10 のシャドウマップを使うので、ModelRender と同じくつないでおく
+			initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
+			// 半透明：後ろの絵と混ぜる。深度は書かない
+			initData.m_alphaBlendMode = AlphaBlendMode_Trans;
+			initData.m_isDepthWrite = false;
+			initData.m_isDepthTest = true;
+			zone->model.Init(initData);
+			return zone;
 		}
 	}
 }

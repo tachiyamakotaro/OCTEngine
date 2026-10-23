@@ -13,6 +13,7 @@
 #include "Gimmick/Door.h"
 #include "Gimmick/EmitRay.h"
 #include "Gimmick/FloorSwitch.h"
+#include "Gimmick/FrontWall.h"
 #include "Gimmick/GimmickBase.h"
 #include "Gimmick/Goal.h"
 #include "Gimmick/Grass.h"

@@ -32,6 +32,10 @@ namespace app
 		{
 			m_position = footPosition;
 			m_velocity = math::Vec2::Zero();
+			// 作り直したときに、前のステート（崖にぶら下がり・崖を登る）が止めた重力や、崖と一緒に動く状態が残らないようにする
+			// （ステートマシンを作り直すと、前のステートの Exit が呼ばれないため）
+			m_isGravityEnabled = true;
+			m_isLedgeCarry = false;
 			m_width = width;
 			m_height = height;
 			m_collisionWorld = world;

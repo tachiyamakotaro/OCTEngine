@@ -1,0 +1,32 @@
+{
+	"stage": { "name": "StageFinal", "playerStart": [100.0, 0.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [9400.0, 1500.0] } },
+	"gimmicks": [
+		{ "type": "StageBlock", "name": "LeftWall", "position": [-200.0, 0.0], "size": [100.0, 1500.0] },
+		{ "type": "StageBlock", "name": "Ceiling", "position": [-200.0, 1500.0], "size": [9600.0, 100.0] },
+		{ "type": "StageBlock", "name": "RightWall", "position": [9300.0, 800.0], "size": [100.0, 700.0] },
+		{ "type": "StageBlock", "name": "R1_Floor", "position": [-200.0, -400.0], "size": [1700.0, 400.0] },
+		{ "type": "StageBlock", "name": "R1_Wall", "position": [-100.0, 500.0], "size": [1100.0, 1000.0] },
+		{ "type": "StageBlock", "name": "R1_Step1", "position": [1000.0, 140.0], "size": [150.0, 30.0] },
+		{ "type": "StageBlock", "name": "R1_Step2", "position": [1200.0, 270.0], "size": [90.0, 30.0] },
+		{ "type": "StageBlock", "name": "R1_Step3", "position": [1000.0, 420.0], "size": [150.0, 30.0] },
+		{ "type": "StageBlock", "name": "R1_Step4", "position": [1300.0, 570.0], "size": [130.0, 30.0] },
+		{ "type": "StageBlock", "name": "R1_UpperFloor", "position": [1500.0, -400.0], "size": [1100.0, 1100.0] },
+		{ "type": "StageBlock", "name": "R2_Lintel", "position": [2550.0, 850.0], "size": [100.0, 650.0] },
+		{ "type": "StageBlock", "name": "R2_Step", "position": [2600.0, -400.0], "size": [200.0, 900.0] },
+		{ "type": "StageBlock", "name": "R2_Floor", "position": [2800.0, -400.0], "size": [1000.0, 700.0] },
+		{ "type": "StageBlock", "name": "R2_FloorR", "position": [4300.0, -400.0], "size": [726.0, 700.0] },
+		{ "type": "StageBlock", "name": "R2_Ledge", "position": [5350.0, -400.0], "size": [1500.0, 1309.0] },
+		{ "type": "StageBlock", "name": "R3_Step1", "position": [6850.0, 810.0], "size": [140.0, 25.0] },
+		{ "type": "StageBlock", "name": "R3_Step2", "position": [7140.0, 775.0], "size": [140.0, 25.0] },
+		{ "type": "StageBlock", "name": "R3_Step3", "position": [7430.0, 920.0], "size": [140.0, 25.0] },
+		{ "type": "StageBlock", "name": "R3_Step4", "position": [7720.0, 800.0], "size": [140.0, 25.0] },
+		{ "type": "StageBlock", "name": "R3_FloorR", "position": [8010.0, -400.0], "size": [1290.0, 1200.0] },
+		{ "type": "StageBlock", "name": "R3_DoorFrame", "position": [8500.0, 930.0], "size": [40.0, 570.0] },
+		{ "type": "StageBlock", "name": "R3_ClimbA", "position": [8650.0, 800.0], "size": [150.0, 150.0] },
+		{ "type": "StageBlock", "name": "R3_ClimbB", "position": [8850.0, 800.0], "size": [150.0, 300.0] },
+		{ "type": "StageBlock", "name": "R3_GoalLedge", "position": [9050.0, 800.0], "size": [250.0, 400.0] },
+		{ "type": "StageBlock", "name": "Block1", "position": [1750.0, 700.0], "size": [142.0, 218.0] },
+		{ "type": "StageBlock", "name": "Block2", "position": [4800.0, 300.0], "size": [224.0, 705.0] },
+		{ "type": "StageBlock", "name": "Block3", "position": [4600.0, 800.0], "size": [224.0, 205.0] }
+	]
+}
