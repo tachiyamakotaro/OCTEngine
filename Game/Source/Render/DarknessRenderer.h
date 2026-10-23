@@ -9,7 +9,7 @@
  *          ・ピクセルごとに「光の線分・プレイヤー・見えた暗がりの足場（HiddenFloor）」までの距離を調べて、近いほど透明にする。
 		 *            プレイヤーのまわりは、マリオの暗闇ステージのように、いつもはっきり見える丸にする。
  *            板は手前にあるので、カメラから見て z=0（ギミックやプレイヤーがいる面）のどこに重なるかに直してから距離を測る。
- *          ・暗がりの左右の端は斜めにできる（DarkZone::slantLeft / slantRight）。板は斜めの分も入る大きさにして、
+ *          ・暗がりの左右の端は斜めにでき（DarkZone::slantLeft / slantRight）、途中で折り曲げられる（bendLeft / bendRight と、その高さ）。板は斜めの分も入る大きさにして、
  *            シェーダーで斜めの端の外側を透明にする（端は edgeFeather で、端に直角な向きにぼかす）。
  *          ・手前の壁（FrontWall）も、同じシェーダーの別の入り口（PSMainFrontWall）で描く。
  *            壁は光や半透明の物よりも手前に見せたいので、DrawFrontWalls で一番最後に登録する。
@@ -115,7 +115,8 @@ namespace app
 				float zone[4];						// xy = 暗がりの左下, zw = 右上
 				float color[4];						// rgb = 暗がりの色, a = 見えた足場のまわりのぼかしの幅（rectSoftWidth）
 				float playerLight[4];				// x = プレイヤーのまわりの丸の半径（境目の真ん中）, y = 丸の境目のぼかしの幅, z = ステージ全体なら 1
-				float slant[4];						// x = 左の端の傾き（上の辺でのずれ）, y = 右の端の傾き, zw = 使わない
+				float slant[4];						// x = 左の端の傾き（上の辺でのずれ）, y = 右の端の傾き, z = 左の端の折れ目のずれ, w = 右の端の折れ目のずれ
+				float bend[4];						// x = 左の端の折れ目の高さ（0〜1）, y = 右の端の折れ目の高さ, zw = 使わない
 				float segments[MAX_SEGMENTS][4];	// xy = 光の線分の始点, zw = 終点
 				float rects[MAX_RECTS][4];			// xy = 見えた足場の左下, zw = 右上（まわりの広さを足した後）
 				float rectVisibility[MAX_RECTS][4];	// x = 見え具合（0〜1）

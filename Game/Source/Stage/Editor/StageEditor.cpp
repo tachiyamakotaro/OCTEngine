@@ -41,12 +41,16 @@ namespace app
 			/** 矢印の長さと先端の大きさ（ピクセル） */
 			constexpr float GIZMO_LENGTH_PX = 60.0f;
 			constexpr float GIZMO_HEAD_PX = 10.0f;
+			/** 形を変える取っ手の大きさ（四角の半分の幅。ピクセル） */
+			constexpr float HANDLE_HALF_PX = 5.0f;
 			/** 覚えておく履歴の数 */
 			constexpr size_t MAX_HISTORY = 100;
 
 			const ImU32 EDITOR_COLOR_GIZMO_X = IM_COL32(235, 70, 70, 255);
 			const ImU32 EDITOR_COLOR_GIZMO_Y = IM_COL32(90, 220, 90, 255);
 			const ImU32 EDITOR_COLOR_GIZMO_HOT = IM_COL32(255, 230, 60, 255);
+			const ImU32 EDITOR_COLOR_HANDLE = IM_COL32(255, 255, 255, 230);
+			const ImU32 EDITOR_COLOR_HANDLE_BORDER = IM_COL32(20, 20, 30, 255);
 
 			// 色（COLOR_BACKGROUND などは Windows のヘッダー(winuser.h)がマクロで使っているので、EDITOR_ を付けている）
 			// ギミックの色は、それぞれのギミックのクラス（DrawEditor）が持っている
@@ -60,30 +64,6 @@ namespace app
 			const ImU32 EDITOR_COLOR_PLAYER_START = IM_COL32(110, 230, 120, 255);
 			const ImU32 EDITOR_COLOR_ERROR = IM_COL32(255, 120, 100, 255);
 			const ImU32 EDITOR_COLOR_LABEL = IM_COL32(255, 255, 255, 170);
-			/** 範囲選択の四角（中の塗りと枠） */
-			const ImU32 EDITOR_COLOR_BOX_FILL = IM_COL32(80, 150, 230, 60);
-			const ImU32 EDITOR_COLOR_BOX_LINE = IM_COL32(60, 140, 255, 220);
-
-
-			/** 2点を角にした四角（どちら向きにドラッグしても min < max になるように） */
-			math::Rect MakeRect(const math::Vec2& a, const math::Vec2& b)
-			{
-				math::Rect rect;
-				rect.min = math::Vec2(math::Min(a.x, b.x), math::Min(a.y, b.y));
-				rect.max = math::Vec2(math::Max(a.x, b.x), math::Max(a.y, b.y));
-				return rect;
-			}
-
-
-			/**
-			 * @brief 範囲選択の四角に少しでもかかっているか
-			 * @note 縁にぴったり触れているだけでも選ぶ（幅0の線のような物も選べるように、Rect::Overlaps ではなく「以下」で比べる）
-			 */
-			bool IsTouchingBox(const math::Rect& bounds, const math::Rect& box)
-			{
-				return bounds.min.x <= box.max.x && bounds.max.x >= box.min.x
-					&& bounds.min.y <= box.max.y && bounds.max.y >= box.min.y;
-			}
 
 
 			/** 名前の入力欄（変更されたら true） */
@@ -122,7 +102,10 @@ namespace app
 				return;
 			}
 
-			ValidateSelection(stage);
+			if (!IsSelectionValid(stage))
+			{
+				m_selection = Selection();
+			}
 
 			UpdateHistory(stage);
 
@@ -195,7 +178,7 @@ namespace app
 				m_fileMessages.clear();
 				m_isFileSucceeded = LoadStageFromJson(stage, *m_stageInfo, m_fileMessages);
 				if (m_isFileSucceeded) { m_fileMessages.insert(m_fileMessages.begin(), std::string("Loaded: ") + m_stageInfo->name); }
-				SelectNone();
+				m_selection = Selection();
 			}
 			ImGui::SetItemTooltip("Reload the stage from the JSON files. Unsaved changes are lost (Undo can bring them back).");
 			ImGui::EndDisabled();
@@ -322,7 +305,7 @@ namespace app
 
 			if (ImGui::Selectable("Back Mirror", m_selection.type == SelectionType::BackMirror))
 			{
-				SelectSingle({ SelectionType::BackMirror, 0 });
+				m_selection = { SelectionType::BackMirror, 0 };
 			}
 
 			// 種類ごと（GimmickRegistry.cpp の並び順）に、その種類のギミックを並べる
@@ -367,12 +350,10 @@ namespace app
 						continue;
 					}
 					ImGui::PushID(static_cast<int>(i));
-					const int index = static_cast<int>(i);
-					if (ImGui::Selectable(gimmick.name.empty() ? "(no name)" : gimmick.name.c_str(), IsGimmickSelected(index)))
+					const bool isSelected = m_selection.type == SelectionType::Gimmick && m_selection.index == static_cast<int>(i);
+					if (ImGui::Selectable(gimmick.name.empty() ? "(no name)" : gimmick.name.c_str(), isSelected))
 					{
-						// Ctrl+クリックで選択に足す・外す。ふつうのクリックはその物だけを選ぶ
-						if (ImGui::GetIO().KeyCtrl) { ToggleGimmickSelection(index); }
-						else { SelectSingle({ SelectionType::Gimmick, index }); }
+						m_selection = { SelectionType::Gimmick, static_cast<int>(i) };
 					}
 					ImGui::PopID();
 				}
@@ -397,17 +378,12 @@ namespace app
 				ImGui::TextUnformatted("Stage");
 				ImGui::SameLine();
 				ImGui::TextDisabled("(nothing selected)");
-				ImGui::TextDisabled("Drag on empty space to select an area.");
 				break;
 			case SelectionType::BackMirror:
 				ImGui::TextUnformatted("Back Mirror");
 				break;
 			case SelectionType::Gimmick:
-				if (m_selectedGimmicks.size() > 1)
-				{
-					ImGui::Text("%d objects selected", static_cast<int>(m_selectedGimmicks.size()));
-				}
-				else if (const GimmickBase* gimmick = GetSelectedGimmick(stage))
+				if (const GimmickBase* gimmick = GetSelectedGimmick(stage))
 				{
 					ImGui::TextUnformatted(gimmick->name.empty() ? "(no name)" : gimmick->name.c_str());
 					ImGui::SameLine();
@@ -416,15 +392,13 @@ namespace app
 				break;
 			}
 
-			// ---- 編集ボタン（ギミックを選んでいるときだけ。いくつか選んでいたら全部に効く） ----
+			// ---- 編集ボタン（ギミックを選んでいるときだけ） ----
 			// ボタンを押すと選択が変わる（複製した物・選択なし）ので、ここから下はギミックのポインタを持ち越さない
 			if (m_selection.type == SelectionType::Gimmick)
 			{
 				if (ImGui::SmallButton("Duplicate")) { DuplicateSelected(stage); }
-				ImGui::SetItemTooltip("Duplicate all selected objects (Ctrl+D).");
 				ImGui::SameLine();
 				if (ImGui::SmallButton("Delete")) { DeleteSelected(stage); }
-				ImGui::SetItemTooltip("Delete all selected objects (Delete key).");
 				ImGui::SameLine();
 				if (ImGui::SmallButton("Rotate L")) { RotateSelected(stage, 1); }
 				ImGui::SetItemTooltip("Rotate 90 degrees counterclockwise (Shift+R).");
@@ -433,36 +407,7 @@ namespace app
 				ImGui::SetItemTooltip("Rotate 90 degrees clockwise (R).\nBlocks: swap width and height around the center.\nLamps / mirrors: turn the angle.");
 			}
 
-			// ---- いくつか選んでいるとき：選んだ物の一覧（クリックでその物だけを選ぶ） ----
-			if (m_selectedGimmicks.size() > 1)
-			{
-				if (ImGui::CollapsingHeader("Selected", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::TextDisabled("Click a name to edit only that object.");
-					// 一覧のクリックで m_selectedGimmicks が変わるので、コピーを回す
-					const std::vector<int> selected = m_selectedGimmicks;
-					for (const int index : selected)
-					{
-						const GimmickBase* gimmick = stage.GetGimmicks().Get(static_cast<size_t>(index));
-						if (gimmick == nullptr)
-						{
-							continue;
-						}
-						ImGui::PushID(index);
-						char label[128];
-						std::snprintf(label, sizeof(label), "%s  (%s)", gimmick->name.empty() ? "(no name)" : gimmick->name.c_str(), gimmick->GetTypeName());
-						if (ImGui::Selectable(label, m_selection.index == index))
-						{
-							SelectSingle({ SelectionType::Gimmick, index });
-						}
-						ImGui::PopID();
-					}
-				}
-				ImGui::PopID();
-				return;
-			}
-
-			// ---- 数値（1つだけ選んでいるとき・何も選んでいないとき） ----
+			// ---- 数値 ----
 			if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				DrawProperties(stage);
@@ -582,6 +527,7 @@ namespace app
 			const ImGuiIO& io = ImGui::GetIO();
 			const math::Vec2 mouseWorld = ScreenToWorld(io.MousePos);
 			const GizmoAxis hoveredAxis = (isHovered && !m_isDraggingObject) ? HitTestGizmo(stage, io.MousePos) : GizmoAxis::None;
+			const int hoveredHandle = (isHovered && !m_isDraggingObject) ? HitTestHandle(stage, io.MousePos) : -1;
 
 			// ---- 入力 ----
 			// ホイールで拡大縮小（マウスの位置を中心に）
@@ -597,51 +543,35 @@ namespace app
 				m_viewCenter.x -= io.MouseDelta.x / m_zoom;
 				m_viewCenter.y += io.MouseDelta.y / m_zoom;
 			}
-			// 左クリック
+			// 左クリックで選択
 			if (isHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 			{
-				// Shift / Ctrl を押しながら：今の選択に足す
-				const bool isAdditive = io.KeyCtrl || io.KeyShift;
-				m_isPendingSingleSelect = false;
-				if (hoveredAxis != GizmoAxis::None)
+				m_dragHandle = -1;
+				if (hoveredHandle >= 0)
 				{
-					// 矢印をつかんだ：選択はそのまま、その軸だけ動かす（いくつか選んでいたら全部）
+					// 形を変える取っ手をつかんだ：選択はそのまま、取っ手だけ動かす
+					m_dragHandle = hoveredHandle;
+					m_dragAxis = GizmoAxis::None;
+				}
+				else if (hoveredAxis != GizmoAxis::None)
+				{
+					// 矢印をつかんだ：選択はそのまま、その軸だけ動かす
 					m_dragAxis = hoveredAxis;
-					BeginObjectDrag(stage);
 				}
 				else
 				{
+					// 本体をつかんだ：今まで通り自由に動かす
+					m_selection = HitTest(stage, mouseWorld);
 					m_dragAxis = GizmoAxis::None;
-					const Selection hit = HitTest(stage, mouseWorld);
-					if (hit.type == SelectionType::None)
+				}
+				m_isDraggingObject = m_selection.type != SelectionType::None;
+				if (m_isDraggingObject)
+				{
+					m_dragStartAnchor = GetAnchor(stage, m_selection);
+					m_dragAccumulated = math::Vec2::Zero();
+					if (m_dragHandle >= 0)
 					{
-						// 何もないところ：範囲選択を始める
-						m_isBoxSelecting = true;
-						m_boxStart = mouseWorld;
-						m_isBoxAdditive = isAdditive;
-						if (!isAdditive)
-						{
-							SelectNone();
-						}
-					}
-					else if (isAdditive && hit.type == SelectionType::Gimmick)
-					{
-						// Ctrl / Shift+クリック：その物を選択に足す・外す（動かさない）
-						ToggleGimmickSelection(hit.index);
-					}
-					else if (hit.type == SelectionType::Gimmick && IsGimmickSelected(hit.index))
-					{
-						// 選択中の物をつかんだ：選択はそのまま全部動かす（つかんだ物をスナップの基準にする）
-						// 動かさずに離したら、その物だけを選び直す（エクスプローラーと同じ）
-						m_selection = hit;
-						m_isPendingSingleSelect = m_selectedGimmicks.size() > 1;
-						BeginObjectDrag(stage);
-					}
-					else
-					{
-						// 選んでいない物をつかんだ：その物だけを選んで動かす
-						SelectSingle(hit);
-						BeginObjectDrag(stage);
+						m_dragHandleStart = GetSelectedGimmick(stage)->GetEditHandle(m_dragHandle);
 					}
 				}
 			}
@@ -653,45 +583,41 @@ namespace app
 					m_dragAccumulated.x += io.MouseDelta.x / m_zoom;
 					m_dragAccumulated.y -= io.MouseDelta.y / m_zoom;
 
-					// つかんだ軸以外の移動を捨てる
-					math::Vec2 delta = m_dragAccumulated;
-					if (m_dragAxis == GizmoAxis::X) { delta.y = 0.0f; }
-					if (m_dragAxis == GizmoAxis::Y) { delta.x = 0.0f; }
-
-					math::Vec2 anchor = m_dragStartAnchor + delta;
-					if (m_isSnap)
+					// 取っ手をつかんでいるとき：物は動かさず、取っ手を動かして形を変える
+					GimmickBase* handleOwner = m_dragHandle >= 0 ? GetSelectedGimmick(stage) : nullptr;
+					if (handleOwner != nullptr)
 					{
-						// 動かしている軸だけスナップする
-						if (m_dragAxis != GizmoAxis::Y) { anchor.x = Snap(anchor.x); }
-						if (m_dragAxis != GizmoAxis::X) { anchor.y = Snap(anchor.y); }
+						math::Vec2 position = m_dragHandleStart + m_dragAccumulated;
+						if (m_isSnap)
+						{
+							position.x = Snap(position.x);
+							position.y = Snap(position.y);
+						}
+						handleOwner->SetEditHandle(m_dragHandle, position);
 					}
-					MoveSelection(stage, anchor);
+					else
+					{
+						// つかんだ軸以外の移動を捨てる
+						math::Vec2 delta = m_dragAccumulated;
+						if (m_dragAxis == GizmoAxis::X) { delta.y = 0.0f; }
+						if (m_dragAxis == GizmoAxis::Y) { delta.x = 0.0f; }
+
+						math::Vec2 anchor = m_dragStartAnchor + delta;
+						if (m_isSnap)
+						{
+							// 動かしている軸だけスナップする
+							if (m_dragAxis != GizmoAxis::Y) { anchor.x = Snap(anchor.x); }
+							if (m_dragAxis != GizmoAxis::X) { anchor.y = Snap(anchor.y); }
+						}
+						SetAnchor(stage, m_selection, anchor);
+					}
 				}
 				else
 				{
-					// 選択中の物をクリックしただけ（ほとんど動かしていない）なら、その物だけを選び直す
-					const float movedPixels = m_dragAccumulated.Length() * m_zoom;
-					if (m_isPendingSingleSelect && movedPixels < io.MouseDragThreshold)
-					{
-						SelectSingle(m_selection);
-					}
-					m_isPendingSingleSelect = false;
 					m_isDraggingObject = false;
 					m_dragAxis = GizmoAxis::None;
+					m_dragHandle = -1;
 				}
-			}
-			// 範囲選択：離したときに、四角に少しでもかかった物を選ぶ
-			if (m_isBoxSelecting && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
-			{
-				const ImVec2 startScreen = WorldToScreen(m_boxStart);
-				const float dx = io.MousePos.x - startScreen.x;
-				const float dy = io.MousePos.y - startScreen.y;
-				// ほとんど動かしていない（ただのクリック）なら選ばない（クリックした時点で選択は外れている）
-				if (dx * dx + dy * dy >= io.MouseDragThreshold * io.MouseDragThreshold)
-				{
-					SelectGimmicksInRect(stage, MakeRect(m_boxStart, mouseWorld), m_isBoxAdditive);
-				}
-				m_isBoxSelecting = false;
 			}
 
 			// ---- 描画 ----
@@ -739,8 +665,6 @@ namespace app
 			// ギミック（後ろの層から順に。同じ層の中では置いた順）
 			const EditorCanvas canvas(drawList, m_viewCenter, m_zoom, m_canvasCenter);
 			const GimmickManager& gimmicks = stage.GetGimmicks();
-			// 範囲選択の途中は、離したら選ばれる物も選択の色で見せる
-			const math::Rect boxRect = MakeRect(m_boxStart, mouseWorld);
 			auto drawLayer = [&](const EditorLayer layer)
 				{
 					for (size_t i = 0; i < gimmicks.GetCount(); ++i)
@@ -750,8 +674,7 @@ namespace app
 						{
 							continue;
 						}
-						const bool isInBox = m_isBoxSelecting && IsTouchingBox(gimmick.GetBounds(), boxRect);
-						const bool isSelected = IsGimmickSelected(static_cast<int>(i)) || isInBox;
+						const bool isSelected = m_selection.type == SelectionType::Gimmick && m_selection.index == static_cast<int>(i);
 						gimmick.DrawEditor(canvas, isSelected);
 					}
 				};
@@ -796,16 +719,8 @@ namespace app
 			if (m_selection.type != SelectionType::None)
 			{
 				DrawGizmo(drawList, stage, hoveredAxis);
-			}
-
-			// 範囲選択の四角（Windows のデスクトップのような半透明の青）
-			if (m_isBoxSelecting)
-			{
-				const ImVec2 boxStartScreen = WorldToScreen(m_boxStart);
-				const ImVec2 boxMin(math::Min(boxStartScreen.x, io.MousePos.x), math::Min(boxStartScreen.y, io.MousePos.y));
-				const ImVec2 boxMax(math::Max(boxStartScreen.x, io.MousePos.x), math::Max(boxStartScreen.y, io.MousePos.y));
-				drawList->AddRectFilled(boxMin, boxMax, EDITOR_COLOR_BOX_FILL);
-				drawList->AddRect(boxMin, boxMax, EDITOR_COLOR_BOX_LINE);
+				// 形を変える取っ手（矢印よりさらに上）
+				DrawHandles(drawList, stage, hoveredHandle);
 			}
 
 			// マウス位置の座標
@@ -851,100 +766,57 @@ namespace app
 			std::unique_ptr<GimmickBase> gimmick = entry.create(position);
 			gimmick->name = stage.GetGimmicks().MakeUniqueName(entry.namePrefix);
 			stage.GetGimmicks().Add(std::move(gimmick));
-			SelectSingle({ SelectionType::Gimmick, static_cast<int>(stage.GetGimmicks().GetCount()) - 1 });
+			m_selection = { SelectionType::Gimmick, static_cast<int>(stage.GetGimmicks().GetCount()) - 1 };
 		}
 
 
 		void StageEditor::DuplicateSelected(Stage& stage)
 		{
-			if (m_selection.type != SelectionType::Gimmick || m_selectedGimmicks.empty())
+			const GimmickBase* source = GetSelectedGimmick(stage);
+			if (source == nullptr)
 			{
 				return;
 			}
-			// 選択中の物を全部複製して、複製した物を選び直す（並び・主の物は元と同じにする）
-			const std::vector<int> sources = m_selectedGimmicks;
-			std::vector<int> copies;
-			int primaryCopy = -1;
-			for (const int sourceIndex : sources)
-			{
-				const GimmickBase* source = stage.GetGimmicks().Get(static_cast<size_t>(sourceIndex));
-				if (source == nullptr)
-				{
-					continue;
-				}
-				// 名前の頭は追加ボタンと同じにする（"Door" → "Door3" など）
-				const GimmickRegistryEntry* entry = FindGimmickRegistryEntry(source->GetTypeName());
-				std::unique_ptr<GimmickBase> copy = source->Clone();
-				copy->name = stage.GetGimmicks().MakeUniqueName(entry != nullptr ? entry->namePrefix : source->GetTypeName());
-				copy->SetAnchor(source->GetAnchor() + math::Vec2(DUPLICATE_OFFSET, 0.0f));
-				stage.GetGimmicks().Add(std::move(copy));
-
-				const int copyIndex = static_cast<int>(stage.GetGimmicks().GetCount()) - 1;
-				copies.push_back(copyIndex);
-				if (sourceIndex == m_selection.index)
-				{
-					primaryCopy = copyIndex;
-				}
-			}
-			if (copies.empty())
-			{
-				return;
-			}
-			m_selectedGimmicks = copies;
-			m_selection = { SelectionType::Gimmick, primaryCopy >= 0 ? primaryCopy : copies.front() };
+			// 名前の頭は追加ボタンと同じにする（"Door" → "Door3" など）
+			const GimmickRegistryEntry* entry = FindGimmickRegistryEntry(source->GetTypeName());
+			std::unique_ptr<GimmickBase> copy = source->Clone();
+			copy->name = stage.GetGimmicks().MakeUniqueName(entry != nullptr ? entry->namePrefix : source->GetTypeName());
+			copy->SetAnchor(source->GetAnchor() + math::Vec2(DUPLICATE_OFFSET, 0.0f));
+			stage.GetGimmicks().Add(std::move(copy));
+			m_selection.index = static_cast<int>(stage.GetGimmicks().GetCount()) - 1;
 		}
 
 
 		void StageEditor::RotateSelected(Stage& stage, const int quarterTurns)
 		{
-			// いくつか選んでいたら、それぞれをその場で回す
-			// Undo の履歴には、UpdateHistory が変化を見つけて自動で積む（まとめて1回分になる）
-			for (const int index : m_selectedGimmicks)
+			GimmickBase* gimmick = GetSelectedGimmick(stage);
+			if (gimmick == nullptr)
 			{
-				if (GimmickBase* gimmick = stage.GetGimmicks().Get(static_cast<size_t>(index)))
-				{
-					gimmick->Rotate90(quarterTurns);
-				}
+				return;
 			}
+			// Undo の履歴には、UpdateHistory が変化を見つけて自動で積む
+			gimmick->Rotate90(quarterTurns);
 		}
 
 
 		void StageEditor::DeleteSelected(Stage& stage)
 		{
-			if (m_selection.type != SelectionType::Gimmick || m_selectedGimmicks.empty())
+			const GimmickBase* gimmick = GetSelectedGimmick(stage);
+			if (gimmick == nullptr)
 			{
 				return;
 			}
-			GimmickManager& gimmicks = stage.GetGimmicks();
-
-			// 後ろから消す（前から消すと、後ろの物の番号がずれるため）
-			std::vector<int> indices = m_selectedGimmicks;
-			std::sort(indices.begin(), indices.end(), [](const int a, const int b) { return a > b; });
-			indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
-
-			// 信号を出す物（受光器・スイッチなど）の名前を覚えておいて、消したあとに扉や霧のつながりからも外す
-			std::vector<std::string> removedSignals;
-			for (const int index : indices)
+			const std::string name = gimmick->name;
+			const bool isSignalSource = gimmick->IsSignalSource();
+			stage.GetGimmicks().Remove(static_cast<size_t>(m_selection.index));
+			// 信号を出す物を消したら、扉や霧のつながりからも外す
+			if (isSignalSource)
 			{
-				const GimmickBase* gimmick = gimmicks.Get(static_cast<size_t>(index));
-				if (gimmick == nullptr)
-				{
-					continue;
-				}
-				if (gimmick->IsSignalSource())
-				{
-					removedSignals.push_back(gimmick->name);
-				}
-				gimmicks.Remove(static_cast<size_t>(index));
+				stage.GetGimmicks().RemoveSignal(name);
 			}
-			for (const std::string& name : removedSignals)
-			{
-				gimmicks.RemoveSignal(name);
-			}
-
-			SelectNone();
+			m_selection = Selection();
 			m_isDraggingObject = false;
-			m_isPendingSingleSelect = false;
+			m_dragHandle = -1;
 		}
 
 
@@ -957,176 +829,6 @@ namespace app
 			case SelectionType::Gimmick:	return m_selection.index >= 0 && m_selection.index < static_cast<int>(stage.GetGimmicks().GetCount());
 			}
 			return false;
-		}
-
-
-		/************************************/
-		// 選択（いくつも選べる）
-
-
-		void StageEditor::SelectNone()
-		{
-			m_selection = Selection();
-			m_selectedGimmicks.clear();
-		}
-
-
-		void StageEditor::SelectSingle(const Selection& selection)
-		{
-			// selection が m_selection 自身のこともあるので、先に値を取っておく
-			const Selection newSelection = selection;
-			m_selection = newSelection;
-			m_selectedGimmicks.clear();
-			if (newSelection.type == SelectionType::Gimmick)
-			{
-				m_selectedGimmicks.push_back(newSelection.index);
-			}
-		}
-
-
-		void StageEditor::ToggleGimmickSelection(const int index)
-		{
-			// 奥の鏡を選んでいたら外す（奥の鏡とギミックは一緒に選ばない）
-			if (m_selection.type != SelectionType::Gimmick)
-			{
-				SelectNone();
-			}
-
-			const auto it = std::find(m_selectedGimmicks.begin(), m_selectedGimmicks.end(), index);
-			if (it == m_selectedGimmicks.end())
-			{
-				// 足す（足した物を主にする）
-				m_selectedGimmicks.push_back(index);
-				m_selection = { SelectionType::Gimmick, index };
-				return;
-			}
-
-			// 外す（主の物を外したら、残っている最後の物を主にする）
-			m_selectedGimmicks.erase(it);
-			if (m_selectedGimmicks.empty())
-			{
-				m_selection = Selection();
-			}
-			else if (m_selection.index == index)
-			{
-				m_selection.index = m_selectedGimmicks.back();
-			}
-		}
-
-
-		bool StageEditor::IsGimmickSelected(const int index) const
-		{
-			return std::find(m_selectedGimmicks.begin(), m_selectedGimmicks.end(), index) != m_selectedGimmicks.end();
-		}
-
-
-		void StageEditor::SelectGimmicksInRect(const Stage& stage, const math::Rect& rect, const bool isAdditive)
-		{
-			if (!isAdditive || m_selection.type != SelectionType::Gimmick)
-			{
-				SelectNone();
-			}
-
-			// 四角に少しでもかかった物を選ぶ（全体が入っていなくてよい）
-			const GimmickManager& gimmicks = stage.GetGimmicks();
-			for (size_t i = 0; i < gimmicks.GetCount(); ++i)
-			{
-				const int index = static_cast<int>(i);
-				if (!IsGimmickSelected(index) && IsTouchingBox(gimmicks.Get(i)->GetBounds(), rect))
-				{
-					m_selectedGimmicks.push_back(index);
-				}
-			}
-			if (!m_selectedGimmicks.empty() && m_selection.type != SelectionType::Gimmick)
-			{
-				m_selection = { SelectionType::Gimmick, m_selectedGimmicks.front() };
-			}
-		}
-
-
-		void StageEditor::SelectAll(const Stage& stage)
-		{
-			SelectNone();
-			const int count = static_cast<int>(stage.GetGimmicks().GetCount());
-			for (int i = 0; i < count; ++i)
-			{
-				m_selectedGimmicks.push_back(i);
-			}
-			if (!m_selectedGimmicks.empty())
-			{
-				m_selection = { SelectionType::Gimmick, m_selectedGimmicks.front() };
-			}
-		}
-
-
-		void StageEditor::ValidateSelection(const Stage& stage)
-		{
-			// 消えた物（番号が範囲の外）を選択から外す
-			const int count = static_cast<int>(stage.GetGimmicks().GetCount());
-			m_selectedGimmicks.erase(
-				std::remove_if(m_selectedGimmicks.begin(), m_selectedGimmicks.end(),
-					[count](const int index) { return index < 0 || index >= count; }),
-				m_selectedGimmicks.end());
-
-			if (m_selection.type != SelectionType::Gimmick)
-			{
-				// 奥の鏡・選択なしのときは、ギミックの選択は空
-				m_selectedGimmicks.clear();
-				return;
-			}
-			if (!IsSelectionValid(stage))
-			{
-				// 主の物が消えた：残っている物があればそれを主にする
-				if (m_selectedGimmicks.empty()) { m_selection = Selection(); }
-				else { m_selection.index = m_selectedGimmicks.front(); }
-				return;
-			}
-			if (!IsGimmickSelected(m_selection.index))
-			{
-				// 主の物が一覧に入っていない（念のため）：その物だけを選んでいることにする
-				m_selectedGimmicks.assign(1, m_selection.index);
-			}
-		}
-
-
-		void StageEditor::BeginObjectDrag(const Stage& stage)
-		{
-			m_isDraggingObject = m_selection.type != SelectionType::None;
-			if (!m_isDraggingObject)
-			{
-				return;
-			}
-			m_dragStartAnchor = GetAnchor(stage, m_selection);
-			m_dragAccumulated = math::Vec2::Zero();
-
-			// 選択中のギミックそれぞれの最初の位置を覚えておく（同じだけ動かすため）
-			m_dragStartAnchors.clear();
-			for (const int index : m_selectedGimmicks)
-			{
-				const GimmickBase* gimmick = stage.GetGimmicks().Get(static_cast<size_t>(index));
-				m_dragStartAnchors.push_back(gimmick != nullptr ? gimmick->GetAnchor() : math::Vec2::Zero());
-			}
-		}
-
-
-		void StageEditor::MoveSelection(Stage& stage, const math::Vec2& anchor)
-		{
-			// 奥の鏡（ギミックを選んでいない）：今まで通り
-			if (m_selection.type != SelectionType::Gimmick || m_dragStartAnchors.size() != m_selectedGimmicks.size())
-			{
-				SetAnchor(stage, m_selection, anchor);
-				return;
-			}
-
-			// 主の物（つかんだ物）が動いた量だけ、全部を動かす（スナップは主の物で決めるので、並びはくずれない）
-			const math::Vec2 moved = anchor - m_dragStartAnchor;
-			for (size_t i = 0; i < m_selectedGimmicks.size(); ++i)
-			{
-				if (GimmickBase* gimmick = stage.GetGimmicks().Get(static_cast<size_t>(m_selectedGimmicks[i])))
-				{
-					gimmick->SetAnchor(m_dragStartAnchors[i] + moved);
-				}
-			}
 		}
 
 
@@ -1171,6 +873,46 @@ namespace app
 
 			// いちばん後ろ（地形ブロック）
 			return hitLayer(EditorLayer::Back);
+		}
+
+
+		int StageEditor::HitTestHandle(const Stage& stage, const ImVec2& mousePos) const
+		{
+			if (m_selection.type != SelectionType::Gimmick || !IsSelectionValid(stage))
+			{
+				return -1;
+			}
+			const GimmickBase* gimmick = stage.GetGimmicks().Get(static_cast<size_t>(m_selection.index));
+			// 後ろの取っ手ほど上に描くので、後ろから調べる
+			for (int i = gimmick->GetEditHandleCount() - 1; i >= 0; --i)
+			{
+				const ImVec2 p = WorldToScreen(gimmick->GetEditHandle(i));
+				if (std::abs(mousePos.x - p.x) <= HANDLE_HALF_PX + 2.0f && std::abs(mousePos.y - p.y) <= HANDLE_HALF_PX + 2.0f)
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+
+		void StageEditor::DrawHandles(ImDrawList* drawList, const Stage& stage, const int hoveredHandle) const
+		{
+			if (m_selection.type != SelectionType::Gimmick || !IsSelectionValid(stage))
+			{
+				return;
+			}
+			const GimmickBase* gimmick = stage.GetGimmicks().Get(static_cast<size_t>(m_selection.index));
+			for (int i = 0; i < gimmick->GetEditHandleCount(); ++i)
+			{
+				// つかんでいる・マウスが乗っている取っ手は黄色にする
+				const bool isHot = (m_isDraggingObject && m_dragHandle == i) || (!m_isDraggingObject && hoveredHandle == i);
+				const ImVec2 p = WorldToScreen(gimmick->GetEditHandle(i));
+				const ImVec2 a(p.x - HANDLE_HALF_PX, p.y - HANDLE_HALF_PX);
+				const ImVec2 b(p.x + HANDLE_HALF_PX, p.y + HANDLE_HALF_PX);
+				drawList->AddRectFilled(a, b, isHot ? EDITOR_COLOR_GIZMO_HOT : EDITOR_COLOR_HANDLE);
+				drawList->AddRect(a, b, EDITOR_COLOR_HANDLE_BORDER);
+			}
 		}
 
 
@@ -1262,10 +1004,13 @@ namespace app
 			stage.GetGimmicks() = s.gimmicks;
 
 			// 消えた物を選んでいたら選択を外す
-			ValidateSelection(stage);
+			if (!IsSelectionValid(stage))
+			{
+				m_selection = Selection();
+			}
 			m_isDraggingObject = false;
-			m_isPendingSingleSelect = false;
 			m_dragAxis = GizmoAxis::None;
+			m_dragHandle = -1;
 		}
 
 
@@ -1358,23 +1103,6 @@ namespace app
 			{
 				Redo(stage);
 			}
-			else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_A, false))
-			{
-				SelectAll(stage);
-			}
-			else if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_D, false))
-			{
-				DuplicateSelected(stage);
-			}
-			else if (ImGui::IsKeyPressed(ImGuiKey_Delete, false))
-			{
-				// 選択中の物を全部消す（Undo で戻せる）
-				DeleteSelected(stage);
-			}
-			else if (ImGui::IsKeyPressed(ImGuiKey_Escape, false))
-			{
-				SelectNone();
-			}
 			else if (!io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_R, false))
 			{
 				// R：時計回り / Shift+R：反時計回り
@@ -1425,10 +1153,8 @@ namespace app
 			, m_dragStartAnchor()
 			, m_dragAccumulated()
 			, m_dragAxis(GizmoAxis::None)
-			, m_isPendingSingleSelect(false)
-			, m_isBoxSelecting(false)
-			, m_boxStart()
-			, m_isBoxAdditive(false)
+			, m_dragHandle(-1)
+			, m_dragHandleStart()
 		{}
 	}
 }

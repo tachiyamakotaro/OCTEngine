@@ -87,8 +87,17 @@ namespace app
 				Set4(k.zone, zone.rect.min.x, zone.rect.min.y, zone.rect.max.x, zone.rect.max.y);
 				Set4(k.color, c.color[0], c.color[1], c.color[2], math::Max(c.rectSoftWidth, 0.0f));
 				Set4(k.playerLight, math::Max(zone.playerLightRadius, 0.0f), math::Max(zone.playerLightSoftWidth, 0.0f), zone.isWholeStage ? 1.0f : 0.0f, 0.0f);
-				// 斜めの端（ステージ全体のときは使わない）
-				Set4(k.slant, zone.isWholeStage ? 0.0f : zone.slantLeft, zone.isWholeStage ? 0.0f : zone.slantRight, 0.0f, 0.0f);
+				// 斜め・折れ曲がった端（ステージ全体のときは使わない）
+				if (zone.isWholeStage)
+				{
+					Set4(k.slant, 0.0f, 0.0f, 0.0f, 0.0f);
+					Set4(k.bend, 0.5f, 0.5f, 0.0f, 0.0f);
+				}
+				else
+				{
+					Set4(k.slant, zone.slantLeft, zone.slantRight, zone.bendLeft, zone.bendRight);
+					Set4(k.bend, zone.bendLeftHeight, zone.bendRightHeight, 0.0f, 0.0f);
+				}
 
 				// 暗くする範囲（斜めの端も入れた矩形。ステージ全体なら、プレイヤーを真ん中にした大きな四角）
 				const math::Rect darkBounds = zone.GetDarkBounds();

@@ -3,14 +3,11 @@
  * @brief ImGui のステージエディタ
  * @details 使い方
  *          ・上：保存・読み込みなどのツールバーと、ギミックの追加ボタン（2行に並べる）
- *          ・左：物の一覧（クリックで選択。Ctrl+クリックで選択に足す・外す）
+ *          ・左：物の一覧（クリックで選択）
  *          ・真ん中：ステージの見取り図
- *              左ドラッグ（物の上） … 選択して動かす（Snap ON ならグリッドに吸着）。選択中の物をつかむと、選択中の物を全部まとめて動かす
- *              左ドラッグ（何もないところ） … 範囲選択（四角に少しでもかかった物を選ぶ。Shift / Ctrl を押しながらだと今の選択に足す）
- *              Ctrl+クリック … その物を選択に足す・外す
+ *              左ドラッグ … 選択して動かす（Snap ON ならグリッドに吸着）
+ *              四角い取っ手（選んだ物に形を変える取っ手があるとき）… ドラッグで形を変える（例：暗がりの端の傾き・曲がり）
  *              右/中ドラッグ … 画面の移動、ホイール … 拡大縮小
- *          ・キー（エディタのウィンドウを触っているとき）
- *              Delete … 選択中の物を全部消す　Ctrl+D … 複製　Ctrl+A … 全部選ぶ　Esc … 選択を外す　R / Shift+R … 回転
  *          ・右：詳細パネル（Inspector。Unity の Inspector のように、選択中の物の名前・数値と、複製・削除・回転のボタン）
  *              見取り図との境目をドラッグすると幅を変えられる
  *          ・「Save JSON」… 今の配置を JSON ファイル（StageCatalog.h の地形のファイル・ギミックのファイル）に保存する。
@@ -121,32 +118,13 @@ namespace app
 			/** 保存・読み込みの結果を出す */
 			void DrawFileMessages();
 
-			/** 選択を全部外す */
-			void SelectNone();
-			/** 1つだけ選ぶ（今までの選択は外す） */
-			void SelectSingle(const Selection& selection);
-			/** ギミックを選択に足す・外す（Ctrl+クリック） */
-			void ToggleGimmickSelection(int index);
-			/** ギミックが選択に入っているか */
-			bool IsGimmickSelected(int index) const;
-			/** 四角に少しでもかかったギミックを選ぶ（isAdditive なら今の選択に足す） */
-			void SelectGimmicksInRect(const Stage& stage, const math::Rect& rect, bool isAdditive);
-			/** ギミックを全部選ぶ */
-			void SelectAll(const Stage& stage);
-			/** 消えた物を指していたら選択から外す（毎フレーム・Undo のあと） */
-			void ValidateSelection(const Stage& stage);
-			/** 選択中の物をつかんだ（今の位置を覚えて、ドラッグで動かし始める） */
-			void BeginObjectDrag(const Stage& stage);
-			/** 選択中の物を全部動かす（主の物の基準点が anchor になるように、ほかの物も同じだけ動かす） */
-			void MoveSelection(Stage& stage, const math::Vec2& anchor);
-
 			/** 新しいギミックを見取り図の中心に追加して選択する */
 			void AddGimmick(Stage& stage, const GimmickRegistryEntry& entry);
-			/** 選択中の物を全部複製する（複製した物を選ぶ） */
+			/** 選択中の物を複製する */
 			void DuplicateSelected(Stage& stage);
-			/** 選択中の物を全部消す */
+			/** 選択中の物を消す */
 			void DeleteSelected(Stage& stage);
-			/** 選択中の物を90度ずつ回す（+1 で反時計回り、-1 で時計回り。いくつか選んでいたら、それぞれをその場で回す） */
+			/** 選択中の物を90度ずつ回す（+1 で反時計回り、-1 で時計回り） */
 			void RotateSelected(Stage& stage, int quarterTurns);
 			/** 選択が有効か（消された物を指していないか） */
 			bool IsSelectionValid(const Stage& stage) const;
@@ -167,6 +145,10 @@ namespace app
 			math::Vec2 ScreenToWorld(const ImVec2& screen) const;
 
 			GizmoAxis HitTestGizmo(const Stage& stage, const ImVec2& mousePos) const;
+			/** マウスの下にある、選択中のギミックの取っ手の番号（なければ -1） */
+			int HitTestHandle(const Stage& stage, const ImVec2& mousePos) const;
+			/** 選択中のギミックの取っ手を描く */
+			void DrawHandles(ImDrawList* drawList, const Stage& stage, int hoveredHandle) const;
 			void DrawGizmo(ImDrawList* drawList, const Stage& stage, GizmoAxis hovered) const;
 
 
@@ -181,10 +163,8 @@ namespace app
 			void HandleShortcuts(Stage& stage);
 
 		private:
-			/** 選択中の物（いくつか選んでいるときは「主」の物。数値の表示・移動矢印・スナップの基準になる） */
+			/** 選択中の物 */
 			Selection m_selection;
-			/** 選択中のギミック（全ギミックの何番目か）。1つだけ選んでいるときも入る。奥の鏡を選んでいるときは空 */
-			std::vector<int> m_selectedGimmicks;
 			/** プロパティ欄の入力欄（信号の名前の一覧を毎フレーム入れ直す） */
 			GimmickInspector m_inspector;
 			/** 見取り図の中心に映すワールド座標 */
@@ -213,17 +193,10 @@ namespace app
 			/** ドラッグ開始からのマウスの移動量（ワールド） */
 			math::Vec2 m_dragAccumulated;
 			GizmoAxis m_dragAxis;
-			/** ドラッグ開始時の、選択中のギミックそれぞれの基準点（m_selectedGimmicks と同じ並び） */
-			std::vector<math::Vec2> m_dragStartAnchors;
-			/** 選択中の物をクリックしただけ（動かさなかった）なら、離したときにその物だけを選び直す */
-			bool m_isPendingSingleSelect;
-
-			/** 範囲選択のドラッグ中か */
-			bool m_isBoxSelecting;
-			/** 範囲選択の始点（ワールド） */
-			math::Vec2 m_boxStart;
-			/** 範囲選択を今の選択に足すか（始めたときに Shift / Ctrl を押していた） */
-			bool m_isBoxAdditive;
+			/** ドラッグしている取っ手の番号（-1 = 取っ手をドラッグしていない） */
+			int m_dragHandle;
+			/** 取っ手のドラッグ開始時の位置 */
+			math::Vec2 m_dragHandleStart;
 
 			/** 表示するキャラクター */
 			std::vector<std::pair<std::string, const actor::CharacterBase*>> m_characters;

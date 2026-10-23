@@ -25,12 +25,14 @@
 //   darkZone           : xy = 暗がりの左下, zw = 右上
 //   darkColor          : rgb = 暗がりの色, a = 見えた足場のまわりのぼかしの幅（C++ の Config::rectSoftWidth）
 //   darkPlayerLight    : x = プレイヤーのまわりの丸の半径（境目の真ん中）, y = 丸の境目のぼかしの幅, z = ステージ全体なら 1
-//   darkSlant          : x = 左の端の傾き（上の辺で、左の端を右へずらす量）, y = 右の端の傾き
+//   darkSlant          : x = 左の端の傾き（上の辺で、左の端を右へずらす量）, y = 右の端の傾き,
+//                        z = 左の端の折れ目のずれ（折れ目の高さで右へずらす量）, w = 右の端の折れ目のずれ
+//   darkBend           : x = 左の端の折れ目の高さ（下の辺 0 〜 上の辺 1）, y = 右の端の折れ目の高さ
 //   darkSegments[]     : xy = 光の線分の始点, zw = 終点
 //   darkRects[]        : xy = 見えた足場の左下, zw = 右上
 //   darkRectVisibility[] : x = 見え具合
 // （fxc は複数行のマクロの中のコメントをうまく読めないことがあるので、マクロは1行で書く）
-#define MODEL_CB_EXTRA float4 darkParam; float4 darkView; float4 darkPlayer; float4 darkZone; float4 darkColor; float4 darkPlayerLight; float4 darkSlant; float4 darkSegments[DARK_MAX_SEGMENTS]; float4 darkRects[DARK_MAX_RECTS]; float4 darkRectVisibility[DARK_MAX_RECTS];
+#define MODEL_CB_EXTRA float4 darkParam; float4 darkView; float4 darkPlayer; float4 darkZone; float4 darkColor; float4 darkPlayerLight; float4 darkSlant; float4 darkBend; float4 darkSegments[DARK_MAX_SEGMENTS]; float4 darkRects[DARK_MAX_RECTS]; float4 darkRectVisibility[DARK_MAX_RECTS];
 
 #include "model.fx"
 
@@ -80,11 +82,20 @@ float4 PSMainDarkness(SPSIn In) : SV_Target0
     {
         float  height = max(darkZone.w - darkZone.y, 0.0001f);
         float  t = saturate((p.y - darkZone.y) / height);
-        float  leftX = darkZone.x + darkSlant.x * t;
-        float  rightX = darkZone.z + darkSlant.y * t;
-        // 斜めの端までの距離は、端に直角に測る（横の距離 × 傾きの分の縮み）。ぼかしの幅が斜めでも同じになる
-        float  fromLeft = (p.x - leftX) * height / length(float2(height, darkSlant.x));
-        float  fromRight = (rightX - p.x) * height / length(float2(height, darkSlant.y));
+        // 端の折れ目：下の角 → 折れ目 → 上の角 のまっすぐな線2本（C++ の DarkZone::GetLeftX と同じ）
+        // 折れ目の高さ h で、まっすぐな端から darkSlant.zw だけずれる
+        float  hL = clamp(darkBend.x, 0.05f, 0.95f);
+        float  hR = clamp(darkBend.y, 0.05f, 0.95f);
+        float  bendL = t <= hL ? t / hL : (1.0f - t) / (1.0f - hL);
+        float  bendR = t <= hR ? t / hR : (1.0f - t) / (1.0f - hR);
+        float  leftX = darkZone.x + darkSlant.x * t + darkSlant.z * bendL;
+        float  rightX = darkZone.z + darkSlant.y * t + darkSlant.w * bendR;
+        // 斜め・折れ曲がった端までの距離は、端に直角に測る（横の距離 × 傾きの分の縮み）。ぼかしの幅が斜めでも同じになる
+        // 傾き = 高さ 1 あたりの横のずれ（折れ目より下と上で、線の向きが変わる）
+        float  leftSlope = (darkSlant.x + darkSlant.z * (t <= hL ? 1.0f / hL : -1.0f / (1.0f - hL))) / height;
+        float  rightSlope = (darkSlant.y + darkSlant.w * (t <= hR ? 1.0f / hR : -1.0f / (1.0f - hR))) / height;
+        float  fromLeft = (p.x - leftX) / sqrt(1.0f + leftSlope * leftSlope);
+        float  fromRight = (rightX - p.x) / sqrt(1.0f + rightSlope * rightSlope);
         float  inside = min(min(fromLeft, p.y - darkZone.y), min(fromRight, darkZone.w - p.y));
         float  feather = darkParam.w;
         edge = feather > 0.0f ? smoothstep(-feather, feather, inside) : (inside >= 0.0f ? 1.0f : 0.0f);

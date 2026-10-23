@@ -276,6 +276,16 @@ namespace app
 			 *          向きを持つ物（光源・反射鏡）は角度を回す。点や線で置く新しいギミックを作ったら override する。
 			 */
 			virtual void Rotate90(int quarterTurns) {}
+			/**
+			 * @brief 見取り図でドラッグして形を変える「取っ手」の数（ない物は 0）
+			 * @details 選んでいる間、取っ手が四角い点で表示され、ドラッグすると SetEditHandle が呼ばれる。
+			 *          （例：暗がりの斜めの端の上の角・端の真ん中）
+			 */
+			virtual int GetEditHandleCount() const { return 0; }
+			/** @brief 取っ手の位置（ワールド） */
+			virtual math::Vec2 GetEditHandle(int index) const { return math::Vec2::Zero(); }
+			/** @brief 取っ手を position までドラッグしたときに、形を変える */
+			virtual void SetEditHandle(int index, const math::Vec2& position) {}
 
 
 		public:
