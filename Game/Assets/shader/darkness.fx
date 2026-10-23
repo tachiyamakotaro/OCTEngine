@@ -27,7 +27,8 @@
 //   darkPlayerLight    : x = プレイヤーのまわりの丸の半径（境目の真ん中）, y = 丸の境目のぼかしの幅, z = ステージ全体なら 1
 //   darkSlant          : x = 左の端の傾き（上の辺で、左の端を右へずらす量）, y = 右の端の傾き,
 //                        z = 左の端の折れ目のずれ（折れ目の高さで右へずらす量）, w = 右の端の折れ目のずれ
-//   darkBend           : x = 左の端の折れ目の高さ（下の辺 0 〜 上の辺 1）, y = 右の端の折れ目の高さ
+//   darkBend           : x = 左の端の折れ目の高さ（下の辺 0 〜 その端の上の角 1）, y = 右の端の折れ目の高さ,
+//                        z = 左上の角を上の辺から下げる量, w = 右上の角を下げる量
 //   darkSegments[]     : xy = 光の線分の始点, zw = 終点
 //   darkRects[]        : xy = 見えた足場の左下, zw = 右上
 //   darkRectVisibility[] : x = 見え具合
@@ -80,23 +81,32 @@ float4 PSMainDarkness(SPSIn In) : SV_Target0
     float edge = 1.0f;
     if (darkPlayerLight.z < 0.5f)
     {
-        float  height = max(darkZone.w - darkZone.y, 0.0001f);
-        float  t = saturate((p.y - darkZone.y) / height);
+        // 左右の端は、それぞれ下の辺からその端の上の角までの高さで考える（上の角は別々の高さにできる）
+        float  heightL = max(darkZone.w - darkZone.y - darkBend.z, 0.0001f);
+        float  heightR = max(darkZone.w - darkZone.y - darkBend.w, 0.0001f);
+        float  tL = saturate((p.y - darkZone.y) / heightL);
+        float  tR = saturate((p.y - darkZone.y) / heightR);
         // 端の折れ目：下の角 → 折れ目 → 上の角 のまっすぐな線2本（C++ の DarkZone::GetLeftX と同じ）
         // 折れ目の高さ h で、まっすぐな端から darkSlant.zw だけずれる
         float  hL = clamp(darkBend.x, 0.05f, 0.95f);
         float  hR = clamp(darkBend.y, 0.05f, 0.95f);
-        float  bendL = t <= hL ? t / hL : (1.0f - t) / (1.0f - hL);
-        float  bendR = t <= hR ? t / hR : (1.0f - t) / (1.0f - hR);
-        float  leftX = darkZone.x + darkSlant.x * t + darkSlant.z * bendL;
-        float  rightX = darkZone.z + darkSlant.y * t + darkSlant.w * bendR;
+        float  bendL = tL <= hL ? tL / hL : (1.0f - tL) / (1.0f - hL);
+        float  bendR = tR <= hR ? tR / hR : (1.0f - tR) / (1.0f - hR);
+        float  leftX = darkZone.x + darkSlant.x * tL + darkSlant.z * bendL;
+        float  rightX = darkZone.z + darkSlant.y * tR + darkSlant.w * bendR;
         // 斜め・折れ曲がった端までの距離は、端に直角に測る（横の距離 × 傾きの分の縮み）。ぼかしの幅が斜めでも同じになる
         // 傾き = 高さ 1 あたりの横のずれ（折れ目より下と上で、線の向きが変わる）
-        float  leftSlope = (darkSlant.x + darkSlant.z * (t <= hL ? 1.0f / hL : -1.0f / (1.0f - hL))) / height;
-        float  rightSlope = (darkSlant.y + darkSlant.w * (t <= hR ? 1.0f / hR : -1.0f / (1.0f - hR))) / height;
+        float  leftSlope = (darkSlant.x + darkSlant.z * (tL <= hL ? 1.0f / hL : -1.0f / (1.0f - hL))) / heightL;
+        float  rightSlope = (darkSlant.y + darkSlant.w * (tR <= hR ? 1.0f / hR : -1.0f / (1.0f - hR))) / heightR;
         float  fromLeft = (p.x - leftX) / sqrt(1.0f + leftSlope * leftSlope);
         float  fromRight = (rightX - p.x) / sqrt(1.0f + rightSlope * rightSlope);
-        float  inside = min(min(fromLeft, p.y - darkZone.y), min(fromRight, darkZone.w - p.y));
+        // 上の辺：左上の角と右上の角を結ぶ線。線より下が内側（線に直角な距離）
+        float2 topLeft = float2(darkZone.x + darkSlant.x, darkZone.y + heightL);
+        float2 topRight = float2(darkZone.z + darkSlant.y, darkZone.y + heightR);
+        float2 topEdge = topRight - topLeft;
+        float2 topDown = normalize(float2(topEdge.y, -topEdge.x) + float2(0.0f, -0.0001f));
+        float  fromTop = dot(p - topLeft, topDown);
+        float  inside = min(min(fromLeft, p.y - darkZone.y), min(fromRight, fromTop));
         float  feather = darkParam.w;
         edge = feather > 0.0f ? smoothstep(-feather, feather, inside) : (inside >= 0.0f ? 1.0f : 0.0f);
         clip(edge - 0.001f);

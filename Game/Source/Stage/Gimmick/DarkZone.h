@@ -32,7 +32,11 @@ namespace app
 		 *            例：左の端の折れ目を左へ（bendLeft をマイナス）→ 暗がりが左に広がる（光が入ってくる所がせまくなる）。
 		 *            入口の縁（段の角など）に折れ目を合わせると、縁に沿った影にできる。
 		 *          ・見取り図で選ぶと、上の2つの角と、左右の折れ目に取っ手が出る。
-		 *            角は横に、折れ目は上下左右にドラッグできる（slant / bend / 折れ目の高さが変わる）。
+		 *            角も折れ目も上下左右にドラッグできる（角：上下でその角の高さ、左右で slant。折れ目：bend と折れ目の高さ）。
+		 *          ・上の2つの角は別々の高さにできる（topDropLeft / topDropRight = rect の上の辺から、その角を下げる量）。
+		 *            上の辺は、2つの角を結ぶ斜めの線になる。下りの入口のように「左の影は高く、右の影は低い」形にするのに使う。
+		 *            詳細パネルの「Level Top」ボタンで、2つの角を同じ高さ（高いほう・低いほう）にそろえられる。
+		 *          ・折れ目の高さ（bendLeftHeight / bendRightHeight）は、それぞれの端の高さ（下の辺 〜 その端の上の角）に対する割合。
 		 *          ・暗がりの足場の見え具合は、足場の場所の明るさと同じ計算（Glow）で決める（見た目の明るさと、足場が見えるかがずれない）。
 		 *            光が離れたら、その場ですぐ暗くなる（明るいまま残らない）。
 		 */
@@ -73,6 +77,10 @@ namespace app
 			float bendLeftHeight = 0.5f;
 			/** 右の端の折れ目の高さ（下の辺 0 〜 上の辺 1） */
 			float bendRightHeight = 0.5f;
+			/** 左上の角を、rect の上の辺からどれだけ下げるか（0 = 上の辺の高さ） */
+			float topDropLeft = 0.0f;
+			/** 右上の角を、rect の上の辺からどれだけ下げるか（0 = 上の辺の高さ） */
+			float topDropRight = 0.0f;
 
 
 		public:
@@ -110,14 +118,38 @@ namespace app
 			float GetLeftX(float y) const;
 			/** 高さ y での、右の端の X */
 			float GetRightX(float y) const;
-			/** 折れ目の高さ（0〜1）から、折れ目のワールドの Y を求める */
-			float GetBendY(float bendHeight) const;
+			/**
+			 * @brief 上の角の取っ手を position へ動かす（上下はその角だけの高さ、左右は傾きが変わる。もう片方の角と折れ目の場所は動かさない）
+			 * @param isRight 右上の角なら true
+			 */
+			void MoveTopCorner(bool isRight, const math::Vec2& position);
+			/**
+			 * @brief 2つの上の角を同じ高さにそろえる（角の横の位置と折れ目の場所は動かさない）
+			 * @param isToHigher true なら高いほうの角に、false なら低いほうの角にそろえる
+			 */
+			void LevelTop(bool isToHigher);
+			/** 角を動かしたあと、折れ目を元の場所（ワールド）に戻す */
+			void KeepKinks(const math::Vec2& leftKink, const math::Vec2& rightKink);
+			/** 左の端の高さ（下の辺から左上の角まで） */
+			float GetLeftHeight() const { return math::Max(rect.Height() - topDropLeft, 0.0f); }
+			/** 右の端の高さ（下の辺から右上の角まで） */
+			float GetRightHeight() const { return math::Max(rect.Height() - topDropRight, 0.0f); }
+			/** 左上・右上の角 */
+			math::Vec2 GetTopLeft() const { return { rect.min.x + slantLeft, rect.max.y - topDropLeft }; }
+			math::Vec2 GetTopRight() const { return { rect.max.x + slantRight, rect.max.y - topDropRight }; }
+			/** 点が上の辺（2つの上の角を結ぶ線）より下か */
+			bool IsBelowTop(const math::Vec2& point) const;
+			/** 折れ目のワールドの Y（isRight なら右の端の折れ目） */
+			float GetBendY(bool isRight) const;
 			/** 4つの角（左下・右下・右上・左上の順。斜めの端も考える） */
 			void GetCorners(math::Vec2 outCorners[4]) const;
 			/** 斜めの端も入れた、暗がり全体を囲む矩形（板の大きさや、光の線分を渡すかを決めるのに使う） */
 			math::Rect GetDarkBounds() const;
 			/** 端が斜め（または曲がっている）か */
-			bool IsSlanted() const { return slantLeft != 0.0f || slantRight != 0.0f || bendLeft != 0.0f || bendRight != 0.0f; }
+			bool IsSlanted() const
+			{
+				return slantLeft != 0.0f || slantRight != 0.0f || bendLeft != 0.0f || bendRight != 0.0f || topDropLeft != 0.0f || topDropRight != 0.0f;
+			}
 			/**
 			 * @brief 端の形を、線をつないだ形（左下から反時計回り）で out に入れる（見取り図に描く・クリックを調べるのに使う）
 			 */

@@ -10,10 +10,10 @@
 #include "Source/Actor/Character/CharacterStateMachine.h"
 #include "Source/Actor/Character/CharacterStatus.h"
 #include "Source/Core/DebugUI.h"
+#include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
 #include "Source/Stage/StageLoader.h"
-#include "Source/Scene/SceneManager.h"
 #include "Source/Timer/TimerParameter.h"
 #include <cmath>
 
@@ -718,11 +718,7 @@ namespace app
 		// ゴールしたあとは止めたまま（RestartPlayers で m_isCleared が戻ったら、また数える）
 		const bool isTransitioning = SceneManager::GetInstance() != nullptr && SceneManager::GetInstance()->IsTransitioning();
 		m_stageTimer.SetRunning(!m_isCleared && !isTransitioning);
-		// デバッグの Stop Timer で止めていても、デバッグ表示を OFF にしたら動かす（止めたまま忘れないように）
-		if (!app::debug::IsDebugUIVisible())
-		{
-			m_stageTimer.SetPaused(false);
-		}
+		// デバッグの Stop Timer で止めたら、デバッグ表示を OFF にしても止めたままにする（動かすときは Resume Timer を押す）
 		m_stageTimer.Update(deltaTime);
 
 		// 残りわずか（危険）の間は、表示の秒数が変わるたびに「ピッ」

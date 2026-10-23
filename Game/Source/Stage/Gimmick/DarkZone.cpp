@@ -42,7 +42,9 @@ namespace app
 
 
 			/** 斜めの暗がりを、見取り図で塗るときの横の帯の数 */
-			constexpr int EDITOR_FILL_STRIPS = 24;
+			constexpr int EDITOR_FILL_STRIPS = 48;
+			/** 上の角を下へドラッグしたとき、暗がりの高さをこれより低くしない */
+			constexpr float MIN_ZONE_HEIGHT = 20.0f;
 			/** 折れ目の高さの範囲（上や下の辺にくっつくと、折れ目の片側の線が真横になってしまうので、少しあける） */
 			constexpr float BEND_HEIGHT_MIN = 0.05f;
 			constexpr float BEND_HEIGHT_MAX = 0.95f;
@@ -96,7 +98,7 @@ namespace app
 			{
 				return true;
 			}
-			if (point.y < rect.min.y || point.y > rect.max.y)
+			if (point.y < rect.min.y || point.y > rect.max.y || !IsBelowTop(point))
 			{
 				return false;
 			}
@@ -104,9 +106,25 @@ namespace app
 		}
 
 
+		bool DarkZone::IsBelowTop(const math::Vec2& point) const
+		{
+			// 上の辺は、左上の角と右上の角を結ぶ線。その線の、点の X での高さより下なら中
+			const math::Vec2 topLeft = GetTopLeft();
+			const math::Vec2 topRight = GetTopRight();
+			const float dx = topRight.x - topLeft.x;
+			if (math::Abs(dx) < 0.0001f)
+			{
+				return point.y <= math::Max(topLeft.y, topRight.y);
+			}
+			const float t = math::Clamp01((point.x - topLeft.x) / dx);
+			return point.y <= topLeft.y + (topRight.y - topLeft.y) * t;
+		}
+
+
 		float DarkZone::GetLeftX(const float y) const
 		{
-			const float height = rect.Height();
+			// 左の端は、下の辺から左上の角までの高さで考える
+			const float height = GetLeftHeight();
 			const float t = height > 0.0f ? math::Clamp01((y - rect.min.y) / height) : 0.0f;
 			return rect.min.x + slantLeft * t + bendLeft * BendShape(t, bendLeftHeight);
 		}
@@ -114,15 +132,74 @@ namespace app
 
 		float DarkZone::GetRightX(const float y) const
 		{
-			const float height = rect.Height();
+			const float height = GetRightHeight();
 			const float t = height > 0.0f ? math::Clamp01((y - rect.min.y) / height) : 0.0f;
 			return rect.max.x + slantRight * t + bendRight * BendShape(t, bendRightHeight);
 		}
 
 
-		float DarkZone::GetBendY(const float bendHeight) const
+		void DarkZone::MoveTopCorner(const bool isRight, const math::Vec2& position)
 		{
-			return rect.min.y + rect.Height() * math::Clamp(bendHeight, BEND_HEIGHT_MIN, BEND_HEIGHT_MAX);
+			// もう片方の角と、両方の折れ目は今の場所から動かさない（入口の縁に合わせた形がずれないように）
+			const math::Vec2 leftKink(GetLeftX(GetBendY(false)), GetBendY(false));
+			const math::Vec2 rightKink(GetRightX(GetBendY(true)), GetBendY(true));
+			const float otherTopY = isRight ? GetTopLeft().y : GetTopRight().y;
+
+			// 動かす角の高さ（下の辺より MIN_ZONE_HEIGHT 以上は上にする）
+			const float cornerY = math::Max(position.y, rect.min.y + MIN_ZONE_HEIGHT);
+			// rect の上の辺は、2つの角の高いほう。低いほうの角は、上の辺から下げる量（drop）で表す
+			rect.max.y = math::Max(cornerY, otherTopY);
+			const float cornerDrop = rect.max.y - cornerY;
+			const float otherDrop = rect.max.y - otherTopY;
+			if (isRight)
+			{
+				topDropRight = cornerDrop;
+				topDropLeft = otherDrop;
+				slantRight = position.x - rect.max.x;
+			}
+			else
+			{
+				topDropLeft = cornerDrop;
+				topDropRight = otherDrop;
+				slantLeft = position.x - rect.min.x;
+			}
+			KeepKinks(leftKink, rightKink);
+		}
+
+
+		void DarkZone::LevelTop(const bool isToHigher)
+		{
+			const math::Vec2 leftKink(GetLeftX(GetBendY(false)), GetBendY(false));
+			const math::Vec2 rightKink(GetRightX(GetBendY(true)), GetBendY(true));
+			if (!isToHigher)
+			{
+				// 低いほうの角の高さを、新しい上の辺にする
+				rect.max.y -= math::Max(topDropLeft, topDropRight);
+			}
+			topDropLeft = 0.0f;
+			topDropRight = 0.0f;
+			KeepKinks(leftKink, rightKink);
+		}
+
+
+		void DarkZone::KeepKinks(const math::Vec2& leftKink, const math::Vec2& rightKink)
+		{
+			// 折れ目を元の場所に戻す（その端の上の角より上・下の辺より下にはみ出したら、範囲の中に収める）
+			auto keepKink = [&](const math::Vec2& kink, const float base, const float slant, const float height, float& outBend, float& outBendHeight)
+				{
+					outBendHeight = height > 0.0f ? math::Clamp((kink.y - rect.min.y) / height, BEND_HEIGHT_MIN, BEND_HEIGHT_MAX) : 0.5f;
+					outBend = kink.x - (base + slant * outBendHeight);
+				};
+			keepKink(leftKink, rect.min.x, slantLeft, GetLeftHeight(), bendLeft, bendLeftHeight);
+			keepKink(rightKink, rect.max.x, slantRight, GetRightHeight(), bendRight, bendRightHeight);
+		}
+
+
+		float DarkZone::GetBendY(const bool isRight) const
+		{
+			const float height = isRight ? GetRightHeight() : GetLeftHeight();
+			const float ratio = isRight ? bendRightHeight : bendLeftHeight;
+			return rect.min.y + height * math::Clamp(ratio, BEND_HEIGHT_MIN, BEND_HEIGHT_MAX);
 		}
 
 
@@ -130,14 +207,15 @@ namespace app
 		{
 			outCorners[0] = { rect.min.x, rect.min.y };
 			outCorners[1] = { rect.max.x, rect.min.y };
-			outCorners[2] = { rect.max.x + slantRight, rect.max.y };
-			outCorners[3] = { rect.min.x + slantLeft, rect.max.y };
+			outCorners[2] = GetTopRight();
+			outCorners[3] = GetTopLeft();
 		}
 
 
 		math::Rect DarkZone::GetDarkBounds() const
 		{
 			// 左の端・右の端それぞれの、いちばん左といちばん右（曲がっている所も入れる）
+			// 上下は rect のまま（rect の上の辺は、2つの上の角の高いほう）
 			float leftMin = 0.0f;
 			float leftMax = 0.0f;
 			float rightMin = 0.0f;
@@ -154,14 +232,14 @@ namespace app
 		void DarkZone::GetOutline(std::vector<math::Vec2>& out) const
 		{
 			out.clear();
-			// 左右の端は「下の角 → 折れ目 → 上の角」のまっすぐな線2本
+			// 左右の端は「下の角 → 折れ目 → 上の角」のまっすぐな線2本。上の辺は2つの上の角を結ぶ線
 			// 下の辺（左 → 右）、右の端（下 → 折れ目 → 上）、上の辺（右 → 左）、左の端（上 → 折れ目 → 下）の順
-			const float rightKinkY = GetBendY(bendRightHeight);
-			const float leftKinkY = GetBendY(bendLeftHeight);
+			const float rightKinkY = GetBendY(true);
+			const float leftKinkY = GetBendY(false);
 			out.push_back({ GetRightX(rect.min.y), rect.min.y });
 			out.push_back({ GetRightX(rightKinkY), rightKinkY });
-			out.push_back({ GetRightX(rect.max.y), rect.max.y });
-			out.push_back({ GetLeftX(rect.max.y), rect.max.y });
+			out.push_back(GetTopRight());
+			out.push_back(GetTopLeft());
 			out.push_back({ GetLeftX(leftKinkY), leftKinkY });
 			out.push_back({ GetLeftX(rect.min.y), rect.min.y });
 		}
@@ -169,14 +247,12 @@ namespace app
 
 		math::Vec2 DarkZone::GetEditHandle(const int index) const
 		{
-			const float leftKinkY = GetBendY(bendLeftHeight);
-			const float rightKinkY = GetBendY(bendRightHeight);
 			switch (index)
 			{
-			case 0:		return { GetLeftX(leftKinkY), leftKinkY };
-			case 1:		return { GetRightX(rightKinkY), rightKinkY };
-			case 2:		return { rect.min.x + slantLeft, rect.max.y };
-			case 3:		return { rect.max.x + slantRight, rect.max.y };
+			case 0:		return { GetLeftX(GetBendY(false)), GetBendY(false) };
+			case 1:		return { GetRightX(GetBendY(true)), GetBendY(true) };
+			case 2:		return GetTopLeft();
+			case 3:		return GetTopRight();
 			default:	return math::Vec2::Zero();
 			}
 		}
@@ -184,36 +260,27 @@ namespace app
 
 		void DarkZone::SetEditHandle(const int index, const math::Vec2& position)
 		{
-			// 折れ目は上下左右に、角は横にだけ動かす
-			const float height = rect.Height();
-			const float t = height > 0.0f ? math::Clamp((position.y - rect.min.y) / height, BEND_HEIGHT_MIN, BEND_HEIGHT_MAX) : 0.5f;
+			// 折れ目も上の角も、上下左右に動かせる
+			// 折れ目の高さは、その端の高さ（下の辺 〜 その端の上の角）に対する割合
+			auto kinkRatio = [&](const float height)
+				{
+					return height > 0.0f ? math::Clamp((position.y - rect.min.y) / height, BEND_HEIGHT_MIN, BEND_HEIGHT_MAX) : 0.5f;
+				};
 			switch (index)
 			{
 			case 0:
 				// 左の端の折れ目：高さが折れ目の高さ、まっすぐな端（その高さ）からの横のずれが bend
-				bendLeftHeight = t;
-				bendLeft = position.x - (rect.min.x + slantLeft * t);
+				bendLeftHeight = kinkRatio(GetLeftHeight());
+				bendLeft = position.x - (rect.min.x + slantLeft * bendLeftHeight);
 				break;
 			case 1:
-				bendRightHeight = t;
-				bendRight = position.x - (rect.max.x + slantRight * t);
+				bendRightHeight = kinkRatio(GetRightHeight());
+				bendRight = position.x - (rect.max.x + slantRight * bendRightHeight);
 				break;
 			case 2:
-			{
-				// 左上の角：下の辺の左の端からのずれが傾き
-				// 折れ目は今の場所から動かさない（入口の縁に合わせた折れ目が、角を動かしてもずれないように）
-				const float kinkX = rect.min.x + slantLeft * bendLeftHeight + bendLeft;
-				slantLeft = position.x - rect.min.x;
-				bendLeft = kinkX - (rect.min.x + slantLeft * bendLeftHeight);
-				break;
-			}
 			case 3:
-			{
-				const float kinkX = rect.max.x + slantRight * bendRightHeight + bendRight;
-				slantRight = position.x - rect.max.x;
-				bendRight = kinkX - (rect.max.x + slantRight * bendRightHeight);
+				MoveTopCorner(index == 3, position);
 				break;
-			}
 			default:
 				break;
 			}
@@ -251,12 +318,31 @@ namespace app
 			if (!isWholeStage && IsSlanted())
 			{
 				const float height = rect.Height();
+				const math::Vec2 topLeft = GetTopLeft();
+				const math::Vec2 topRight = GetTopRight();
 				for (int i = 0; i < EDITOR_FILL_STRIPS; ++i)
 				{
 					const float y0 = rect.min.y + height * static_cast<float>(i) / EDITOR_FILL_STRIPS;
 					const float y1 = rect.min.y + height * static_cast<float>(i + 1) / EDITOR_FILL_STRIPS;
 					const float yMid = (y0 + y1) * 0.5f;
-					canvas.Rect({ { GetLeftX(yMid), y0 }, { GetRightX(yMid), y1 } }, EDITOR_COLOR_FILL, 0);
+					float xMin = GetLeftX(yMid);
+					float xMax = GetRightX(yMid);
+					// 上の辺が斜めのとき：この高さで上の辺より上になる側を削る
+					const float dy = topRight.y - topLeft.y;
+					if (math::Abs(dy) > 0.0001f)
+					{
+						const float xCut = topLeft.x + (yMid - topLeft.y) * (topRight.x - topLeft.x) / dy;
+						if (dy < 0.0f && yMid > topRight.y) { xMax = math::Min(xMax, xCut); }	// 右の角が低い：右側を削る
+						if (dy > 0.0f && yMid > topLeft.y) { xMin = math::Max(xMin, xCut); }	// 左の角が低い：左側を削る
+					}
+					else if (yMid > topLeft.y)
+					{
+						continue;
+					}
+					if (xMax > xMin)
+					{
+						canvas.Rect({ { xMin, y0 }, { xMax, y1 } }, EDITOR_COLOR_FILL, 0);
+					}
 				}
 				std::vector<math::Vec2> outline;
 				GetOutline(outline);
@@ -265,7 +351,7 @@ namespace app
 				{
 					canvas.Line(outline[i], outline[(i + 1) % outline.size()], lineColor);
 				}
-				canvas.Label({ rect.min.x + slantLeft, rect.max.y }, name + " (dark)");
+				canvas.Label(GetTopLeft(), name + " (dark)");
 				return;
 			}
 			// ステージ全体を暗くするときは、枠は選ぶためだけのものなので薄く描く
@@ -305,7 +391,25 @@ namespace app
 				ImGui::SetItemTooltip("Move the KINK of the right edge to the right (minus = left). The edge becomes two straight lines.\nPlus = the dark area grows to the right.");
 				ImGui::SliderFloat("Bend Right Height", &bendRightHeight, BEND_HEIGHT_MIN, BEND_HEIGHT_MAX, "%.2f");
 				ImGui::SetItemTooltip("Height of the kink on the right edge (0 = bottom, 1 = top).");
-				ImGui::TextDisabled("Drag the square handles in the map to change slant / bend.");
+				ImGui::DragFloat("Top Drop Left", &topDropLeft, 1.0f, 0.0f, 5000.0f, "%.0f");
+				ImGui::SetItemTooltip("How far the top-left corner is lowered from the top of the frame.");
+				ImGui::DragFloat("Top Drop Right", &topDropRight, 1.0f, 0.0f, 5000.0f, "%.0f");
+				ImGui::SetItemTooltip("How far the top-right corner is lowered from the top of the frame.");
+				topDropLeft = math::Clamp(topDropLeft, 0.0f, math::Max(rect.Height() - MIN_ZONE_HEIGHT, 0.0f));
+				topDropRight = math::Clamp(topDropRight, 0.0f, math::Max(rect.Height() - MIN_ZONE_HEIGHT, 0.0f));
+				// 2つの上の角を同じ高さにそろえる
+				if (ImGui::Button("Level Top (Higher)"))
+				{
+					LevelTop(true);
+				}
+				ImGui::SetItemTooltip("Make both top corners the same height as the HIGHER one.");
+				ImGui::SameLine();
+				if (ImGui::Button("Level Top (Lower)"))
+				{
+					LevelTop(false);
+				}
+				ImGui::SetItemTooltip("Make both top corners the same height as the LOWER one.");
+				ImGui::TextDisabled("Drag the square handles in the map to change slant / bend / corner height.");
 			}
 			ImGui::TextDisabled("Click the frame line to select this zone.");
 		}
@@ -328,6 +432,8 @@ namespace app
 			archive.Field("bendRight", bendRight);
 			archive.Field("bendLeftHeight", bendLeftHeight);
 			archive.Field("bendRightHeight", bendRightHeight);
+			archive.Field("topDropLeft", topDropLeft);
+			archive.Field("topDropRight", topDropRight);
 		}
 	}
 }

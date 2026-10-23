@@ -96,7 +96,7 @@ namespace app
 				else
 				{
 					Set4(k.slant, zone.slantLeft, zone.slantRight, zone.bendLeft, zone.bendRight);
-					Set4(k.bend, zone.bendLeftHeight, zone.bendRightHeight, 0.0f, 0.0f);
+					Set4(k.bend, zone.bendLeftHeight, zone.bendRightHeight, zone.topDropLeft, zone.topDropRight);
 				}
 
 				// 暗くする範囲（斜めの端も入れた矩形。ステージ全体なら、プレイヤーを真ん中にした大きな四角）

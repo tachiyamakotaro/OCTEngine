@@ -116,7 +116,7 @@ namespace app
 				float color[4];						// rgb = 暗がりの色, a = 見えた足場のまわりのぼかしの幅（rectSoftWidth）
 				float playerLight[4];				// x = プレイヤーのまわりの丸の半径（境目の真ん中）, y = 丸の境目のぼかしの幅, z = ステージ全体なら 1
 				float slant[4];						// x = 左の端の傾き（上の辺でのずれ）, y = 右の端の傾き, z = 左の端の折れ目のずれ, w = 右の端の折れ目のずれ
-				float bend[4];						// x = 左の端の折れ目の高さ（0〜1）, y = 右の端の折れ目の高さ, zw = 使わない
+				float bend[4];						// x = 左の端の折れ目の高さ（0〜1）, y = 右の端の折れ目の高さ, z = 左上の角を下げる量, w = 右上の角を下げる量
 				float segments[MAX_SEGMENTS][4];	// xy = 光の線分の始点, zw = 終点
 				float rects[MAX_RECTS][4];			// xy = 見えた足場の左下, zw = 右上（まわりの広さを足した後）
 				float rectVisibility[MAX_RECTS][4];	// x = 見え具合（0〜1）
