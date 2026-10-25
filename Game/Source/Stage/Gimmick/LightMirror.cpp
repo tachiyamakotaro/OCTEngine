@@ -19,6 +19,16 @@ namespace app
 			const ImU32 EDITOR_COLOR_MIRROR_BACK = IM_COL32(90, 90, 100, 255);
 			const ImU32 EDITOR_COLOR_RAIL = IM_COL32(230, 240, 255, 90);
 
+			/**
+			 * 鏡の厚さの半分（見た目の厚さ GimmickRenderer の lightMirrorThickness = 10 の半分）
+			 * 鏡と平行に進む光が、鏡の線からこの距離より近くを通ると、鏡の端（厚み）に当たって止まる
+			 */
+			constexpr float EDGE_HALF_THICKNESS = 5.0f;
+			/** 光と鏡が平行とみなす値（2つの向きの外積。どちらも長さ 1 なので、角度のずれの sin） */
+			constexpr float PARALLEL_EPSILON = 0.001f;
+			/** 光の始点のすぐ近くでの当たりは無視する（LightTracer の RAY_EPSILON と同じ） */
+			constexpr float EDGE_HIT_EPSILON = 0.01f;
+
 
 			/** 点と線分の距離 */
 			float DistanceToSegment(const math::Vec2& p, const math::Vec2& a, const math::Vec2& b)
@@ -43,7 +53,9 @@ namespace app
 		{
 			if (!RayIntersectSegment(origin, direction, GetStart(), GetEnd(), outHit.distance))
 			{
-				return false;
+				// 鏡がまっすぐ光の向きを向いている（光と鏡が平行）ときは、線分どうしの交差では当たらない。
+				// 鏡には厚みがあるので、光が鏡の線のすぐそばを通るなら、手前の鏡の端に当たって止める
+				return IntersectEdge(origin, direction, outHit);
 			}
 			const math::Vec2 normal = GetNormal();
 			const bool isFront = math::Dot(direction, normal) < 0.0f;
@@ -63,6 +75,36 @@ namespace app
 				// 裏側に当たった
 				outHit.response = LightResponse::Stop;
 			}
+			return true;
+		}
+
+
+		bool LightMirror::IntersectEdge(const math::Vec2& origin, const math::Vec2& direction, LightHit& outHit) const
+		{
+			const math::Vec2 mirrorDirection = GetDirection();
+			// 光と鏡が平行でなければ、端に当たることはない（ふつうの交差で調べ済み）
+			if (math::Abs(math::Cross(direction, mirrorDirection)) > PARALLEL_EPSILON)
+			{
+				return false;
+			}
+			// 光の線と鏡の線の間の距離（鏡の厚みの半分より遠ければ、横を通り過ぎる）
+			const float offset = math::Abs(math::Cross(direction, center - origin));
+			if (offset > EDGE_HALF_THICKNESS)
+			{
+				return false;
+			}
+			// 光の進む向きで、手前にある鏡の端まで進んだ所で当たる
+			const float toStart = math::Dot(GetStart() - origin, direction);
+			const float toEnd = math::Dot(GetEnd() - origin, direction);
+			const float nearDistance = math::Min(toStart, toEnd);
+			// 鏡が光の後ろにある・光が鏡の上から出ている（始点が鏡の範囲の中）なら当てない
+			if (nearDistance <= EDGE_HIT_EPSILON)
+			{
+				return false;
+			}
+			outHit.distance = nearDistance;
+			// 鏡の端（厚み）は反射しないので、光はそこで止まる
+			outHit.response = LightResponse::Stop;
 			return true;
 		}
 

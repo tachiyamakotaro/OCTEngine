@@ -13,6 +13,7 @@ namespace app
 		/**
 		 * @brief 光を反射する鏡（線分）
 		 * @details 表側（法線の向き）だけが光を反射する。裏側に当たった光は止まる。
+		 *          光と平行（鏡がまっすぐ光の向きを向いている）なときは、鏡の端（厚み）に当たって止まる。
 		 *          isDoubleSided を true にすると両面で反射する。
 		 *          プレイヤーが回したり動かしたりする（MirrorInteractor）。
 		 */
@@ -46,6 +47,11 @@ namespace app
 			std::unique_ptr<GimmickBase> Clone() const override { return std::make_unique<LightMirror>(*this); }
 
 			bool IntersectLight(const math::Vec2& origin, const math::Vec2& direction, LightHit& outHit) const override;
+			/**
+			 * @brief 鏡と平行に進む光が、鏡の端（厚み）に当たるか（当たったら光は止まる）
+			 * @details 鏡がまっすぐ光の向きを向いているとき、線分どうしの交差では当たらないので、ここで調べる
+			 */
+			bool IntersectEdge(const math::Vec2& origin, const math::Vec2& direction, LightHit& outHit) const;
 
 			math::Vec2 GetAnchor() const override { return center; }
 			/** レールに乗っている鏡はレールごと動かす */

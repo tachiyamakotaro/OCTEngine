@@ -350,6 +350,7 @@
     <ClCompile Include="Source\Stage\Stages\Stage01.cpp" />
     <ClCompile Include="Source\Timer\StageTimer.cpp" />
     <ClCompile Include="Source\UI\MenuInput.cpp" />
+    <ClCompile Include="Source\UI\MirrorPromptUI.cpp" />
     <ClCompile Include="Source\UI\PauseMenu.cpp" />
     <ClCompile Include="Source\UI\SoundOptionMenu.cpp" />
     <ClCompile Include="Source\UI\TimerUI.cpp" />
@@ -460,6 +461,7 @@
     <ClInclude Include="Source\Timer\StageTimer.h" />
     <ClInclude Include="Source\Timer\TimerParameter.h" />
     <ClInclude Include="Source\UI\MenuInput.h" />
+    <ClInclude Include="Source\UI\MirrorPromptUI.h" />
     <ClInclude Include="Source\UI\PauseMenu.h" />
     <ClInclude Include="Source\UI\SoundOptionMenu.h" />
     <ClInclude Include="Source\UI\TimerUI.h" />

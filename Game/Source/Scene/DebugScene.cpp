@@ -146,6 +146,9 @@ namespace app
 		m_timerUI.Init();
 		StartTimer();
 
+		// 反射鏡のインタラクト表示（画像は Assets/sprite/prompt/）
+		m_mirrorPromptUI.Init();
+
 		return true;
 	}
 
@@ -235,6 +238,13 @@ namespace app
 			const app::math::Rect body = m_player.GetController().GetBounds();
 			m_darknessRenderer.Update(m_stage, (body.min + body.max) * 0.5f, m_gameCamera.GetParameter().isOrtho);
 		}
+		// 反射鏡のインタラクト表示（鏡の位置を画面の位置に変えるので、鏡の操作とカメラを動かしたあとに更新する）
+		// ・日よけ板が近いときは RB が板のほうに使われるので、鏡の RB は出さない
+		// ・ゴールしたあと・時間切れの間・デバッグでプレイヤーをつかんでいる間は出さない
+		m_mirrorPromptUI.Update(m_stage, m_mirrorInteractor, m_player,
+			m_shadeInteractor.GetFocusedIndex() < 0,
+			!m_isCleared && !m_stageTimer.IsTimeUp() && !m_isDraggingPlayer,
+			deltaTime);
 		SceneLight::GetInstance()->Update();
 
 		if (isDebugUI)
@@ -265,6 +275,8 @@ namespace app
 		m_fireRenderer.DrawTranslucent(rc);
 		// 暗い部屋の手前の壁（半透明。中の光や炎も隠したいので、3D の一番最後に登録する）
 		m_darknessRenderer.DrawFrontWalls(rc);
+		// 反射鏡のインタラクト表示（2D の画像は 3D のあとに描かれる。時間制限の表示より下に出す）
+		m_mirrorPromptUI.Render(rc);
 		// 時間制限の表示（2D の画像は 3D のあとに描かれる。ポーズ画面はこの上に出る）
 		m_timerUI.Render(rc);
 	}
@@ -941,6 +953,12 @@ namespace app
 		{
 			m_stageTimer.DrawSettingsUI();
 			m_timerUI.DrawSettingsUI();
+		}
+
+		// ---- 反射鏡のインタラクト表示（中身は表示のクラスが作る） ----
+		if (ImGui::CollapsingHeader("Mirror Prompt"))
+		{
+			m_mirrorPromptUI.DrawSettingsUI();
 		}
 
 		// ---- 動きの調整 ----

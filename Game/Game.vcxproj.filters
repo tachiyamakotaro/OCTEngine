@@ -336,6 +336,9 @@
     <ClCompile Include="Source\Stage\Gimmick\FrontWall.cpp">
       <Filter>Source\Stage\Gimmick</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\MirrorPromptUI.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -648,6 +651,9 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\Gimmick\FrontWall.h">
       <Filter>Source\Stage\Gimmick</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\MirrorPromptUI.h">
+      <Filter>Source\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
