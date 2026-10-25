@@ -82,8 +82,12 @@ namespace app
 		void ReloadStage();
 		/** 別のステージに切り替える（StageCatalog.h の表の番号） */
 		void ChangeStage(int index);
-		/** ステージはそのままで、プレイヤーと扉・光・霧などの状態だけ最初に戻す（最後に触れたチェックポイントから再開） */
-		void RestartPlayers();
+		/**
+		 * @brief プレイヤーを最後に触れたチェックポイントから再開させる
+		 * @param isResetGimmicks true  … 扉・光・霧などの仕掛けも最初に戻す（F5・Warp ボタン・時間切れ）
+		 *                        false … 仕掛けは今の状態のまま（落下死などで死んだとき）
+		 */
+		void RestartPlayers(bool isResetGimmicks = true);
 		/** プレイヤーが触れたチェックポイントを再開位置にする */
 		void UpdateCheckpoint();
 		/** ワープに入ったら飛ばす。ゴールに触れたらクリアにする */

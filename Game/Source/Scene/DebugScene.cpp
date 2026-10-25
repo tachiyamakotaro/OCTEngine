@@ -349,9 +349,14 @@ namespace app
 	}
 
 
-	void DebugScene::RestartPlayers()
+	void DebugScene::RestartPlayers(const bool isResetGimmicks)
 	{
-		m_stage.ResetRuntimeState();
+		// 死んだときは仕掛けを戻さない（攻略の途中の状態のまま、チェックポイントから再開）
+		if (isResetGimmicks)
+		{
+			m_stage.ResetRuntimeState();
+		}
+		// 鏡・日よけ板をつかんでいたら離す（鏡の向き・板の位置はそのまま）
 		m_mirrorInteractor.Reset();
 		m_shadeInteractor.Reset();
 
@@ -719,7 +724,8 @@ namespace app
 		m_deadTimer += deltaTime;
 		if (m_isAutoRestart && m_deadTimer >= RESTART_DELAY)
 		{
-			RestartPlayers();
+			// 仕掛けは今の状態のまま（溶かした氷・回した鏡・開いた扉などは戻さない）
+			RestartPlayers(false);
 		}
 	}
 
@@ -755,6 +761,10 @@ namespace app
 			m_timeUpTimer += deltaTime;
 			if (m_timeUpTimer >= app::timer::TIME_UP_WAIT)
 			{
+				// ステージを JSON から読み直して、攻略前の状態に戻す
+				// （ResetRuntimeState だけでは、プレイヤーが回した鏡の向き・動かした日よけ板の位置が戻らないため）
+				// 読めなかったとき（JSON の書き間違いなど）は今のステージのままで、下の RestartPlayers が仕掛けだけ戻す
+				LoadStage();
 				m_respawnPosition = m_playerStartPosition;
 				m_respawnName.clear();
 				RestartPlayers();
