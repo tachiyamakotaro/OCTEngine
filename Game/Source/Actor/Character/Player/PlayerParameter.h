@@ -16,6 +16,13 @@ namespace app
 		 */
 		struct PlayerParameter : public CharacterParameter
 		{
+			PlayerParameter()
+			{
+				// Remy（Mixamo）の身長を、体の高さ（bodyHeight = 120）に合わせる（Remy は約149 → 0.8倍で約119）
+				// ※ ゲームで見ながら Tuning の「Model Scale」で合わせ、決まった値をここに書く
+				modelScale = 0.8f;
+			}
+
 			// ---- ジャンプ ----
 			/** ジャンプの初速 */
 			float jumpVelocity = 1100.0f;
@@ -42,7 +49,17 @@ namespace app
 			/** 崖から手を離したあと、再びつかめるようになるまでの時間 */
 			float ledgeRegrabCooldown = 0.3f;
 			/** 崖を登りきるまでの時間 */
-			float climbUpDuration = 0.5f;
+			float climbUpDuration = 1.13f;
+
+			// ---- 崖つかまり・崖登りの見た目（当たり判定は変わらない）----
+			/** ぶら下がっているときのモデルのずらし：前（崖の方）が正 */
+			float ledgeHangModelForward = 15.0f;
+			/** ぶら下がっているときのモデルのずらし：上が正 */
+			float ledgeHangModelY = -20.0f;
+			/** 崖登りのときに、ぶら下がりのずらしにさらに足す量：前が正 */
+			float climbModelForward = 0.0f;
+			/** 崖登りのときに、ぶら下がりのずらしにさらに足す量：上が正（登りのアニメーションの始まりの姿勢を、ぶら下がりの姿勢にそろえる） */
+			float climbModelY = 30.0f;
 
 			// ---- 落下ダメージ（プリンス オブ ペルシャ：1段は平気、2段で痛い、3段で死ぬ）----
 			/** この高さ以上から落ちると着地でよろけてダメージ */

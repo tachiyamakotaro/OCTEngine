@@ -17,18 +17,19 @@ namespace app
 			/**
 			 * @brief アニメーションデータ（PlayerAnimation と並びを合わせる）
 			 * @note 専用のアニメーションができるまでは、今あるもので代用している（★仮）
+			 *       モデル（Y Bot）とボーンの並びが同じ tka しか使えない（ユニティちゃんの tka は混ぜない）
 			 */
 			const AnimationData PLAYER_ANIMATION_DATA[] =
 			{
-				{ "Assets/animData/idle.tka", true },	// Idle
-				{ "Assets/animData/run.tka",  true },	// Run
-				{ "Assets/animData/jump.tka", false },	// Jump
-				{ "Assets/animData/jump.tka", false },	// Fall      ★仮
-				{ "Assets/animData/idle.tka", true },	// Crouch    ★仮
-				{ "Assets/animData/idle.tka", true },	// LedgeHang ★仮
-				{ "Assets/animData/walk.tka", false },	// ClimbUp   ★仮
-				{ "Assets/animData/idle.tka", false },	// HardLand  ★仮
-				{ "Assets/animData/idle.tka", false },	// Dead      ★仮
+				{ "Assets/animData/player/Player_Idle.tka",        true },	// Idle
+				{ "Assets/animData/player/Player_Run.tka",         true },	// Run
+				{ "Assets/animData/player/Player_Jump.tka",        false },	// Jump
+				{ "Assets/animData/player/Player_Jump.tka",        false },	// Fall      ★仮
+				{ "Assets/animData/player/Player_Idle.tka",        true },	// Crouch    ★仮
+				{ "Assets/animData/player/Player_HangingIdle.tka", true },	// LedgeHang
+				{ "Assets/animData/player/Player_Climb.tka",       false },	// ClimbUp
+				{ "Assets/animData/player/Player_Idle.tka",        false },	// HardLand  ★仮
+				{ "Assets/animData/player/Player_Idle.tka",        false },	// Dead      ★仮
 			};
 			static_assert(
 				sizeof(PLAYER_ANIMATION_DATA) / sizeof(PLAYER_ANIMATION_DATA[0]) == static_cast<size_t>(PlayerAnimation::Num),
@@ -37,10 +38,10 @@ namespace app
 			/** モデルデータ */
 			const ModelData PLAYER_MODEL_DATA =
 			{
-				"Assets/modelData/unityChan.tkm",
+				"Assets/modelData/player/Player_remy.tkm",
 				PLAYER_ANIMATION_DATA,
 				static_cast<int>(PlayerAnimation::Num),
-				enModelUpAxisY,
+				enModelUpAxisZ,
 			};
 		}
 

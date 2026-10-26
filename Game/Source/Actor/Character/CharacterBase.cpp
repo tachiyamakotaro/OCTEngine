@@ -43,6 +43,12 @@ namespace app
 
 		void CharacterBase::SetupCharacter()
 		{
+			// 見た目のずらしを戻す（崖につかまったまま作り直したときに残らないように）
+			m_modelOffset = math::Vec2::Zero();
+			m_isModelAnchored = false;
+			m_modelOffsetFadeTime = 0.0f;
+			m_modelOffsetFadeDuration = 0.0f;
+
 			const CharacterParameter& param = GetParameter();
 
 			// キャラクターコントローラー
@@ -62,6 +68,18 @@ namespace app
 
 		void CharacterBase::UpdateLogic(const float deltaTime)
 		{
+			// 見た目のずらしを少しずつ 0 に戻す（FadeOutModelOffset）
+			if (m_modelOffsetFadeTime > 0.0f)
+			{
+				m_modelOffsetFadeTime -= deltaTime;
+				if (m_modelOffsetFadeTime <= 0.0f)
+				{
+					m_modelOffsetFadeTime = 0.0f;
+					m_modelOffsetFadeDuration = 0.0f;
+					m_modelOffset = math::Vec2::Zero();
+				}
+			}
+
 			if (!m_stateMachine)
 			{
 				return;
@@ -163,16 +181,33 @@ namespace app
 			Quaternion rotation;
 			rotation.SetRotationDegY(GetModelYawDegree());
 
-			m_modelRender.SetPosition(GetWorldPosition());
+			// モデルの拡大率（見た目だけ。当たり判定は変わらない）
+			const float modelScale = GetParameter().modelScale;
+			const Vector3 scale(modelScale, modelScale, modelScale);
+
+			// モデルを描く位置（ふだんは当たり判定の位置。崖登り中などは決まった位置に置き、見た目だけずらす）
+			Vector3 modelPosition = GetWorldPosition();
+			if (m_isModelAnchored)
+			{
+				modelPosition.x = m_modelAnchor.x;
+				modelPosition.y = m_modelAnchor.y;
+			}
+			// 戻している途中なら、残り時間の割合だけずらす
+			const float offsetRate = m_modelOffsetFadeDuration > 0.0f ? m_modelOffsetFadeTime / m_modelOffsetFadeDuration : 1.0f;
+			modelPosition.x += m_modelOffset.x * offsetRate * static_cast<float>(m_facing);
+			modelPosition.y += m_modelOffset.y * offsetRate;
+
+			m_modelRender.SetPosition(modelPosition);
 			m_modelRender.SetRotation(rotation);
+			m_modelRender.SetScale(scale);
 			m_modelRender.Update();
 
 			// 鏡に映る像（見えていないときもアニメーションを進めて、本物とずれないようにする）
 			if (m_isReflectionEnabled)
 			{
-				m_reflectionRender.SetPosition(render::ReflectPositionZ(GetWorldPosition(), m_reflectionPlaneZ));
+				m_reflectionRender.SetPosition(render::ReflectPositionZ(modelPosition, m_reflectionPlaneZ));
 				m_reflectionRender.SetRotation(render::ReflectRotationZ(rotation));
-				m_reflectionRender.SetScale(render::ReflectScaleZ(Vector3(1.0f, 1.0f, 1.0f)));
+				m_reflectionRender.SetScale(render::ReflectScaleZ(scale));
 				m_reflectionRender.Update();
 			}
 		}
@@ -199,6 +234,11 @@ namespace app
 			, m_isReflectionEnabled(false)
 			, m_isReflectionVisible(false)
 			, m_reflectionPlaneZ(0.0f)
+			, m_modelOffset(math::Vec2::Zero())
+			, m_modelAnchor(math::Vec2::Zero())
+			, m_isModelAnchored(false)
+			, m_modelOffsetFadeTime(0.0f)
+			, m_modelOffsetFadeDuration(0.0f)
 		{}
 
 

@@ -49,6 +49,12 @@ namespace app
 			 */
 			float modelYawOffsetDeg = 0.0f;
 
+			/**
+			 * @brief モデルの拡大率
+			 * @details モデルの見た目の身長を、体の高さ（bodyHeight）に合わせる。当たり判定の大きさは変わらない
+			 */
+			float modelScale = 1.0f;
+
 			virtual ~CharacterParameter() = default;
 		};
 	}

@@ -121,15 +121,52 @@ namespace app
 				m_isReflectionVisible = isVisible;
 				m_reflectionPlaneZ = planeZ;
 			}
+			/**
+			 * @brief モデルの見た目だけをずらす（当たり判定は動かさない）
+			 * @param offset ずらす量（x は向いている方向が正、y は上が正）
+			 * @details 崖につかまっているときに、手が崖の角にかかるように合わせるときなどに使う
+			 */
+			inline void SetModelOffset(const math::Vec2& offset)
+			{
+				m_modelOffset = offset;
+				m_modelOffsetFadeTime = 0.0f;
+				m_modelOffsetFadeDuration = 0.0f;
+			}
+			/**
+			 * @brief 見た目のずらしを、offset から duration 秒かけて 0 に戻していく
+			 * @details アニメーションの補間時間とそろえると、アニメーションの切り替えで体が飛んで見えない
+			 *          （崖登りの最後の姿勢 → 立ちの姿勢に補間している間、体の位置も少しずつ戻す）
+			 */
+			inline void FadeOutModelOffset(const math::Vec2& offset, const float duration)
+			{
+				m_modelOffset = duration > 0.0f ? offset : math::Vec2::Zero();
+				m_modelOffsetFadeDuration = duration > 0.0f ? duration : 0.0f;
+				m_modelOffsetFadeTime = m_modelOffsetFadeDuration;
+			}
+			/**
+			 * @brief モデルを決まった位置に置いて描く（当たり判定は動かさない）
+			 * @details 崖登りのように、アニメーションの中で体が移動するときに使う。ClearModelAnchor で元に戻す
+			 */
+			inline void SetModelAnchor(const math::Vec2& position)
+			{
+				m_modelAnchor = position;
+				m_isModelAnchored = true;
+			}
+			/**
+			 * @brief SetModelAnchor をやめて、当たり判定の位置に描くように戻す
+			 */
+			inline void ClearModelAnchor() { m_isModelAnchored = false; }
 
 
 		public:
+			/** アニメーションを切り替えるときの補間時間（秒） */
+			static constexpr float DEFAULT_ANIMATION_INTERPOLATE_TIME = 0.15f;
 			/**
 			 * @brief アニメーションを再生する
 			 * @param clipNo アニメーションクリップ番号（InitModel に渡した配列の添字）
 			 * @param interpolateTime 補間時間（秒）
 			 */
-			void PlayAnimation(int clipNo, float interpolateTime = 0.15f);
+			void PlayAnimation(int clipNo, float interpolateTime = DEFAULT_ANIMATION_INTERPOLATE_TIME);
 			/**
 			 * @brief 再生中のアニメーションクリップ番号
 			 */
@@ -229,6 +266,16 @@ namespace app
 			bool m_isReflectionVisible;
 			/** 鏡の面のZ座標 */
 			float m_reflectionPlaneZ;
+			/** モデルの見た目のずらし（x は向いている方向が正、y は上が正） */
+			math::Vec2 m_modelOffset;
+			/** モデルを置く位置（m_isModelAnchored のときだけ使う） */
+			math::Vec2 m_modelAnchor;
+			/** モデルを決まった位置に置いて描くか */
+			bool m_isModelAnchored;
+			/** 見た目のずらしを 0 に戻していく残り時間（秒） */
+			float m_modelOffsetFadeTime;
+			/** 見た目のずらしを 0 に戻していく時間（秒。0 なら戻さない） */
+			float m_modelOffsetFadeDuration;
 		};
 	}
 }

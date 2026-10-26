@@ -155,6 +155,13 @@ namespace app
 			const char* GetName() const override { return "ClimbUp"; }
 
 		private:
+			/**
+			 * @brief モデルを、ぶら下がった位置に置いたまま描くようにする（見た目だけ）
+			 * @param carried 登り始めてから動く床に運ばれた分
+			 */
+			void UpdateClimbModel(const math::Vec2& carried) const;
+
+		private:
 			/** 登り始めの位置 */
 			math::Vec2 m_startPosition;
 			/** 登りきった位置 */

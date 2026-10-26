@@ -272,17 +272,26 @@ namespace app
 			controller.BeginLedgeCarry(ledge.corner, ledge.facing);
 
 			PlayAnimation(static_cast<int>(PlayerAnimation::LedgeHang));
+			// 見た目：手が崖の角にかかるようにモデルをずらす
+			GetPlayer().SetModelOffset(math::Vec2(GetParam().ledgeHangModelForward, GetParam().ledgeHangModelY));
 		}
 
 
 		void PlayerLedgeHangState::Update(const float /*deltaTime*/)
 		{
 			GetController().SetVelocity(math::Vec2::Zero());
+			// Tuning で動かした値がすぐ見えるように、毎フレーム入れ直す
+			GetPlayer().SetModelOffset(math::Vec2(GetParam().ledgeHangModelForward, GetParam().ledgeHangModelY));
 		}
 
 
 		void PlayerLedgeHangState::Exit()
 		{
+			// 手を離したとき：次のアニメーションへの補間に合わせて、ずらしを少しずつ戻す
+			// （崖登りに移るときは、崖登りの Enter で置き直される）
+			GetPlayer().FadeOutModelOffset(
+				math::Vec2(GetParam().ledgeHangModelForward, GetParam().ledgeHangModelY),
+				CharacterBase::DEFAULT_ANIMATION_INTERPOLATE_TIME);
 			GetController().SetGravityEnabled(true);
 			GetController().EndLedgeCarry();
 			// 手を離した直後に同じ崖をつかみ直さないようにする
@@ -336,6 +345,7 @@ namespace app
 			controller.SetVelocity(math::Vec2::Zero());
 
 			PlayAnimation(static_cast<int>(PlayerAnimation::ClimbUp));
+			UpdateClimbModel(math::Vec2::Zero());
 		}
 
 
@@ -357,12 +367,43 @@ namespace app
 
 			controller.SetPosition(position);
 			controller.SetVelocity(math::Vec2::Zero());
+
+			UpdateClimbModel(carried);
+		}
+
+
+		void PlayerClimbUpState::UpdateClimbModel(const math::Vec2& carried) const
+		{
+			// 見た目：モデルはぶら下がった位置に置いたままにして、アニメーションの中の体の動きで登らせる
+			// （当たり判定は Update の計算どおりに動く。登りきったら当たり判定の位置に戻る）
+			const PlayerParameter& param = GetParam();
+			GetPlayer().SetModelAnchor(m_startPosition + carried);
+			GetPlayer().SetModelOffset(math::Vec2(
+				param.ledgeHangModelForward + param.climbModelForward,
+				param.ledgeHangModelY + param.climbModelY));
 		}
 
 
 		void PlayerClimbUpState::Exit()
 		{
 			CharacterController& controller = GetController();
+
+			// 登りきった瞬間、モデルを当たり判定の位置に戻す。
+			// そのままだと「登りの最後の姿勢（腰が高い）」のまま崖の上に移り、立ちの姿勢への補間中に浮いて見える。
+			// なので、今モデルを描いている位置と当たり判定の位置の差を見た目のずらしにして、補間と同じ時間で 0 に戻す
+			const PlayerParameter& param = GetParam();
+			const float facing = static_cast<float>(GetPlayer().GetFacing());
+			const math::Vec2 anchor = m_startPosition + controller.GetLedgeCarryOffset();
+			const math::Vec2 drawnPosition{
+				anchor.x + (param.ledgeHangModelForward + param.climbModelForward) * facing,
+				anchor.y + param.ledgeHangModelY + param.climbModelY
+			};
+			const math::Vec2 position = controller.GetPosition();
+			GetPlayer().ClearModelAnchor();
+			GetPlayer().FadeOutModelOffset(
+				math::Vec2((drawnPosition.x - position.x) * facing, drawnPosition.y - position.y),
+				CharacterBase::DEFAULT_ANIMATION_INTERPOLATE_TIME);
+
 			controller.SetGravityEnabled(true);
 			controller.EndLedgeCarry();
 			controller.SetVelocity(math::Vec2::Zero());
