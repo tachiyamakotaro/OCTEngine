@@ -30,6 +30,9 @@ namespace app
 				{ "Assets/animData/player/Player_Climb.tka",       false },	// ClimbUp
 				{ "Assets/animData/player/Player_Idle.tka",        false },	// HardLand  ★仮
 				{ "Assets/animData/player/Player_Idle.tka",        false },	// Dead      ★仮
+				{ "Assets/animData/player/Player_PullIdle.tka",    true },	// GrabIdle
+				{ "Assets/animData/player/Player_Push.tka",        true },	// Push
+				{ "Assets/animData/player/Player_PullObject.tka",  true },	// Pull
 			};
 			static_assert(
 				sizeof(PLAYER_ANIMATION_DATA) / sizeof(PLAYER_ANIMATION_DATA[0]) == static_cast<size_t>(PlayerAnimation::Num),
@@ -79,15 +82,37 @@ namespace app
 		}
 
 
-		void Player::UpdateCommand(const float /*deltaTime*/)
+		void Player::SetGrabbing(const bool isGrabbing, const float objectOffsetX)
+		{
+			m_isGrabbing = isGrabbing;
+			m_grabObjectOffsetX = objectOffsetX;
+		}
+
+
+		void Player::NotifyObjectRotated()
+		{
+			m_rotateActionTimer = m_parameter.rotateActionTime;
+		}
+
+
+		void Player::UpdateCommand(const float deltaTime)
 		{
 			m_playerController.Update(m_command);
+
+			// 鏡を回す動きの残り時間（ステートの更新より前に減らす）
+			if (m_rotateActionTimer > 0.0f)
+			{
+				m_rotateActionTimer -= deltaTime;
+			}
 		}
 
 
 		Player::Player()
 			: m_parameter()
 			, m_playerController(nullptr)
+			, m_isGrabbing(false)
+			, m_grabObjectOffsetX(0.0f)
+			, m_rotateActionTimer(0.0f)
 		{}
 	}
 }

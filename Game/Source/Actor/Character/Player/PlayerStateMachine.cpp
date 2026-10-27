@@ -128,6 +128,13 @@ namespace app
 		}
 
 
+		void PlayerStateMachine::ApplyGrabMove(const float deltaTime)
+		{
+			const PlayerParameter& param = GetParam();
+			ApplyHorizontalMove(GetCommand().moveX, param.grabMoveSpeed, param.groundAcceleration, param.groundDeceleration, deltaTime);
+		}
+
+
 		void PlayerStateMachine::Setup()
 		{
 			RegisterState(static_cast<int>(PlayerStateID::Idle), std::make_unique<PlayerIdleState>(this));
@@ -139,6 +146,7 @@ namespace app
 			RegisterState(static_cast<int>(PlayerStateID::ClimbUp), std::make_unique<PlayerClimbUpState>(this));
 			RegisterState(static_cast<int>(PlayerStateID::HardLand), std::make_unique<PlayerHardLandState>(this));
 			RegisterState(static_cast<int>(PlayerStateID::Dead), std::make_unique<PlayerDeadState>(this));
+			RegisterState(static_cast<int>(PlayerStateID::Grab), std::make_unique<PlayerGrabState>(this));
 
 			m_airPeakY = GetController().GetPosition().y;
 			ChangeState(PlayerStateID::Idle);

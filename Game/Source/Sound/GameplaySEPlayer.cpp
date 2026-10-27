@@ -33,7 +33,8 @@ namespace
 	{
 		return id == static_cast<int>(PlayerStateID::Idle)
 			|| id == static_cast<int>(PlayerStateID::Run)
-			|| id == static_cast<int>(PlayerStateID::Crouch);
+			|| id == static_cast<int>(PlayerStateID::Crouch)
+			|| id == static_cast<int>(PlayerStateID::Grab);
 	}
 
 	/** 空中のステートか */

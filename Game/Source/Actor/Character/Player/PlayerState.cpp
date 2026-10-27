@@ -39,6 +39,11 @@ namespace app
 			{
 				return ToID(PlayerStateID::Fall);
 			}
+			// 鏡・日よけ板をつかんだ / 鏡を回した
+			if (GetPlayer().IsGrabbing() || GetPlayer().IsRotatingObject())
+			{
+				return ToID(PlayerStateID::Grab);
+			}
 			if (m_machine->IsJumpBuffered())
 			{
 				return ToID(PlayerStateID::Jump);
@@ -413,6 +418,75 @@ namespace app
 		int PlayerClimbUpState::CheckTransition()
 		{
 			if (GetStateTime() >= GetParam().climbUpDuration)
+			{
+				return GetCommand().HasMoveInput() ? ToID(PlayerStateID::Run) : ToID(PlayerStateID::Idle);
+			}
+			return STATE_ID_NONE;
+		}
+
+
+		/************************************/
+		// 物をつかんで動かす / 鏡を回す
+
+
+		void PlayerGrabState::Enter()
+		{
+			// つかんだ物の方を向く（回すだけのときは向きを変えない：回す向きは今の向きで決まるため）
+			Player& player = GetPlayer();
+			if (player.IsGrabbing())
+			{
+				player.SetFacing(player.GetGrabObjectSide());
+			}
+			UpdateAnimation();
+		}
+
+
+		void PlayerGrabState::Update(const float deltaTime)
+		{
+			Player& player = GetPlayer();
+			if (player.IsGrabbing())
+			{
+				// 物の方を向いたまま、ゆっくり動く（UpdateFacingFromInput は呼ばない）
+				player.SetFacing(player.GetGrabObjectSide());
+				m_machine->ApplyGrabMove(deltaTime);
+			}
+			else
+			{
+				// 回しているだけのときは、その場で止まる
+				m_machine->ApplyStop(deltaTime);
+			}
+			UpdateAnimation();
+		}
+
+
+		void PlayerGrabState::UpdateAnimation() const
+		{
+			const Player& player = GetPlayer();
+			PlayerAnimation animation = PlayerAnimation::GrabIdle;
+			const float velocityX = GetController().GetVelocity().x;
+			if (player.IsRotatingObject())
+			{
+				// 鏡を回す：押す動き
+				animation = PlayerAnimation::Push;
+			}
+			else if (math::Abs(velocityX) >= STOP_SPEED)
+			{
+				// 向いている方（物の方）へ進んでいれば押す、離れていれば引く
+				animation = velocityX * static_cast<float>(player.GetFacing()) > 0.0f ? PlayerAnimation::Push : PlayerAnimation::Pull;
+			}
+			// 同じアニメーションなら PlayAnimation の中で何もしない
+			PlayAnimation(static_cast<int>(animation));
+		}
+
+
+		int PlayerGrabState::CheckTransition()
+		{
+			if (!GetController().IsOnGround())
+			{
+				return ToID(PlayerStateID::Fall);
+			}
+			const Player& player = GetPlayer();
+			if (!player.IsGrabbing() && !player.IsRotatingObject())
 			{
 				return GetCommand().HasMoveInput() ? ToID(PlayerStateID::Run) : ToID(PlayerStateID::Idle);
 			}

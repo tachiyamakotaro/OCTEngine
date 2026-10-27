@@ -14,6 +14,9 @@
  *   ClimbUp → Idle         登りきった
  *   Fall → Idle/Run        普通に着地
  *   Fall → HardLand        高いところから着地（ダメージ／死亡）
+ *   Idle/Run → Grab     鏡・日よけ板をつかんだ / 鏡を回した
+ *   Grab → Idle/Run     手を離した / 回し終わった
+ *   Grab → Fall         足場がなくなった
  *   どこからでも → Dead      HPが0（PlayerStateMachine::CheckGlobalTransition）
  */
 #pragma once
@@ -178,6 +181,28 @@ namespace app
 			void Update(float deltaTime) override;
 			int CheckTransition() override;
 			const char* GetName() const override { return "HardLand"; }
+		};
+
+
+		/**
+		 * @brief 物（鏡・日よけ板）をつかんで動かす / 鏡を回す
+		 * @details 物を動かすのは MirrorInteractor / ShadeInteractor。ここでは見た目と動きの速さだけを決める。
+		 *          ・つかんでいる間は物の方を向いたまま（引くときに後ろを向かない）、ゆっくり動く
+		 *          ・止まっていれば GrabIdle、物の方へ進めば Push、離れれば Pull
+		 *          ・鏡を回したときは、少しの間その場で Push
+		 */
+		class PlayerGrabState : public PlayerStateBase
+		{
+		public:
+			using PlayerStateBase::PlayerStateBase;
+			void Enter() override;
+			void Update(float deltaTime) override;
+			int CheckTransition() override;
+			const char* GetName() const override { return "Grab"; }
+
+		private:
+			/** 動き方に合わせてアニメーションを選ぶ */
+			void UpdateAnimation() const;
 		};
 
 

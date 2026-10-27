@@ -177,7 +177,7 @@ namespace app
 
 
 		void MirrorPromptUI::Update(const stage::Stage& targetStage, const stage::MirrorInteractor& interactor,
-			const actor::CharacterBase& character, const bool canGrab, const bool isAllowed, const float deltaTime)
+			const actor::CharacterBase& /*character*/, const bool canGrab, const bool isAllowed, const float deltaTime)
 		{
 			m_elapsed += deltaTime;
 			m_rotatePulseTimer = m_rotatePulseTimer > deltaTime ? m_rotatePulseTimer - deltaTime : 0.0f;
@@ -227,8 +227,8 @@ namespace app
 				m_entryCount = count;
 				m_alpha = Clamp01(m_alpha + deltaTime / APPEAR_TIME);
 				m_popTimer += deltaTime;
-				// 押したときに回る向き（MirrorInteractor：右を向いていれば時計回り）
-				m_isClockwise = character.GetFacing() > 0;
+				// 押したときに回る向き（MirrorInteractor：プレイヤーの向きに関係なく ROTATE_STEPS の向き）
+				m_isClockwise = stage::MirrorInteractor::ROTATE_STEPS < 0;
 				m_isDragging = interactor.IsDragging();
 				if (interactor.IsRotatedThisFrame())
 				{

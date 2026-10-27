@@ -42,10 +42,10 @@ namespace app
 
 			LightMirror& mirror = static_cast<LightMirror&>(*gimmicks.Get(static_cast<size_t>(m_focusedIndex)));
 
-			// 回転
+			// 回転（プレイヤーの向きに関係なく、いつも同じ向きに回す）
 			if (command.actionTrigger && mirror.isRotatable)
 			{
-				mirror.Rotate(character.GetFacing() > 0 ? -1 : 1);
+				mirror.Rotate(ROTATE_STEPS);
 				m_isRotatedThisFrame = true;
 			}
 

@@ -197,6 +197,23 @@ namespace app
 		{
 			m_mirrorInteractor.Update(m_stage, m_player);
 		}
+		// プレイヤーのアニメーション用：物をつかんでいるか・鏡を回したか（次のフレームのステートで使う）
+		if (m_shadeInteractor.IsDragging())
+		{
+			m_player.SetGrabbing(true, m_shadeInteractor.GetDragOffsetX());
+		}
+		else if (m_mirrorInteractor.IsDragging())
+		{
+			m_player.SetGrabbing(true, m_mirrorInteractor.GetDragOffsetX());
+		}
+		else
+		{
+			m_player.SetGrabbing(false, 0.0f);
+		}
+		if (m_mirrorInteractor.IsRotatedThisFrame())
+		{
+			m_player.NotifyObjectRotated();
+		}
 
 		// つかんで動かしている間は、ワープ・ゴール・チェックポイントに触れても反応しない（離したあとで反応する）
 		if (!m_isDraggingPlayer)
@@ -982,6 +999,10 @@ namespace app
 			ImGui::DragFloat("Ledge Reach", &param.ledgeGrabReach, 1.0f, 0.0f, 200.0f, "%.0f");
 			ImGui::DragFloat("Ledge Above", &param.ledgeGrabAbove, 1.0f, 0.0f, 200.0f, "%.0f");
 			ImGui::DragFloat("Climb Duration", &param.climbUpDuration, 0.01f, 0.05f, 3.0f, "%.2f s");
+			ImGui::DragFloat("Grab Move Speed", &param.grabMoveSpeed, 5.0f, 0.0f, 3000.0f, "%.0f");
+			ImGui::SetItemTooltip("Move speed while dragging a mirror / shade board.");
+			ImGui::DragFloat("Rotate Action Time", &param.rotateActionTime, 0.01f, 0.0f, 3.0f, "%.2f s");
+			ImGui::SetItemTooltip("How long the push animation plays after rotating a mirror.");
 			ImGui::DragFloat("Hang Model Forward", &param.ledgeHangModelForward, 0.5f, -200.0f, 200.0f, "%.1f");
 			ImGui::DragFloat("Hang Model Y", &param.ledgeHangModelY, 0.5f, -200.0f, 200.0f, "%.1f");
 			ImGui::SetItemTooltip("Shift the model while hanging so the hands are on the ledge corner.");

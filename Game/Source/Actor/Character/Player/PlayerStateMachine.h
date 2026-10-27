@@ -35,6 +35,7 @@ namespace app
 			ClimbUp,	//!< 崖を登る
 			HardLand,	//!< 高いところから落ちてよろける
 			Dead,		//!< 死亡
+			Grab,		//!< 物（鏡・日よけ板）をつかんで動かす / 鏡を回す
 			Num
 		};
 
@@ -99,6 +100,8 @@ namespace app
 			void ApplyAirMove(float deltaTime);
 			/** @brief 左右の速度を止める方向に減速する */
 			void ApplyStop(float deltaTime);
+			/** @brief 物をつかんで引きずっているときの左右移動（ゆっくり） */
+			void ApplyGrabMove(float deltaTime);
 
 
 		public:

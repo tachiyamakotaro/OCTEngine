@@ -52,6 +52,10 @@ namespace app
 			inline int GetFocusedIndex() const { return m_focusedIndex; }
 			/** @brief 板を引きずっているか */
 			inline bool IsDragging() const { return m_isDragging; }
+			/**
+			 * @brief 引きずっている板の中心 - キャラクターの X（板が右にあれば正）。プレイヤーの向きに使う
+			 */
+			inline float GetDragOffsetX() const { return m_dragOffsetX; }
 			/** @brief このフレームに板をつかんだか（引きずり始めた瞬間） */
 			inline bool IsGrabbedThisFrame() const { return m_isGrabbedThisFrame; }
 			/** @brief このフレームに板を動かした距離（引きずって実際に動いた分。動かなければ 0） */

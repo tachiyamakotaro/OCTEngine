@@ -3,7 +3,7 @@
  * @brief プレイヤーによる反射鏡の操作（回転・移動）
  * @details 操作方法
  *          ・近くの鏡の前でアクション（Bボタン）… 1段回転
- *              右を向いていれば時計回り、左を向いていれば反時計回り
+ *              プレイヤーの向きに関係なく、いつも ROTATE_STEPS の向きに回る
  *          ・近くの鏡の前でつかむ（RB1）を押したまま左右に歩く … 鏡を引きずって動かす
  *
  *          プレイヤーのステートには手を入れず、プレイヤーの「コマンド」と位置を見て鏡を動かす。
@@ -31,6 +31,8 @@ namespace app
 		class MirrorInteractor
 		{
 		public:
+			/** Bボタンで回す向き（-1 = 時計回り、1 = 反時計回り）。プレイヤーの向きには関係しない */
+			static constexpr int ROTATE_STEPS = -1;
 			/** 鏡を操作できる横の距離（体の中心から鏡の中心まで） */
 			float interactRangeX = 90.0f;
 			/** 鏡を操作できる縦の距離（足元から鏡の中心まで） */
@@ -53,6 +55,10 @@ namespace app
 			 * @brief 鏡を引きずっているか
 			 */
 			inline bool IsDragging() const { return m_isDragging; }
+			/**
+			 * @brief 引きずり始めたときの、鏡の中心とキャラクターのX座標の差（正なら鏡はキャラクターの右側）
+			 */
+			inline float GetDragOffsetX() const { return m_dragOffsetX; }
 			/**
 			 * @brief このフレームに鏡を回したか（音や演出のきっかけに使う）
 			 */

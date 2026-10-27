@@ -107,7 +107,7 @@ namespace app
 			/** 三角の先の画面の位置（消えていく間は最後の位置に残す） */
 			float m_anchorX;
 			float m_anchorY;
-			/** 回転のアイコンを時計回りにするか（プレイヤーが右を向いているとき） */
+			/** 回転のアイコンを時計回りにするか（MirrorInteractor::ROTATE_STEPS で決まる） */
 			bool m_isClockwise;
 			/** 引きずっているか */
 			bool m_isDragging;
