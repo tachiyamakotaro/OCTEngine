@@ -44,7 +44,7 @@ namespace app
 			//{ "StageMagnify", "Assets/parameter/stage/StageMagnify_Object.json", "Assets/parameter/stage/StageMagnify_Gimmick.json", 180.0f },
 			//{ "ColorLight", "Assets/parameter/stage/ColorLight_Object.json", "Assets/parameter/stage/ColorLight_Gimmick.json", 180.0f },
 			// 最終ステージ（3部屋。今まで作ったギミックを組み合わせる。1部屋 30秒〜1分、全体で長くて3分のつもりなので、制限時間は 4分）
-			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 240.0f },
+			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 300.0f },
 		};
 
 		/** ステージの数 */
