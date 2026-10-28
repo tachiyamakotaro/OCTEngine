@@ -35,14 +35,7 @@ namespace app
 
 
 		constexpr StageInfo STAGE_INFO_TABLE[] = {
-			//{ "Stage01", "Assets/parameter/stage/Stage01_Object.json", "Assets/parameter/stage/Stage01_Gimmick.json", 180.0f },
-			//{ "Stage02", "Assets/parameter/stage/Stage02_Object.json", "Assets/parameter/stage/Stage02_Gimmick.json", 180.0f },
-			//// ギミックごとの確認用ステージ（時間制限の追加のときに消えていたので戻した）
-			//{ "StageDark", "Assets/parameter/stage/StageDark_Object.json", "Assets/parameter/stage/StageDark_Gimmick.json", 180.0f },
-			//{ "Stage03_Ice", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json", 180.0f },
-			//{ "StageSolar", "Assets/parameter/stage/StageSolar_Object.json", "Assets/parameter/stage/StageSolar_Gimmick.json", 180.0f },
-			//{ "StageMagnify", "Assets/parameter/stage/StageMagnify_Object.json", "Assets/parameter/stage/StageMagnify_Gimmick.json", 180.0f },
-			//{ "ColorLight", "Assets/parameter/stage/ColorLight_Object.json", "Assets/parameter/stage/ColorLight_Gimmick.json", 180.0f },
+
 			// 最終ステージ（3部屋。今まで作ったギミックを組み合わせる。1部屋 30秒〜1分、全体で長くて3分のつもりなので、制限時間は 4分）
 			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 300.0f },
 		};

@@ -76,6 +76,27 @@ namespace nsK2EngineLow
 			return m_dofParam.focusRange;
 		}
 
+		/**
+		 * @brief アウトライン（黒い縁）の設定。outline.fx の OutlineCb と同じ並び
+		 */
+		struct OutlineParam
+		{
+			float color[4] = { 0.05f, 0.04f, 0.04f, 1.0f };	// rgb = 線の色, a = 線の濃さ
+			float depthThreshold = 40.0f;					// 奥との距離の差がこれ以上なら線を引く（ワールド単位）
+			float thickness = 1.0f;							// 線の太さ（ピクセル）
+			float screenSize[2] = { 0.0f, 0.0f };			// 画面の大きさ（コンストラクタで入れる）
+		};
+
+		bool& IsEnableOutline()
+		{
+			return m_isEnableOutline;
+		}
+
+		OutlineParam& GetOutlineParam()
+		{
+			return m_outlineParam;
+		}
+
 		void Execute(RenderContext& rc);
 
 	private:
@@ -113,6 +134,13 @@ namespace nsK2EngineLow
 		bool m_isEnableBloom = true;                 // ブルームを有効にするかどうか
 		float m_bloomThreshold = 1.0f;
 		float m_bloomIntensity = 1.0f;
+
+		// アウトライン（黒い縁）：mainRT のα（カメラからの距離）の差から縁を見つけて線を引く
+		RenderTarget m_outlineRenderTarget;		// 線を引いた絵を一度ここに描く（mainRT を読みながら mainRT には描けないため）
+		Sprite m_outlineSprite;					// mainRT → m_outlineRenderTarget（線を引く）
+		Sprite m_copyOutlineToMainSprite;		// m_outlineRenderTarget → mainRT（書き戻す）
+		OutlineParam m_outlineParam;
+		bool m_isEnableOutline = true;
 
 		RenderTarget m_shadowMap;
 		GaussianBlur m_shadowBlur;              // VSM：シャドウマップのぼかし

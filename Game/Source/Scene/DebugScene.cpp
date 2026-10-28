@@ -1023,6 +1023,19 @@ namespace app
 			ImGui::TextDisabled("Body size is applied on Restart.");
 		}
 
+		// ---- アウトライン（黒い縁）----
+		if (ImGui::CollapsingHeader("Outline"))
+		{
+			RenderingEngine* renderingEngine = RenderingEngine::GetInstance();
+			RenderingEngine::OutlineParam& outline = renderingEngine->GetOutlineParam();
+			ImGui::Checkbox("Enable Outline", &renderingEngine->IsEnableOutline());
+			ImGui::ColorEdit3("Line Color", outline.color);
+			ImGui::SliderFloat("Line Strength", &outline.color[3], 0.0f, 1.0f, "%.2f");
+			ImGui::SliderFloat("Thickness", &outline.thickness, 0.5f, 6.0f, "%.1f px");
+			ImGui::SliderFloat("Depth Threshold", &outline.depthThreshold, 1.0f, 500.0f, "%.0f");
+			ImGui::SetItemTooltip("Draw a line where the next pixel is this much farther from the camera. Smaller = more lines.");
+		}
+
 		// ---- カメラ ----
 		if (ImGui::CollapsingHeader("Camera"))
 		{

@@ -102,6 +102,43 @@ namespace nsK2EngineLow
 			m_bloomAddSprite.Init(initData);
 		}
 
+		// アウトライン（黒い縁）
+		{
+			m_outlineParam.screenSize[0] = FRAME_BUFFER_W;
+			m_outlineParam.screenSize[1] = FRAME_BUFFER_H;
+
+			float outlineClearColor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			m_outlineRenderTarget.Create(
+				FRAME_BUFFER_W,
+				FRAME_BUFFER_H,
+				1,
+				1,
+				DXGI_FORMAT_R16G16B16A16_FLOAT,	// mainRT と同じ（α = カメラからの距離も残す）
+				DXGI_FORMAT_UNKNOWN,
+				outlineClearColor
+			);
+
+			// 線を引く：mainRT → m_outlineRenderTarget
+			SpriteInitData initData;
+			initData.m_textures[0] = &m_mainRenderTarget.GetRenderTargetTexture();
+			initData.m_fxFilePath = "Assets/shader/outline.fx";
+			initData.m_width = FRAME_BUFFER_W;
+			initData.m_height = FRAME_BUFFER_H;
+			initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			initData.m_expandConstantBuffer = &m_outlineParam;
+			initData.m_expandConstantBufferSize = sizeof(m_outlineParam);
+			m_outlineSprite.Init(initData);
+
+			// 書き戻す：m_outlineRenderTarget → mainRT（sprite.fx はαもそのまま写す）
+			SpriteInitData copyInitData;
+			copyInitData.m_textures[0] = &m_outlineRenderTarget.GetRenderTargetTexture();
+			copyInitData.m_fxFilePath = "Assets/shader/sprite.fx";
+			copyInitData.m_width = FRAME_BUFFER_W;
+			copyInitData.m_height = FRAME_BUFFER_H;
+			copyInitData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			m_copyOutlineToMainSprite.Init(copyInitData);
+		}
+
 		// 位置と注視点は SceneLight::Update でライト方向から毎フレーム決める
 		m_lightCamera.SetUp(1, 0, 0);
 		m_lightCamera.SetWidth(2000.0f);
@@ -136,6 +173,30 @@ namespace nsK2EngineLow
 		{
 			model->Draw(rc);
 		}
+		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+
+		// アウトライン（黒い縁）：モデルを描き終えたあと、エフェクトとブルームの前に引く
+		// （霧などのエフェクトに線が付かないように、エフェクトは線を引いたあとに描く）
+		if (m_isEnableOutline)
+		{
+			// ① mainRT を読んで、線を引いた絵を m_outlineRenderTarget に描く
+			rc.WaitUntilToPossibleSetRenderTarget(m_outlineRenderTarget);
+			rc.SetRenderTargetAndViewport(m_outlineRenderTarget);
+			m_outlineSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_outlineSprite.Draw(rc);
+			rc.WaitUntilFinishDrawingToRenderTarget(m_outlineRenderTarget);
+
+			// ② mainRT に書き戻す（ここで Clear しない）
+			rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+			rc.SetRenderTargetAndViewport(m_mainRenderTarget);
+			m_copyOutlineToMainSprite.Update(Vector3::Zero, Quaternion::Identity, Vector3::One);
+			m_copyOutlineToMainSprite.Draw(rc);
+			rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
+		}
+
+		// エフェクト
+		rc.WaitUntilToPossibleSetRenderTarget(m_mainRenderTarget);
+		rc.SetRenderTargetAndViewport(m_mainRenderTarget);
 		EffectEngine::GetInstance()->Draw();
 		rc.WaitUntilFinishDrawingToRenderTarget(m_mainRenderTarget);
 

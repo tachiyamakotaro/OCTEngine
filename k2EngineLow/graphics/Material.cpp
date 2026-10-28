@@ -1,8 +1,8 @@
-#include "k2EngineLowPreCompile.h"
+ï»¿#include "k2EngineLowPreCompile.h"
 #include "Material.h"
 
 namespace nsK2EngineLow {
-	//ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ÆƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒgŽü‚è‚ÍƒJƒŠƒJƒŠƒJƒŠ
+	//ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã¨ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆå‘¨ã‚Šã¯ã‚«ãƒªã‚«ãƒªã‚«ãƒª
 	enum {
 		enDescriptorHeap_CB,
 		enDescriptorHeap_SRV,
@@ -18,7 +18,7 @@ namespace nsK2EngineLow {
 		char* map = nullptr;
 		unsigned int mapSize;
 
-		//ƒAƒ‹ƒxƒhƒ}ƒbƒvB
+		//ã‚¢ãƒ«ãƒ™ãƒ‰ãƒžãƒƒãƒ—ã€‚
 		{
 			if (tkmMat.albedoMap != nullptr)
 			{
@@ -44,7 +44,7 @@ namespace nsK2EngineLow {
 		}
 
 
-		//–@üƒ}ƒbƒvB
+		//æ³•ç·šãƒžãƒƒãƒ—ã€‚
 		{
 			if (tkmMat.normalMap != nullptr)
 			{
@@ -71,7 +71,7 @@ namespace nsK2EngineLow {
 
 
 
-		//ƒXƒyƒLƒ…ƒ‰ƒ}ƒbƒvB
+		//ã‚¹ãƒšã‚­ãƒ¥ãƒ©ãƒžãƒƒãƒ—ã€‚
 		{
 			if (tkmMat.specularMap != nullptr)
 			{
@@ -96,7 +96,7 @@ namespace nsK2EngineLow {
 			m_specularMap = specularMap;
 		}
 
-		//”½ŽËƒ}ƒbƒvB
+		//åå°„ãƒžãƒƒãƒ—ã€‚
 		{
 			if (tkmMat.reflectionMap != nullptr)
 			{
@@ -121,7 +121,7 @@ namespace nsK2EngineLow {
 			m_reflectionMap = reflectionMap;
 		}
 
-		//‹üÜƒ}ƒbƒvB
+		//å±ˆæŠ˜ãƒžãƒƒãƒ—ã€‚
 		{
 			if (tkmMat.refractionMap != nullptr)
 			{
@@ -165,18 +165,18 @@ namespace nsK2EngineLow {
 		D3D12_CULL_MODE cullMode
 	)
 	{
-		//ƒeƒNƒXƒ`ƒƒ‚ðƒ[ƒhB
+		//ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ãƒ­ãƒ¼ãƒ‰ã€‚
 		InitTexture(tkmMat);
 
-		//’è”ƒoƒbƒtƒ@‚ðì¬B
+		//å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚’ä½œæˆã€‚
 		SMaterialParam matParam;
 		matParam.hasNormalMap = m_normalMap->IsValid() ? 1 : 0;
 		matParam.hasSpecMap = m_specularMap->IsValid() ? 1 : 0;
 		m_constantBuffer.Init(sizeof(SMaterialParam), &matParam);
 
-		//ƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ð‰Šú‰»B
+		//ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ã‚’åˆæœŸåŒ–ã€‚
 		D3D12_STATIC_SAMPLER_DESC samplerDescArray[2];
-		//ƒfƒtƒHƒ‹ƒg‚ÌƒTƒ“ƒvƒ‰
+		//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã®ã‚µãƒ³ãƒ—ãƒ©
 		samplerDescArray[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 		samplerDescArray[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 		samplerDescArray[0].AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -190,9 +190,9 @@ namespace nsK2EngineLow {
 		samplerDescArray[0].ShaderRegister = 0;
 		samplerDescArray[0].RegisterSpace = 0;
 		samplerDescArray[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-		//ƒVƒƒƒhƒEƒ}ƒbƒv—p‚ÌƒTƒ“ƒvƒ‰B
+		//ã‚·ãƒ£ãƒ‰ã‚¦ãƒžãƒƒãƒ—ç”¨ã®ã‚µãƒ³ãƒ—ãƒ©ã€‚
 		samplerDescArray[1] = samplerDescArray[0];
-		//”äŠr‘ÎÛ‚Ì’l‚ª¬‚³‚¯‚ê‚Î‚OA‘å‚«‚¯‚ê‚Î‚P‚ð•Ô‚·”äŠrŠÖ”‚ðÝ’è‚·‚éB
+		//æ¯”è¼ƒå¯¾è±¡ã®å€¤ãŒå°ã•ã‘ã‚Œã°ï¼ã€å¤§ãã‘ã‚Œã°ï¼‘ã‚’è¿”ã™æ¯”è¼ƒé–¢æ•°ã‚’è¨­å®šã™ã‚‹ã€‚
 		samplerDescArray[1].Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 		samplerDescArray[1].ComparisonFunc = D3D12_COMPARISON_FUNC_GREATER;
 		samplerDescArray[1].MaxAnisotropy = 1;
@@ -209,9 +209,9 @@ namespace nsK2EngineLow {
 		);
 
 		if (fxFilePath != nullptr && strlen(fxFilePath) > 0) {
-			//ƒVƒF[ƒ_[‚ð‰Šú‰»B
+			//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’åˆæœŸåŒ–ã€‚
 			InitShaders(fxFilePath, vsEntryPointFunc, vsSkinEntryPointFunc, psEntryPointFunc);
-			//ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚ð‰Šú‰»B
+			//ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚’åˆæœŸåŒ–ã€‚
 			InitPipelineState(
 				colorBufferFormat, 
 				alphaBlendMode, 
@@ -228,7 +228,7 @@ namespace nsK2EngineLow {
 		bool isDepthTest,
 		D3D12_CULL_MODE cullMode
 	) {
-		// ’¸“_ƒŒƒCƒAƒEƒg‚ð’è‹`‚·‚éB
+		// é ‚ç‚¹ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’å®šç¾©ã™ã‚‹ã€‚
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -240,7 +240,7 @@ namespace nsK2EngineLow {
 			{ "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 72, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		};
 
-		//ƒpƒCƒvƒ‰ƒCƒ“ƒXƒe[ƒg‚ðì¬B
+		//ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ä½œæˆã€‚
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = { 0 };
 		psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
 		psoDesc.pRootSignature = m_rootSignature.Get();
@@ -251,28 +251,34 @@ namespace nsK2EngineLow {
 		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 
 		if (alphaBlendMode == AlphaBlendMode_Trans) {
-			//”¼“§–¾‡¬‚ÌƒuƒŒƒ“ƒhƒXƒe[ƒg‚ðì¬‚·‚éB
+			// Î±ï¼ˆmainRT ã§ã¯ã‚«ãƒ¡ãƒ©ã‹ã‚‰ã®è·é›¢ï¼‰ã¯æ›¸ãæ›ãˆãªã„ã€‚
+			// åŠé€æ˜Žã®ç‰©ï¼ˆå…‰ãƒ»æš—ãŒã‚Šãƒ»é¡ã®ã‚¬ãƒ©ã‚¹ãªã©ï¼‰ã‚’æã„ã¦ã‚‚å¥¥ã®ç‰©ã®è·é›¢ãŒæ®‹ã‚‹ã®ã§ã€
+			// ã‚¢ã‚¦ãƒˆãƒ©ã‚¤ãƒ³ã‚„è¢«å†™ç•Œæ·±åº¦ãŒåŠé€æ˜Žã®ç‰©ã®å½¢ã«ãšã‚Œãªã„
+			psoDesc.BlendState.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ZERO;
+			psoDesc.BlendState.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ONE;
+			psoDesc.BlendState.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
+			//åŠé€æ˜Žåˆæˆã®ãƒ–ãƒ¬ãƒ³ãƒ‰ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ä½œæˆã™ã‚‹ã€‚
 			psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
 			psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC_ALPHA;
 			psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 			psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		}
 		else if (alphaBlendMode == AlphaBlendMode_Add) {
-			//‰ÁŽZ‡¬B
+			//åŠ ç®—åˆæˆã€‚
 			psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
 			psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ONE;
 			psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_ONE;
 			psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		}
 		else if (alphaBlendMode == AlphaBlendMode_Multiply) {
-			//æŽZ‡¬B
+			//ä¹—ç®—åˆæˆã€‚
 			psoDesc.BlendState.RenderTarget[0].BlendEnable = true;
 			psoDesc.BlendState.RenderTarget[0].SrcBlend = D3D12_BLEND_ZERO;
 			psoDesc.BlendState.RenderTarget[0].DestBlend = D3D12_BLEND_SRC_COLOR;
 			psoDesc.BlendState.RenderTarget[0].BlendOp = D3D12_BLEND_OP_ADD;
 		}
 		else if (alphaBlendMode == AlphaBlendMode_None) {
-			//ƒ¿ƒuƒŒƒ“ƒfƒBƒ“ƒO‚È‚µB
+			//Î±ãƒ–ãƒ¬ãƒ³ãƒ‡ã‚£ãƒ³ã‚°ãªã—ã€‚
 			psoDesc.BlendState.RenderTarget[0].BlendEnable = false;
 		}
 
@@ -285,21 +291,21 @@ namespace nsK2EngineLow {
 		int numRenderTarget = 0;
 		for (auto& format : colorBufferFormat) {
 			if (format == DXGI_FORMAT_UNKNOWN) {
-				//ƒtƒH[ƒ}ƒbƒg‚ªŽw’è‚³‚ê‚Ä‚¢‚È‚¢êŠ‚ª—ˆ‚½‚çI‚í‚èB
+				//ãƒ•ã‚©ãƒ¼ãƒžãƒƒãƒˆãŒæŒ‡å®šã•ã‚Œã¦ã„ãªã„å ´æ‰€ãŒæ¥ãŸã‚‰çµ‚ã‚ã‚Šã€‚
 				break;
 			}
 			psoDesc.RTVFormats[numRenderTarget] = colorBufferFormat[numRenderTarget];
 			numRenderTarget++;
 		}
 		psoDesc.NumRenderTargets = numRenderTarget;
-#if 0 //ŒÃ‚¢ŽÀ‘•B
-		psoDesc.RTVFormats[0] = colorBufferFormat;		//ƒAƒ‹ƒxƒhƒJƒ‰[o—Í—pB
+#if 0 //å¤ã„å®Ÿè£…ã€‚
+		psoDesc.RTVFormats[0] = colorBufferFormat;		//ã‚¢ãƒ«ãƒ™ãƒ‰ã‚«ãƒ©ãƒ¼å‡ºåŠ›ç”¨ã€‚
 #ifdef SAMPE_16_02
-		psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;	//–@üo—Í—pB	
-		psoDesc.RTVFormats[2] = DXGI_FORMAT_R32_FLOAT;						//Z’lB
+		psoDesc.RTVFormats[1] = DXGI_FORMAT_R16G16B16A16_FLOAT;	//æ³•ç·šå‡ºåŠ›ç”¨ã€‚	
+		psoDesc.RTVFormats[2] = DXGI_FORMAT_R32_FLOAT;						//Zå€¤ã€‚
 #else
-		psoDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;			//–@üo—Í—pB	
-		psoDesc.RTVFormats[2] = DXGI_FORMAT_R32G32B32A32_FLOAT;	//Z’lB
+		psoDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;			//æ³•ç·šå‡ºåŠ›ç”¨ã€‚	
+		psoDesc.RTVFormats[2] = DXGI_FORMAT_R32G32B32A32_FLOAT;	//Zå€¤ã€‚
 #endif
 #endif
 		psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
@@ -307,11 +313,11 @@ namespace nsK2EngineLow {
 
 		m_skinModelPipelineState.Init(psoDesc);
 
-		//‘±‚¢‚ÄƒXƒLƒ“‚È‚µƒ‚ƒfƒ‹—p‚ðì¬B
+		//ç¶šã„ã¦ã‚¹ã‚­ãƒ³ãªã—ãƒ¢ãƒ‡ãƒ«ç”¨ã‚’ä½œæˆã€‚
 		psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vsNonSkinModel->GetCompiledBlob());
 		m_nonSkinModelPipelineState.Init(psoDesc);
 
-		//‘±‚¢‚Ä”¼“§–¾ƒ}ƒeƒŠƒAƒ‹—pB
+		//ç¶šã„ã¦åŠé€æ˜Žãƒžãƒ†ãƒªã‚¢ãƒ«ç”¨ã€‚
 		psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vsSkinModel->GetCompiledBlob());
 		psoDesc.BlendState.IndependentBlendEnable = TRUE;
 		psoDesc.BlendState.RenderTarget[0].BlendEnable = TRUE;
@@ -333,14 +339,14 @@ namespace nsK2EngineLow {
 		const char* psEntryPointFunc
 	)
 	{
-		//ƒXƒLƒ“‚È‚µƒ‚ƒfƒ‹—p‚ÌƒVƒF[ƒ_[‚ðƒ[ƒh‚·‚éB
+		//ã‚¹ã‚­ãƒ³ãªã—ãƒ¢ãƒ‡ãƒ«ç”¨ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ã€‚
 		m_vsNonSkinModel = g_engine->GetShaderFromBank(fxFilePath, vsEntryPointFunc);
 		if (m_vsNonSkinModel == nullptr) {
 			m_vsNonSkinModel = new Shader;
 			m_vsNonSkinModel->LoadVS(fxFilePath, vsEntryPointFunc);
 			g_engine->RegistShaderToBank(fxFilePath, vsEntryPointFunc, m_vsNonSkinModel);
 		}
-		//ƒXƒLƒ“‚ ‚èƒ‚ƒfƒ‹—p‚ÌƒVƒF[ƒ_[‚ðƒ[ƒh‚·‚éB
+		//ã‚¹ã‚­ãƒ³ã‚ã‚Šãƒ¢ãƒ‡ãƒ«ç”¨ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ã‚’ãƒ­ãƒ¼ãƒ‰ã™ã‚‹ã€‚
 		m_vsSkinModel = g_engine->GetShaderFromBank(fxFilePath, vsSkinEntriyPointFunc);
 		if (m_vsSkinModel == nullptr) {
 			m_vsSkinModel = new Shader;
