@@ -18,9 +18,12 @@ namespace app
 		{
 			PlayerParameter()
 			{
-				// Remy（Mixamo）の身長を、体の高さ（bodyHeight = 120）に合わせる（Remy は約149 → 0.8倍で約119）
-				// ※ ゲームで見ながら Tuning の「Model Scale」で合わせ、決まった値をここに書く
-				modelScale = 0.8f;
+				// ユニティちゃんの身長は約119で、体の高さ（bodyHeight = 120）とほぼ同じなので拡大しない
+				// ※ モデルを変えたら、ゲームで見ながら Tuning の「Model Scale」で合わせ、決まった値をここに書く
+				modelScale = 1.0f;
+
+				// Remy（Mixamo）… 使わなくなったのでコメントアウト（身長 約149 → 0.8倍で約119）
+				//modelScale = 0.8f;
 			}
 
 			// ---- ジャンプ ----
@@ -49,17 +52,32 @@ namespace app
 			/** 崖から手を離したあと、再びつかめるようになるまでの時間 */
 			float ledgeRegrabCooldown = 0.3f;
 			/** 崖を登りきるまでの時間 */
-			float climbUpDuration = 1.13f;
+			float climbUpDuration = 0.5f;
 
 			// ---- 崖つかまり・崖登りの見た目（当たり判定は変わらない）----
+			// 今はユニティちゃん（ぶら下がり・崖登りの専用アニメーションがなく idle / walk で代用）なので、モデルはずらさない
 			/** ぶら下がっているときのモデルのずらし：前（崖の方）が正 */
-			float ledgeHangModelForward = 15.0f;
+			float ledgeHangModelForward = 0.0f;
 			/** ぶら下がっているときのモデルのずらし：上が正 */
-			float ledgeHangModelY = -20.0f;
+			float ledgeHangModelY = 0.0f;
 			/** 崖登りのときに、ぶら下がりのずらしにさらに足す量：前が正 */
 			float climbModelForward = 0.0f;
 			/** 崖登りのときに、ぶら下がりのずらしにさらに足す量：上が正（登りのアニメーションの始まりの姿勢を、ぶら下がりの姿勢にそろえる） */
-			float climbModelY = 30.0f;
+			float climbModelY = 0.0f;
+			/**
+			 * @brief 崖登りの間、モデルをぶら下がった位置に置いたままにするか
+			 * @details true  … アニメーションの中で体が上がるモデル。体の動きはアニメーションに任せる
+			 *          false … 登りのアニメーションがないモデル（ユニティちゃん）。モデルは当たり判定と一緒に上がる
+			 */
+			bool isClimbModelAnchored = false;
+
+			// Remy（Mixamo）… 使わなくなったのでコメントアウト（新しいモデルで崖登りのアニメーションを入れるときの参考）
+			//float climbUpDuration = 1.13f;
+			//float ledgeHangModelForward = 15.0f;
+			//float ledgeHangModelY = -20.0f;
+			//float climbModelForward = 0.0f;
+			//float climbModelY = 30.0f;
+			//bool isClimbModelAnchored = true;
 
 			// ---- 物の操作（鏡・日よけ板）----
 			/** 物をつかんで引きずっているときの速さ */

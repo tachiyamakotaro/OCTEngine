@@ -382,7 +382,11 @@ namespace app
 			// 見た目：モデルはぶら下がった位置に置いたままにして、アニメーションの中の体の動きで登らせる
 			// （当たり判定は Update の計算どおりに動く。登りきったら当たり判定の位置に戻る）
 			const PlayerParameter& param = GetParam();
-			GetPlayer().SetModelAnchor(m_startPosition + carried);
+			// 登りのアニメーションで体が上がらないモデル（ユニティちゃん）は、当たり判定と一緒に動かす
+			if (param.isClimbModelAnchored)
+			{
+				GetPlayer().SetModelAnchor(m_startPosition + carried);
+			}
 			GetPlayer().SetModelOffset(math::Vec2(
 				param.ledgeHangModelForward + param.climbModelForward,
 				param.ledgeHangModelY + param.climbModelY));
@@ -398,12 +402,15 @@ namespace app
 			// なので、今モデルを描いている位置と当たり判定の位置の差を見た目のずらしにして、補間と同じ時間で 0 に戻す
 			const PlayerParameter& param = GetParam();
 			const float facing = static_cast<float>(GetPlayer().GetFacing());
-			const math::Vec2 anchor = m_startPosition + controller.GetLedgeCarryOffset();
+			const math::Vec2 position = controller.GetPosition();
+			// モデルを置いていた位置（置いたままにしないモデルは、当たり判定の位置）
+			const math::Vec2 anchor = param.isClimbModelAnchored
+				? m_startPosition + controller.GetLedgeCarryOffset()
+				: position;
 			const math::Vec2 drawnPosition{
 				anchor.x + (param.ledgeHangModelForward + param.climbModelForward) * facing,
 				anchor.y + param.ledgeHangModelY + param.climbModelY
 			};
-			const math::Vec2 position = controller.GetPosition();
 			GetPlayer().ClearModelAnchor();
 			GetPlayer().FadeOutModelOffset(
 				math::Vec2((drawnPosition.x - position.x) * facing, drawnPosition.y - position.y),
