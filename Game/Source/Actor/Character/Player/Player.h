@@ -9,6 +9,8 @@
  *
  *          鏡の中のもう一人の自分も、このクラスを SetMirrored(true) で作れば
  *          同じ入力で左右反転して動く（ミラーパラレルの同時操作）。
+ *
+ *          ダメージを受けたあとの無敵中は、モデル（と鏡に映った像）を点滅させる（Render）。
  */
 #pragma once
 #include "Source/Actor/Character/CharacterBase.h"
@@ -97,6 +99,10 @@ namespace app
 
 		public:
 			bool Start() override;
+			/**
+			 * @brief 描画（ダメージ後の無敵中は点滅させる）
+			 */
+			void Render(RenderContext& rc) override;
 
 
 		public:
@@ -109,6 +115,13 @@ namespace app
 			std::unique_ptr<CharacterStatus> CreateStatus() override;
 			std::unique_ptr<CharacterStateMachine> CreateStateMachine() override;
 			void UpdateCommand(float deltaTime) override;
+
+
+		private:
+			/**
+			 * @brief 点滅で消す番か（無敵中で、死んでいないときだけ点滅する）
+			 */
+			bool IsBlinkHidden() const;
 
 
 		private:

@@ -98,6 +98,36 @@ namespace app
 		}
 
 
+		void Player::Render(RenderContext& rc)
+		{
+			// 無敵中は点滅させる（消す番のときは、モデルも鏡に映った像も描かない）
+			if (IsBlinkHidden())
+			{
+				return;
+			}
+			CharacterBase::Render(rc);
+		}
+
+
+		bool Player::IsBlinkHidden() const
+		{
+			const PlayerStatus* status = GetStatus<PlayerStatus>();
+			if (status == nullptr || status->IsDead() || !status->IsInvincible())
+			{
+				return false;
+			}
+			const float interval = m_parameter.blinkInterval;
+			if (interval <= 0.0f)
+			{
+				return false;
+			}
+			// 残り時間を間隔で区切って、奇数番目のときだけ消す
+			// （残り時間が 0 に近づくと 0 番目＝見える番になるので、点滅の終わりは必ず見えた状態になる）
+			const int step = static_cast<int>(status->GetInvincibleTimer() / interval);
+			return (step % 2) == 1;
+		}
+
+
 		std::unique_ptr<CharacterStatus> Player::CreateStatus()
 		{
 			return std::make_unique<PlayerStatus>(m_parameter.invincibleTime);

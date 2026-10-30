@@ -87,9 +87,9 @@ namespace app
 
 			// ---- 落下ダメージ（プリンス オブ ペルシャ：1段は平気、2段で痛い、3段で死ぬ）----
 			/** この高さ以上から落ちると着地でよろけてダメージ */
-			float hardLandingHeight = 350.0f;
+			float hardLandingHeight = 500.0f;
 			/** この高さ以上から落ちると死ぬ */
-			float deadlyFallHeight = 700.0f;
+			float deadlyFallHeight = 800.0f;
 			/** 落下ダメージ量 */
 			int fallDamage = 1;
 			/** 着地でよろけている時間 */
@@ -98,6 +98,8 @@ namespace app
 			// ---- 被ダメージ ----
 			/** ダメージを受けたあとの無敵時間 */
 			float invincibleTime = 1.0f;
+			/** 無敵中に点滅する間隔（秒。この時間ごとに 見える ⇄ 見えない を切り替える。0 なら点滅しない） */
+			float blinkInterval = 0.08f;
 		};
 	}
 }

@@ -21,6 +21,10 @@ namespace app
 			 * @brief 無敵中か
 			 */
 			inline bool IsInvincible() const { return m_invincibleTimer > 0.0f; }
+			/**
+			 * @brief 無敵の残り時間（秒）
+			 */
+			inline float GetInvincibleTimer() const { return m_invincibleTimer; }
 
 
 		public:
