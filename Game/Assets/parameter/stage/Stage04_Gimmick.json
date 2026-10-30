@@ -1,0 +1,28 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "R1_Lamp", "position": [700.0, 824.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R1_Mirror", "center": [700.0, 375.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 700.0, "railMaxX": 700.0 },
+		{ "type": "MovingBlock", "name": "R1_Bridge", "position": [2225.0, 600.0], "size": [244.0, 100.0], "moveOffset": [-990.0, -300.0], "moveSpeed": 200.0, "panelSide": 0, "panelLength": 0.0, "chargeTime": 2.0, "runTime": 6.0, "hasFrontPanel": false },
+		{ "type": "EmitRay", "name": "R2_Lamp", "position": [3150.0, 1322.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R2_Mirror", "center": [3150.0, 1100.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 3150.0, "railMaxX": 3150.0 },
+		{ "type": "MovingBlock", "name": "R2_Shutter", "position": [3550.0, 675.0], "size": [60.0, 600.0], "moveOffset": [0.0, 300.0], "moveSpeed": 200.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 1.2, "runTime": 4.0, "hasFrontPanel": true },
+		{ "type": "IceBlock", "name": "R2_IceWall", "position": [4050.0, 675.0], "size": [80.0, 806.0], "kind": "Melt", "meltTime": 1.2, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
+		{ "type": "EmitRay", "name": "R3_Lamp", "position": [4225.0, 1225.0], "angleDeg": 0.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "MovingBlock", "name": "R3_Ferry", "position": [5925.0, 1175.0], "size": [200.0, 60.0], "moveOffset": [-920.0, -285.0], "moveSpeed": 150.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 2.0, "runTime": 7.0, "hasFrontPanel": true },
+		{ "type": "Goal", "name": "Goal", "position": [6825.0, 1250.0], "size": [150.0, 250.0] },
+		{ "type": "Checkpoint", "name": "Checkpoint1", "position": [825.0, 275.0], "size": [80.0, 200.0] },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [2325.0, 775.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 162.0, "railMaxX": 162.0 },
+		{ "type": "LightMirror", "name": "Mirror3", "center": [1775.0, 375.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": -388.0, "railMaxX": -388.0 },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [1775.0, 775.0], "angleDeg": 225.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": -388.0, "railMaxX": -388.0 },
+		{ "type": "LightMirror", "name": "Mirror4", "center": [4425.0, 740.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 4425.0, "railMaxX": 4425.0 },
+		{ "type": "IceBlock", "name": "IceWall1", "position": [4200.0, 875.0], "size": [402.0, 80.0], "kind": "Melt", "meltTime": 1.2, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
+		{ "type": "LightMirror", "name": "Mirror5", "center": [3400.0, 1100.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 3400.0, "railMaxX": 3400.0 },
+		{ "type": "LightMirror", "name": "Mirror6", "center": [3400.0, 750.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 3400.0, "railMaxX": 3400.0 },
+		{ "type": "IceBlock", "name": "IceWall2", "position": [3250.0, 1000.0], "size": [300.0, 50.0], "kind": "Melt", "meltTime": 0.5, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
+		{ "type": "Checkpoint", "name": "Checkpoint2", "position": [2900.0, 875.0], "size": [80.0, 200.0] },
+		{ "type": "Checkpoint", "name": "Checkpoint3", "position": [4775.0, 950.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "Lamp1", "position": [6025.0, 1873.0], "angleDeg": 270.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "Mirror7", "center": [6025.0, 1300.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1300.0, "railMaxX": 1300.0 },
+		{ "type": "IceBlock", "name": "IceWall3", "position": [6450.0, 1250.0], "size": [80.0, 626.0], "kind": "Melt", "meltTime": 0.5, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 }
+	]
+}

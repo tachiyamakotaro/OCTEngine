@@ -84,6 +84,7 @@
 		{ "type": "LightMirror", "name": "Mirror32", "center": [3675.0, 1325.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 3655.248, "railMaxX": 3655.248 },
 		{ "type": "Checkpoint", "name": "Checkpoint3", "position": [1425.0, 650.0], "size": [80.0, 200.0] },
 		{ "type": "LightMirror", "name": "Mirror33", "center": [1300.0, 1000.0], "angleDeg": 225.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1289.248, "railMaxX": 1289.248 },
-		{ "type": "LightMirror", "name": "Mirror34", "center": [1573.0, 1000.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1562.248, "railMaxX": 1562.248 }
+		{ "type": "LightMirror", "name": "Mirror34", "center": [1573.0, 1000.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1562.248, "railMaxX": 1562.248 },
+		{ "type": "IceBlock", "name": "IceWall4", "position": [2800.0, 950.0], "size": [227.0, 80.0], "kind": "Melt", "meltTime": 0.5, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 }
 	]
 }

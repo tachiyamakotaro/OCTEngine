@@ -36,8 +36,9 @@ namespace app
 
 		constexpr StageInfo STAGE_INFO_TABLE[] = {
 
-			{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",240.0f },
-			{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",240.0f },
+			//{ "Stage04", "Assets/parameter/stage/Stage04_Object.json", "Assets/parameter/stage/Stage04_Gimmick.json",240.0f },
+			//{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",240.0f },
+			//{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",240.0f },
 			// 最終ステージ（3部屋。今まで作ったギミックを組み合わせる。1部屋 30秒〜1分、全体で長くて3分のつもりなので、制限時間は 4分）
 			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 300.0f },
 		};
