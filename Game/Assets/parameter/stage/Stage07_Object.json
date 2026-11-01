@@ -1,0 +1,19 @@
+{
+	"stage": { "name": "Stage07", "playerStart": [-123.0, 600.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [6300.0, 2500.0] } },
+	"gimmicks": [
+		{ "type": "StageBlock", "name": "LeftWall", "position": [-300.0, -1250.0], "size": [100.0, 2550.0] },
+		{ "type": "StageBlock", "name": "RightWall", "position": [6450.0, -1250.0], "size": [100.0, 3150.0] },
+		{ "type": "StageBlock", "name": "R1_StartFloor", "position": [-200.0, 25.0], "size": [356.0, 564.0] },
+		{ "type": "StageBlock", "name": "R1_Floor", "position": [1067.0, -1150.0], "size": [637.0, 1750.0] },
+		{ "type": "StageBlock", "name": "R1_Ceiling", "position": [-200.0, 1100.0], "size": [2300.0, 200.0] },
+		{ "type": "StageBlock", "name": "Rock", "position": [2100.0, 250.0], "size": [2550.0, 1649.0] },
+		{ "type": "StageBlock", "name": "ShaftNotch", "position": [1700.0, -1150.0], "size": [220.0, 800.0] },
+		{ "type": "StageBlock", "name": "R2_Floor1", "position": [1920.0, -1150.0], "size": [680.0, 900.0] },
+		{ "type": "StageBlock", "name": "R2_LedgeB", "position": [3475.0, -1150.0], "size": [472.0, 550.0] },
+		{ "type": "StageBlock", "name": "R3_LedgeC", "position": [4375.0, -1150.0], "size": [500.0, 1050.0] },
+		{ "type": "StageBlock", "name": "R3_GoalFloor", "position": [5400.0, 1204.0], "size": [1132.0, 95.0] },
+		{ "type": "StageBlock", "name": "R3_Ceiling", "position": [4650.0, 1700.0], "size": [1806.0, 200.0] },
+		{ "type": "StageBlock", "name": "Block1", "position": [3350.0, -200.0], "size": [589.0, 458.0] },
+		{ "type": "StageBlock", "name": "Block2", "position": [5700.0, 850.0], "size": [200.0, 50.0] }
+	]
+}
