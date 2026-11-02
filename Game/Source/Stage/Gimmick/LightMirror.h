@@ -117,6 +117,10 @@ namespace app
 			 * @details レールを描くかどうかに使う。Rail が OFF の鏡は、どこまでも動かせるので範囲がない
 			 */
 			bool HasMoveRange() const { return isMovable && hasRail && railMaxX > railMinX; }
+			/** 鏡の中心がレールの範囲の外にあるか（つかんだ瞬間にレールへ飛んでしまう） */
+			bool IsOutsideRail() const { return center.x < railMinX || center.x > railMaxX; }
+			/** レールの範囲を、今の鏡の位置を真ん中にした初めの長さにする（エディタ用） */
+			void FitRailToCenter();
 			/** 動かせる範囲（HasMoveRange が true のときに使う） */
 			MoveRange GetMoveRange() const
 			{

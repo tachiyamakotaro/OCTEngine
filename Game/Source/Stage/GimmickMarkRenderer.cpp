@@ -82,7 +82,7 @@ namespace app
 		{
 			for (const LightMirror& mirror : stage.GetGimmicks().View<LightMirror>())
 			{
-				// 動かせる範囲が決まっている鏡：レールと両端の止め金
+				// 動かせる範囲が決まっている鏡：その範囲にレールと両端の止め金（範囲は鏡に答えてもらう）
 				if (m_parameter.rail.isVisible && mirror.HasMoveRange())
 				{
 					const LightMirror::MoveRange range = mirror.GetMoveRange();
@@ -232,9 +232,10 @@ namespace app
 
 		float GimmickMarkRenderer::GetRailZ() const
 		{
-			// 鏡の奥の面のすぐ奥（壁に付いたレールの上を鏡が動いて見えるように）
+			// 鏡の奥行きの真ん中あたり（レールが鏡の真ん中を通っているように見せる）
+			// ただし、光（Z = 0 を中心に、太さと同じ奥行き）より手前に出ると光を隠すので、光のすぐ奥に置く
 			const MarkPlacement& placement = m_parameter.placement;
-			return placement.lightMirrorDepth * 0.5f + placement.surfaceGap + m_parameter.rail.depth * 0.5f;
+			return placement.lightBeamWidth * 0.5f + placement.surfaceGap + m_parameter.rail.depth * 0.5f;
 		}
 	}
 }

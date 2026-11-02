@@ -114,7 +114,9 @@ namespace app
 			ImGui::DragFloat("Receiver Depth", &placement.receiverDepth, 1.0f, 1.0f, 1000.0f, "%.0f");
 			ImGui::SetItemTooltip("Same as GimmickRenderer receiverDepth. The bulb sits on the front face.");
 			ImGui::DragFloat("Mirror Depth", &placement.lightMirrorDepth, 1.0f, 1.0f, 1000.0f, "%.0f");
-			ImGui::SetItemTooltip("Same as GimmickRenderer lightMirrorDepth. Gear sits in front of the mirror, rail behind it.");
+			ImGui::SetItemTooltip("Same as GimmickRenderer lightMirrorDepth. Gear sits in front of the mirror, rail through its middle.");
+			ImGui::DragFloat("Light Beam Width", &placement.lightBeamWidth, 0.5f, 0.0f, 200.0f, "%.1f");
+			ImGui::SetItemTooltip("Same as LightBeamRenderer thinBeamWidth. The rail sits just behind the light.");
 			ImGui::DragFloat("Surface Gap", &placement.surfaceGap, 0.1f, 0.0f, 50.0f, "%.1f");
 			ImGui::PopID();
 		}

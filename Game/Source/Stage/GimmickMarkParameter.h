@@ -98,8 +98,10 @@ namespace app
 		{
 			/** 受光器の奥行き（GimmickRenderer の receiverDepth と同じにする。電球はこの手前の面に貼る） */
 			float receiverDepth = 60.0f;
-			/** 反射鏡の奥行き（GimmickRenderer の lightMirrorDepth と同じにする。歯車はこの手前、レールはこの奥に置く） */
+			/** 反射鏡の奥行き（GimmickRenderer の lightMirrorDepth と同じにする。歯車はこの手前、レールは真ん中（光のすぐ奥）に置く） */
 			float lightMirrorDepth = 80.0f;
+			/** 細い光の太さ（LightBeamRenderer の thinBeamWidth と同じにする。レールはこの光より奥に置いて、光を隠さない） */
+			float lightBeamWidth = 8.0f;
 			/** 面と印の板のすき間（面にぴったり重なるとちらつくので少し離す） */
 			float surfaceGap = 1.0f;
 		};

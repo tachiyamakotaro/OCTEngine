@@ -18,6 +18,10 @@ namespace app
 			const ImU32 EDITOR_COLOR_MIRROR = IM_COL32(230, 240, 255, 255);
 			const ImU32 EDITOR_COLOR_MIRROR_BACK = IM_COL32(90, 90, 100, 255);
 			const ImU32 EDITOR_COLOR_RAIL = IM_COL32(230, 240, 255, 90);
+			/** 「鏡がレールの外にある」の注意の文字の色 */
+			const ImVec4 EDITOR_COLOR_WARNING(1.0f, 0.6f, 0.2f, 1.0f);
+			/** Rail を ON にしたとき・Fit を押したときのレールの長さの半分 */
+			constexpr float DEFAULT_RAIL_HALF_LENGTH = 100.0f;
 
 			/**
 			 * 鏡の厚さの半分（見た目の厚さ GimmickRenderer の lightMirrorThickness = 10 の半分）
@@ -118,6 +122,13 @@ namespace app
 		}
 
 
+		void LightMirror::FitRailToCenter()
+		{
+			railMinX = center.x - DEFAULT_RAIL_HALF_LENGTH;
+			railMaxX = center.x + DEFAULT_RAIL_HALF_LENGTH;
+		}
+
+
 		math::Rect LightMirror::GetBounds() const
 		{
 			const math::Vec2 a = GetStart();
@@ -159,12 +170,27 @@ namespace app
 			ImGui::Checkbox("Rotatable", &isRotatable);
 			ImGui::DragFloat("Rotation Step", &rotationStepDeg, 1.0f, 1.0f, 180.0f, "%.0f deg");
 			ImGui::Checkbox("Movable", &isMovable);
-			ImGui::Checkbox("Rail", &hasRail);
+			// Rail を ON にしたとき、前の範囲が鏡から離れていたら、鏡の位置から始める（離れた所にレールが出ないように）
+			const bool isRailTurnedOn = ImGui::Checkbox("Rail", &hasRail) && hasRail;
+			if (isRailTurnedOn && IsOutsideRail())
+			{
+				FitRailToCenter();
+			}
 			if (hasRail)
 			{
 				ImGui::DragFloat("Rail Min X", &railMinX, 1.0f, 0.0f, 0.0f, "%.1f");
 				ImGui::DragFloat("Rail Max X", &railMaxX, 1.0f, 0.0f, 0.0f, "%.1f");
 				if (railMaxX < railMinX) { railMaxX = railMinX; }
+				// 鏡がレールの外にあると、つかんだ瞬間にレールへ飛ぶので知らせる
+				if (IsOutsideRail())
+				{
+					ImGui::TextColored(EDITOR_COLOR_WARNING, "Mirror is outside the rail.");
+					ImGui::SameLine();
+					if (ImGui::SmallButton("Fit"))
+					{
+						FitRailToCenter();
+					}
+				}
 			}
 		}
 
