@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/Player.h"
+#include "Source/Camera/CameraEditor.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Input/GamePadInputDevice.h"
 #include "Source/Render/DarknessRenderer.h"
@@ -223,8 +224,10 @@ namespace app
 		/** 燃える物ごとの、次に煙を出すまでの時間 */
 		std::vector<float> m_firePuffTimers;
 
-		/** カメラ（追従・投影の設定・調整用の ImGui） */
+		/** カメラ（追従・全体表示・投影の設定） */
 		app::camera::GameCamera m_gameCamera;
+		/** カメラを調整する ImGui（デバッグウィンドウの「Camera」） */
+		app::camera::CameraEditor m_cameraEditor;
 
 		/** 死んだら自動でリスタートするか */
 		bool m_isAutoRestart;

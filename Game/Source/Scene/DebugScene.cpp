@@ -9,6 +9,7 @@
 #include "ResultScene.h"
 #include "Source/Actor/Character/CharacterStateMachine.h"
 #include "Source/Actor/Character/CharacterStatus.h"
+#include "Source/Camera/CameraStageBounds.h"
 #include "Source/Core/DebugUI.h"
 #include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
@@ -157,7 +158,7 @@ namespace app
 	{
 		const float deltaTime = g_gameTime->GetFrameDeltaTime();
 
-		// デバッグ用の表示が OFF の間は、F1 / F2 / F5 も ImGui のウィンドウも使わない（見えないウィンドウを触らないように）
+		// デバッグ用の表示が OFF の間は、F1 / F2 / F3 / F5 も ImGui のウィンドウも使わない（見えないウィンドウを触らないように）
 		const bool isDebugUI = app::debug::IsDebugUIVisible();
 		if (isDebugUI)
 		{
@@ -804,6 +805,17 @@ namespace app
 
 	void DebugScene::UpdateCamera(const float deltaTime, const bool isImmediate)
 	{
+		// 全体表示で映すステージの範囲（エディタで地形を動かしても合うように、毎フレーム求め直す）
+		app::math::Rect stageBounds;
+		if (app::camera::CalcStageBounds(m_stage, stageBounds))
+		{
+			m_gameCamera.SetStageBounds(stageBounds);
+		}
+		else
+		{
+			m_gameCamera.ClearStageBounds();
+		}
+
 		// プレイヤーの足元を「見たい位置」として渡す（注視点の高さ・なめらかさ・投影は GameCamera が決める）
 		const app::math::Vec2& playerPos = m_player.GetPosition();
 		const Vector3 followPosition(playerPos.x, playerPos.y, 0.0f);
@@ -842,6 +854,11 @@ namespace app
 		if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
 		{
 			m_isShowDebugWindow = !m_isShowDebugWindow;
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_F3, false))
+		{
+			// カメラ：ふだん（プレイヤーを追う）⇔ ステージ全体
+			m_gameCamera.ToggleOverview();
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_F5, false))
 		{
@@ -889,7 +906,7 @@ namespace app
 			return;
 		}
 
-		ImGui::TextUnformatted("F1: Stage Editor   F2: This window   F5: Restart");
+		ImGui::TextUnformatted("F1: Stage Editor   F2: This window   F3: Whole Stage View   F5: Restart");
 		ImGui::TextUnformatted("Mouse: drag the player (screen edge = scroll) / Ctrl+Click: warp there");
 
 		// ---- プレイヤーの状態 ----
@@ -1039,7 +1056,7 @@ namespace app
 		// ---- カメラ ----
 		if (ImGui::CollapsingHeader("Camera"))
 		{
-			m_gameCamera.DrawSettingsUI();
+			m_cameraEditor.Draw(m_gameCamera);
 		}
 
 		// ---- SE ----
