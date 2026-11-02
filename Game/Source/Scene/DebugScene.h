@@ -1,18 +1,20 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/Player.h"
-#include "Source/Camera/CameraEditor.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Input/GamePadInputDevice.h"
 #include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/LightBeamRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Scene/IScene.h"
+#include "Source/Scene/InGameEditor.h"
+#include "Source/Scene/MistEffectParameter.h"
 #include "Source/Sound/GameplaySEPlayer.h"
 #include "Source/Stage/Editor/StageDebugOverlay.h"
 #include "Source/Stage/Editor/StageEditor.h"
 #include "Source/Stage/ColorLightRenderer.h"
 #include "Source/Stage/ColorGlassRenderer.h"
 #include "Source/Stage/FireGimmickRenderer.h"
+#include "Source/Stage/GimmickMarkRenderer.h"
 #include "Source/Stage/GimmickRenderer.h"
 #include "Source/Stage/MirrorInteractor.h"
 #include "Source/Stage/ShadeInteractor.h"
@@ -143,8 +145,10 @@ namespace app
 		void UpdateHotkeys();
 		/** ImGui の描画 */
 		void DrawImGui();
-		/** デバッグウィンドウ */
-		void DrawDebugWindow();
+		/** デバッグウィンドウに表示する今の状態 */
+		app::InGameStatus MakeEditorStatus() const;
+		/** デバッグウィンドウで押されたボタンの処理をする */
+		void ApplyEditorRequest(const app::InGameEditorRequest& request);
 
 
 	private:
@@ -162,6 +166,8 @@ namespace app
 		app::stage::StageRenderer m_stageRenderer;
 		/** ギミックの描画 */
 		app::stage::GimmickRenderer m_gimmickRenderer;
+		/** ギミックの印（受光器の電球マーク・回せる鏡の歯車・動かせる鏡のレール） */
+		app::stage::GimmickMarkRenderer m_gimmickMarkRenderer;
 		/** 鏡の境目の半透明ガラス */
 		app::render::MirrorGlass m_mirrorGlass;
 		/** 光の描画（半透明） */
@@ -199,20 +205,8 @@ namespace app
 		std::vector<app::math::Rect> m_stageBodies;
 
 		// ---- 霧のエフェクト ----
-		/** 霧のエフェクトを出すか */
-		bool m_isMistEffectEnabled;
-		/** 煙1つの大きさ（Mist.efk は大きさ1だと幅10ほどの煙なので、部屋に合わせて大きくする） */
-		float m_mistPuffScale;
-		/** 煙を出す間隔（秒。吹き出し口ごとにこの間隔で出す） */
-		float m_mistPuffInterval;
-		/** 煙を出す高さの幅（霧の先端からこの高さまでの間に出す） */
-		float m_mistPuffBand;
-		/** 煙を出す奥行きのばらつき（±） */
-		float m_mistPuffDepth;
-		/** 霧が通ったあと（先端より上）にも煙を出す割合（0〜1。霧が部屋にたまって見える） */
-		float m_mistFillRate;
-		/** 鏡の足場が見えたときに出す煙の大きさ（霧の煙に対する割合） */
-		float m_dewPuffScaleRate;
+		/** 霧のエフェクトの調整値 */
+		app::MistEffectParameter m_mistEffect;
 		/** 霧の装置ごとの、次に煙を出すまでの時間 */
 		std::vector<float> m_mistPuffTimers;
 		/** 霧の吹き出し口の位置（使い回す入れ物） */
@@ -226,15 +220,11 @@ namespace app
 
 		/** カメラ（追従・全体表示・投影の設定） */
 		app::camera::GameCamera m_gameCamera;
-		/** カメラを調整する ImGui（デバッグウィンドウの「Camera」） */
-		app::camera::CameraEditor m_cameraEditor;
+		/** デバッグウィンドウ「Game (F2)」（カメラなどの調整の ImGui はここにまとめた） */
+		app::InGameEditor m_inGameEditor;
 
-		/** 死んだら自動でリスタートするか */
-		bool m_isAutoRestart;
 		/** 死んでからの時間 */
 		float m_deadTimer;
-		/** デバッグウィンドウを表示するか */
-		bool m_isShowDebugWindow;
 		/** ゴールしたか */
 		bool m_isCleared;
 		/** ゴールしてからの時間（クリアの表示の演出用） */

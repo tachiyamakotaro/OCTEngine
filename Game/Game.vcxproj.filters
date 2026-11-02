@@ -345,6 +345,27 @@
     <ClCompile Include="Source\Camera\CameraStageBounds.cpp">
       <Filter>Source\Camera</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Actor\Character\Player\PlayerEditor.cpp">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\MirrorGlassEditor.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Render\OutlineEditor.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene\InGameEditor.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Sound\GameplaySEEditor.cpp">
+      <Filter>Source\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\GimmickMarkEditor.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\GimmickMarkRenderer.cpp">
+      <Filter>Source\Stage</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -666,6 +687,33 @@
     </ClInclude>
     <ClInclude Include="Source\Camera\CameraStageBounds.h">
       <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Actor\Character\Player\PlayerEditor.h">
+      <Filter>Source\Actor\Character\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\MirrorGlassEditor.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\OutlineEditor.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\InGameEditor.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\MistEffectParameter.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Sound\GameplaySEEditor.h">
+      <Filter>Source\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\GimmickMarkEditor.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\GimmickMarkParameter.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\GimmickMarkRenderer.h">
+      <Filter>Source\Stage</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

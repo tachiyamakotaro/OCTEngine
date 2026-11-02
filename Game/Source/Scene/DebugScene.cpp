@@ -58,20 +58,12 @@ namespace app
 		, m_stageMessages()
 		, m_respawnName()
 		, m_stageBodies()
-		, m_isMistEffectEnabled(true)
-		, m_mistPuffScale(40.0f)
-		, m_mistPuffInterval(0.25f)
-		, m_mistPuffBand(250.0f)
-		, m_mistPuffDepth(100.0f)
-		, m_mistFillRate(0.6f)
-		, m_dewPuffScaleRate(0.4f)
+		, m_mistEffect()
 		, m_mistPuffTimers()
 		, m_ventPositions()
 		, m_random(12345u)
 		, m_mistPuffCount(0)
-		, m_isAutoRestart(true)
 		, m_deadTimer(0.0f)
-		, m_isShowDebugWindow(true)
 		, m_isCleared(false)
 		, m_clearTimer(0.0f)
 		, m_warpCount(0)
@@ -110,6 +102,8 @@ namespace app
 
 		// ギミックの描画（Assets/modelData/gimmick/ の仮モデル）
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
+		// ギミックの印（電球マーク・歯車・レール。Assets/shader/gimmickMark.fx）
+		m_gimmickMarkRenderer.Init();
 		// 色の光のギミック（色センサー・扉の色の印・色の付いた光源）
 		m_colorLightRenderer.Init(app::stage::ColorLightRenderer::Config());
 		m_colorGlassRenderer.Init(app::stage::ColorGlassRenderer::Config());
@@ -149,6 +143,23 @@ namespace app
 
 		// 反射鏡のインタラクト表示（画像は Assets/sprite/prompt/）
 		m_mirrorPromptUI.Init();
+
+		// デバッグウィンドウ「Game (F2)」で調整する相手
+		app::InGameEditTargets editTargets;
+		editTargets.player = &m_player;
+		editTargets.stage = &m_stage;
+		editTargets.stageTimer = &m_stageTimer;
+		editTargets.timerUI = &m_timerUI;
+		editTargets.mirrorPromptUI = &m_mirrorPromptUI;
+		editTargets.camera = &m_gameCamera;
+		editTargets.sePlayer = &m_sePlayer;
+		editTargets.overlay = &m_overlay;
+		editTargets.mirrorGlass = &m_mirrorGlass;
+		editTargets.stageRenderer = &m_stageRenderer;
+		editTargets.gimmickRenderer = &m_gimmickRenderer;
+		editTargets.gimmickMarkRenderer = &m_gimmickMarkRenderer;
+		editTargets.mistEffect = &m_mistEffect;
+		m_inGameEditor.Init(editTargets);
 
 		return true;
 	}
@@ -235,6 +246,7 @@ namespace app
 
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
+		m_gimmickMarkRenderer.Update(m_stage);
 		m_lightBeamRenderer.Update(m_stage);
 		m_colorLightRenderer.Update(m_stage, deltaTime);
 		m_colorGlassRenderer.Update(m_stage);
@@ -276,6 +288,7 @@ namespace app
 	{
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
+		m_gimmickMarkRenderer.Draw(rc);
 		m_fireRenderer.DrawOpaque(rc);
 		m_colorLightRenderer.DrawOpaque(rc);
 		m_player.Render(rc);
@@ -615,11 +628,11 @@ namespace app
 			if (ice.isMeltedThisFrame)
 			{
 				const app::math::Vec2 bottom((ice.rect.min.x + ice.rect.max.x) * 0.5f, ice.rect.min.y);
-				PlayMistPuff(Vector3(bottom.x, bottom.y + 20.0f, 0.0f), m_mistPuffScale * ICE_STEAM_PUFF_RATE);
+				PlayMistPuff(Vector3(bottom.x, bottom.y + 20.0f, 0.0f), m_mistEffect.puffScale * ICE_STEAM_PUFF_RATE);
 			}
 		}
 
-		if (!m_isMistEffectEnabled)
+		if (!m_mistEffect.isEnabled)
 		{
 			return;
 		}
@@ -648,7 +661,7 @@ namespace app
 			{
 				continue;
 			}
-			m_mistPuffTimers[index] += app::math::Max(m_mistPuffInterval, 0.02f);
+			m_mistPuffTimers[index] += app::math::Max(m_mistEffect.puffInterval, 0.02f);
 
 			const float frontY = mist.GetFrontY();
 			m_stage.GetMistVentPositions(mist, m_ventPositions);
@@ -657,17 +670,17 @@ namespace app
 			{
 				// ① 霧の先端：先端から上へ band の間に出す（下りてくる霧の層）。横は吹き出し口の間隔の半分までずらす
 				{
-					const float top = app::math::Min(vent.y, frontY + m_mistPuffBand);
+					const float top = app::math::Min(vent.y, frontY + m_mistEffect.puffBand);
 					const float y = frontY + (top - frontY) * Random01();
 					const float x = vent.x + RandomSigned() * pitch * 0.5f;
-					PlayMistPuff(Vector3(x, y, RandomSigned() * m_mistPuffDepth), m_mistPuffScale);
+					PlayMistPuff(Vector3(x, y, RandomSigned() * m_mistEffect.puffDepth), m_mistEffect.puffScale);
 				}
 				// ② 霧が通ったあと：先端より上（天井まで）のどこかに出す（部屋に霧がたまっていく）
-				if (Random01() < m_mistFillRate && vent.y - frontY > m_mistPuffBand)
+				if (Random01() < m_mistEffect.fillRate && vent.y - frontY > m_mistEffect.puffBand)
 				{
-					const float y = frontY + m_mistPuffBand + (vent.y - frontY - m_mistPuffBand) * Random01();
+					const float y = frontY + m_mistEffect.puffBand + (vent.y - frontY - m_mistEffect.puffBand) * Random01();
 					const float x = mist.rect.min.x + mist.rect.Width() * Random01();
-					PlayMistPuff(Vector3(x, y, RandomSigned() * m_mistPuffDepth), m_mistPuffScale);
+					PlayMistPuff(Vector3(x, y, RandomSigned() * m_mistEffect.puffDepth), m_mistEffect.puffScale);
 				}
 			}
 		}
@@ -680,7 +693,7 @@ namespace app
 				continue;
 			}
 			const app::math::Vec2 center((platform.rect.min.x + platform.rect.max.x) * 0.5f, platform.rect.max.y);
-			PlayMistPuff(Vector3(center.x, center.y, 0.0f), m_mistPuffScale * m_dewPuffScaleRate);
+			PlayMistPuff(Vector3(center.x, center.y, 0.0f), m_mistEffect.puffScale * m_mistEffect.dewPuffScaleRate);
 		}
 	}
 
@@ -740,7 +753,7 @@ namespace app
 		}
 
 		m_deadTimer += deltaTime;
-		if (m_isAutoRestart && m_deadTimer >= RESTART_DELAY)
+		if (m_inGameEditor.IsAutoRestart() && m_deadTimer >= RESTART_DELAY)
 		{
 			// 仕掛けは今の状態のまま（溶かした氷・回した鏡・開いた扉などは戻さない）
 			RestartPlayers(false);
@@ -853,7 +866,7 @@ namespace app
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
 		{
-			m_isShowDebugWindow = !m_isShowDebugWindow;
+			m_inGameEditor.ToggleWindow();
 		}
 		if (ImGui::IsKeyPressed(ImGuiKey_F3, false))
 		{
@@ -887,253 +900,58 @@ namespace app
 		m_overlay.Draw(ImGui::GetBackgroundDrawList(), m_stage, &m_mirrorInteractor, projector);
 
 		m_stageEditor.Draw(m_stage);
-		DrawDebugWindow();
+		// デバッグウィンドウ「Game (F2)」。押されたボタンの処理は、ウィンドウを描き終わってからする
+		ApplyEditorRequest(m_inGameEditor.Draw(MakeEditorStatus()));
 	}
 
 
-	void DebugScene::DrawDebugWindow()
+	app::InGameStatus DebugScene::MakeEditorStatus() const
 	{
-		if (!m_isShowDebugWindow)
+		app::InGameStatus status;
+		status.isCleared = m_isCleared;
+		status.respawn.name = m_respawnName;
+		status.respawn.position = m_respawnPosition;
+		status.startPosition = m_playerStartPosition;
+		status.warpCount = m_warpCount;
+		status.mistPuffCount = m_mistPuffCount;
+		status.stageMessages = &m_stageMessages;
+		return status;
+	}
+
+
+	void DebugScene::ApplyEditorRequest(const app::InGameEditorRequest& request)
+	{
+		// ステージを作り直すものを先に見る（作り直したら、ほかのボタンはもう意味がない）
+		if (request.IsChangeStage())
 		{
+			ChangeStage(request.changeStageIndex);
 			return;
 		}
-
-		ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(340.0f, 0.0f), ImGuiCond_FirstUseEver);
-		if (!ImGui::Begin("Game (F2)", &m_isShowDebugWindow))
+		if (request.isReloadStage)
 		{
-			ImGui::End();
+			ReloadStage();
 			return;
 		}
-
-		ImGui::TextUnformatted("F1: Stage Editor   F2: This window   F3: Whole Stage View   F5: Restart");
-		ImGui::TextUnformatted("Mouse: drag the player (screen edge = scroll) / Ctrl+Click: warp there");
-
-		// ---- プレイヤーの状態 ----
-		const app::actor::CharacterController& controller = m_player.GetController();
-		ImGui::SeparatorText("Player");
-		ImGui::Text("State : %s", m_player.GetStateMachine()->GetCurrentStateName());
-		ImGui::Text("HP    : %d / %d", m_player.GetStatus()->GetHp(), m_player.GetStatus()->GetMaxHp());
-		ImGui::Text("Pos   : (%.1f, %.1f)", m_player.GetPosition().x, m_player.GetPosition().y);
-		ImGui::Text("Vel   : (%.1f, %.1f)", controller.GetVelocity().x, controller.GetVelocity().y);
-		ImGui::Text("Ground: %s  Wall L/R: %s/%s", controller.IsOnGround() ? "yes" : "no",
-			controller.IsTouchingWall(-1) ? "yes" : "no", controller.IsTouchingWall(1) ? "yes" : "no");
-
-		if (ImGui::Button("Restart (F5)"))
-		{
-			RestartPlayers();
-		}
-		ImGui::SetItemTooltip("Keep the stage layout. Reset players, doors, lights and mist. Respawn at the last checkpoint.");
-		// ---- ステージ ----
-		ImGui::SeparatorText("Stage");
-		const int currentStage = app::stage::GetCurrentStageIndex();
-		ImGui::Text("%s  (%d / %d)", app::stage::STAGE_INFO_TABLE[currentStage].name, currentStage + 1, app::stage::STAGE_COUNT);
-		// ステージの切り替え（StageCatalog.h の表から選ぶ）
-		if (ImGui::BeginCombo("Stage", app::stage::STAGE_INFO_TABLE[currentStage].name))
-		{
-			for (int i = 0; i < app::stage::STAGE_COUNT; ++i)
-			{
-				if (ImGui::Selectable(app::stage::STAGE_INFO_TABLE[i].name, i == currentStage) && i != currentStage)
-				{
-					ChangeStage(i);
-				}
-			}
-			ImGui::EndCombo();
-		}
-		ImGui::SetItemTooltip("Load another stage from its JSON files. Unsaved editor changes are lost.");
 		// ゴールに触れたのと同じ扱いにする（次のステージへ進む流れ・ゲームクリアの確認用）
-		ImGui::BeginDisabled(m_isCleared);
-		if (ImGui::Button("Clear This Stage"))
+		if (request.isClearStage && !m_isCleared)
 		{
 			m_isCleared = true;
 			m_clearTimer = 0.0f;
 			m_player.GetPlayerController().SetEnabled(false);
 			m_stageTimer.SetRunning(false);
 		}
-		ImGui::EndDisabled();
-		ImGui::SetItemTooltip("Same as touching the goal: next stage, or the result screen after the last stage.");
-		if (ImGui::Button("Reload JSON"))
+		// チェックポイント（または開始位置）へワープ：再開する場所を変えてリスタート
+		if (request.isWarp)
 		{
-			ReloadStage();
+			m_respawnPosition = request.warpTo.position;
+			m_respawnName = request.warpTo.name;
+			RestartPlayers();
+			return;
 		}
-		ImGui::SetItemTooltip("Rebuild the stage from the JSON files (%s). Unsaved editor changes are lost.", app::stage::GetCurrentStageInfo().name);
-		// 読み込みのメッセージ（失敗の理由・飛ばしたギミック）
-		for (const std::string& message : m_stageMessages)
+		if (request.isRestart)
 		{
-			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.4f, 1.0f), "%s", message.c_str());
+			RestartPlayers();
 		}
-		ImGui::Checkbox("Auto restart on death", &m_isAutoRestart);
-		ImGui::Text("Respawn: %s (%.0f, %.0f)", m_respawnName.empty() ? "Start" : m_respawnName.c_str(), m_respawnPosition.x, m_respawnPosition.y);
-		ImGui::Text("Warps: %d   %s", m_warpCount, m_isCleared ? "CLEARED!" : "");
-
-		// チェックポイントへワープ（部屋2などを最初から確かめたいとき）
-		if (!m_stage.GetGimmicks().View<app::stage::Checkpoint>().empty())
-		{
-			ImGui::TextUnformatted("Warp:");
-			if (ImGui::SmallButton("Start"))
-			{
-				m_respawnPosition = m_playerStartPosition;
-				m_respawnName.clear();
-				RestartPlayers();
-			}
-			for (const app::stage::Checkpoint& checkpoint : m_stage.GetGimmicks().View<app::stage::Checkpoint>())
-			{
-				ImGui::SameLine();
-				ImGui::PushID(&checkpoint);
-				if (ImGui::SmallButton(checkpoint.name.empty() ? "(no name)" : checkpoint.name.c_str()))
-				{
-					m_respawnPosition = checkpoint.GetSpawnPosition();
-					m_respawnName = checkpoint.name;
-					RestartPlayers();
-					ImGui::PopID();
-					break;
-				}
-				ImGui::PopID();
-			}
-		}
-
-		// ---- 時間制限（中身はタイマーと表示のクラスが作る） ----
-		if (ImGui::CollapsingHeader("Timer", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			m_stageTimer.DrawSettingsUI();
-			m_timerUI.DrawSettingsUI();
-		}
-
-		// ---- 反射鏡のインタラクト表示（中身は表示のクラスが作る） ----
-		if (ImGui::CollapsingHeader("Mirror Prompt"))
-		{
-			m_mirrorPromptUI.DrawSettingsUI();
-		}
-
-		// ---- 動きの調整 ----
-		if (ImGui::CollapsingHeader("Tuning"))
-		{
-			app::actor::PlayerParameter& param = m_player.GetPlayerParameterForEdit();
-			ImGui::DragFloat("Run Speed", &param.runSpeed, 5.0f, 0.0f, 3000.0f, "%.0f");
-			ImGui::DragFloat("Jump Velocity", &param.jumpVelocity, 10.0f, 0.0f, 5000.0f, "%.0f");
-			ImGui::DragFloat("Gravity", &param.gravity, 10.0f, -20000.0f, 0.0f, "%.0f");
-			ImGui::DragFloat("Max Fall Speed", &param.maxFallSpeed, 10.0f, 0.0f, 10000.0f, "%.0f");
-			ImGui::DragFloat("Ledge Reach", &param.ledgeGrabReach, 1.0f, 0.0f, 200.0f, "%.0f");
-			ImGui::DragFloat("Ledge Above", &param.ledgeGrabAbove, 1.0f, 0.0f, 200.0f, "%.0f");
-			ImGui::DragFloat("Climb Duration", &param.climbUpDuration, 0.01f, 0.05f, 3.0f, "%.2f s");
-			ImGui::DragFloat("Grab Move Speed", &param.grabMoveSpeed, 5.0f, 0.0f, 3000.0f, "%.0f");
-			ImGui::SetItemTooltip("Move speed while dragging a mirror / shade board.");
-			ImGui::DragFloat("Rotate Action Time", &param.rotateActionTime, 0.01f, 0.0f, 3.0f, "%.2f s");
-			ImGui::SetItemTooltip("How long the push animation plays after rotating a mirror.");
-			ImGui::DragFloat("Hang Model Forward", &param.ledgeHangModelForward, 0.5f, -200.0f, 200.0f, "%.1f");
-			ImGui::DragFloat("Hang Model Y", &param.ledgeHangModelY, 0.5f, -200.0f, 200.0f, "%.1f");
-			ImGui::SetItemTooltip("Shift the model while hanging so the hands are on the ledge corner.");
-			ImGui::DragFloat("Climb Model Forward", &param.climbModelForward, 0.5f, -200.0f, 200.0f, "%.1f");
-			ImGui::DragFloat("Climb Model Y", &param.climbModelY, 0.5f, -200.0f, 200.0f, "%.1f");
-			ImGui::SetItemTooltip("Added to the hang shift while climbing. Match the first frame of the climb to the hang pose.");
-			ImGui::DragFloat("Hard Landing Height", &param.hardLandingHeight, 5.0f, 0.0f, 3000.0f, "%.0f");
-			ImGui::DragFloat("Deadly Fall Height", &param.deadlyFallHeight, 5.0f, 0.0f, 5000.0f, "%.0f");
-			ImGui::Checkbox("Auto Ledge Grab", &param.isAutoLedgeGrab);
-			ImGui::Separator();
-			ImGui::DragFloat("Model Yaw Offset", &param.modelYawOffsetDeg, 1.0f, -180.0f, 180.0f, "%.0f deg");
-			ImGui::SetItemTooltip("Set 180 if the model faces backwards.");
-			ImGui::DragFloat("Model Scale", &param.modelScale, 0.01f, 0.05f, 5.0f, "%.2f");
-			ImGui::SetItemTooltip("Model size only. Collision size is Body Width / Body Height.");
-			ImGui::DragFloat("Body Width", &param.bodyWidth, 1.0f, 10.0f, 300.0f, "%.0f");
-			ImGui::DragFloat("Body Height", &param.bodyHeight, 1.0f, 10.0f, 400.0f, "%.0f");
-			ImGui::DragFloat("Crouch Height", &param.crouchHeight, 1.0f, 10.0f, 400.0f, "%.0f");
-			ImGui::TextDisabled("Body size is applied on Restart.");
-		}
-
-		// ---- アウトライン（黒い縁）----
-		if (ImGui::CollapsingHeader("Outline"))
-		{
-			RenderingEngine* renderingEngine = RenderingEngine::GetInstance();
-			RenderingEngine::OutlineParam& outline = renderingEngine->GetOutlineParam();
-			ImGui::Checkbox("Enable Outline", &renderingEngine->IsEnableOutline());
-			ImGui::ColorEdit3("Line Color", outline.color);
-			ImGui::SliderFloat("Line Strength", &outline.color[3], 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("Thickness", &outline.thickness, 0.5f, 6.0f, "%.1f px");
-			ImGui::SliderFloat("Depth Threshold", &outline.depthThreshold, 1.0f, 500.0f, "%.0f");
-			ImGui::SetItemTooltip("Draw a line where the next pixel is this much farther from the camera. Smaller = more lines.");
-		}
-
-		// ---- カメラ ----
-		if (ImGui::CollapsingHeader("Camera"))
-		{
-			m_cameraEditor.Draw(m_gameCamera);
-		}
-
-		// ---- SE ----
-		if (ImGui::CollapsingHeader("Sound"))
-		{
-			ImGui::Checkbox("Gameplay SE", &m_sePlayer.isEnabled);
-			ImGui::DragFloat("Footstep Interval", &m_sePlayer.footstepInterval, 0.01f, 0.05f, 2.0f, "%.2f s");
-			ImGui::DragFloat("First Footstep Delay", &m_sePlayer.firstFootstepDelay, 0.01f, 0.0f, 1.0f, "%.2f s");
-			ImGui::DragFloat("Min Footstep Speed", &m_sePlayer.minFootstepSpeed, 1.0f, 0.0f, 2000.0f, "%.0f");
-			ImGui::DragFloat("Min Air Time (Land)", &m_sePlayer.minAirTimeForLand, 0.01f, 0.0f, 2.0f, "%.2f s");
-			ImGui::SetItemTooltip("No landing sound after a shorter time in the air (stepping down a small ledge).");
-			ImGui::DragFloat("Slide Stop Delay", &m_sePlayer.slideStopDelay, 0.01f, 0.0f, 1.0f, "%.2f s");
-			const int lastKind = m_sePlayer.GetLastPlayedKind();
-			const char* lastPath = GetSoundAssetPath(lastKind);
-			ImGui::Text("Played: %d", m_sePlayer.GetPlayCount());
-			ImGui::Text("Last: %s", lastPath != nullptr ? lastPath : "-");
-			if (lastPath != nullptr && !SoundManager::Get().IsLoaded(lastKind))
-			{
-				ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f), "(file not found - silent)");
-			}
-		}
-
-		// ---- 表示 ----
-		if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			m_overlay.DrawSettingsUI();
-			if (ImGui::TreeNode("Mist Effect"))
-			{
-				ImGui::Checkbox("Enabled", &m_isMistEffectEnabled);
-				ImGui::DragFloat("Puff Scale", &m_mistPuffScale, 0.5f, 1.0f, 500.0f, "%.1f");
-				ImGui::DragFloat("Puff Interval", &m_mistPuffInterval, 0.01f, 0.02f, 2.0f, "%.2f s");
-				ImGui::DragFloat("Puff Band", &m_mistPuffBand, 5.0f, 0.0f, 2000.0f, "%.0f");
-				ImGui::SetItemTooltip("Puffs appear between the mist front and this height above it.");
-				ImGui::DragFloat("Puff Depth", &m_mistPuffDepth, 5.0f, 0.0f, 1000.0f, "%.0f");
-				ImGui::SliderFloat("Fill Rate", &m_mistFillRate, 0.0f, 1.0f, "%.2f");
-				ImGui::SetItemTooltip("Chance of an extra puff above the mist front (so the mist stays in the room).");
-				ImGui::DragFloat("Reveal Puff Rate", &m_dewPuffScaleRate, 0.01f, 0.0f, 3.0f, "%.2f");
-				ImGui::Text("Puffs played: %d", m_mistPuffCount);
-				ImGui::TreePop();
-			}
-			if (ImGui::TreeNode("Mirror Glass"))
-			{
-				app::render::MirrorGlass::Config& glass = m_mirrorGlass.GetConfig();
-				ImGui::Checkbox("Visible", &glass.isVisible);
-				ImGui::SameLine();
-				ImGui::TextDisabled(m_mirrorGlass.IsDrawn() ? "(drawn)" : "(hidden)");
-				ImGui::SliderFloat("Opacity", &glass.opacity, 0.0f, 3.0f, "%.2f");
-				ImGui::ColorEdit4("Tint", glass.tint);
-				ImGui::ColorEdit3("Edge Color", glass.edgeColor, ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_Float);
-				ImGui::DragFloat("Edge Width", &glass.edgeWidth, 5.0f, 0.0f, 2000.0f, "%.0f");
-				ImGui::ColorEdit3("Sheen Color", glass.sheenColor);
-				ImGui::SliderFloat("Sheen Opacity", &glass.sheenOpacity, 0.0f, 1.0f, "%.2f");
-				ImGui::DragFloat("Sheen Spacing", &glass.sheenSpacing, 10.0f, 0.0f, 20000.0f, "%.0f");
-				ImGui::DragFloat("Sheen Speed", &glass.sheenSpeed, 0.005f, -2.0f, 2.0f, "%.3f");
-				ImGui::DragFloat("Panel Size", &glass.panelSize, 10.0f, 0.0f, 10000.0f, "%.0f");
-				ImGui::SetItemTooltip("Size of one mirror panel (0 = no seams).");
-				ImGui::DragFloat("Seam Width", &glass.seamWidth, 0.1f, 0.0f, 100.0f, "%.1f");
-				ImGui::SliderFloat("Seam Opacity", &glass.seamOpacity, 0.0f, 1.0f, "%.2f");
-				ImGui::SliderFloat("Fresnel", &glass.fresnel, 0.0f, 3.0f, "%.2f");
-				ImGui::SliderFloat("Top Brightness", &glass.topBrightness, 0.0f, 3.0f, "%.2f");
-				ImGui::DragFloat("Z Offset", &glass.zOffset, 0.1f, -100.0f, 100.0f, "%.1f");
-				ImGui::SetItemTooltip("How far in front of the Back Mirror plane the glass sits.");
-				ImGui::TreePop();
-			}
-			ImGui::DragFloat("Floor Depth", &m_stageRenderer.GetConfig().depth, 5.0f, 10.0f, 5000.0f, "%.0f");
-			ImGui::DragFloat("Stone Texture Size", &m_stageRenderer.GetConfig().stoneTextureWorldSize, 5.0f, 25.0f, 2000.0f, "%.0f");
-			ImGui::SetItemTooltip("World length of one rock.DDS tile on the stage blocks. Smaller = smaller stones.");
-			ImGui::Checkbox("Gimmick Reflection", &m_gimmickRenderer.GetConfig().isDrawReflection);
-			ImGui::SetItemTooltip("Keep the Back Mirror's Plane Z at half of this so the mirror sits at the back edge of the floor.");
-			app::stage::BackMirror& backMirror = m_stage.GetBackMirror();
-			ImGui::Checkbox("Back Mirror", &backMirror.isEnabled);
-			ImGui::SameLine();
-			ImGui::SetNextItemWidth(120.0f);
-			ImGui::DragFloat("Plane Z", &backMirror.planeZ, 1.0f, -5000.0f, 5000.0f, "%.0f");
-		}
-
-		ImGui::End();
 	}
 
 
@@ -1144,11 +962,11 @@ namespace app
 		constexpr float SMOKE_START_HEAT = 0.15f;	// これより温まったら煙を出し始める
 		constexpr float BURNING_PUFF_INTERVAL = 0.15f;	// 燃えている間に煙を出す間隔
 		constexpr float SMOKE_Z = -20.0f;			// 煙を出す奥行き（物の少し手前）
-		const float puffScale = m_mistPuffScale;
+		const float puffScale = m_mistEffect.puffScale;
 
 		auto puff = [&](const app::math::Vec2& at, const float scale)
 			{
-				if (m_isMistEffectEnabled)
+				if (m_mistEffect.isEnabled)
 				{
 					PlayMistPuff(Vector3(at.x, at.y, SMOKE_Z), scale);
 				}

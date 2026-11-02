@@ -95,6 +95,40 @@ namespace app
 
 
 		public:
+			/**
+			 * @brief 鏡の中心が動ける範囲（レールの範囲）
+			 */
+			struct MoveRange
+			{
+				/** 左端（中心のX） */
+				float minX = 0.0f;
+				/** 右端（中心のX） */
+				float maxX = 0.0f;
+				/** 高さ（鏡は横にしか動かないので、中心の高さのまま） */
+				float y = 0.0f;
+
+				/** 長さ */
+				float Length() const { return maxX - minX; }
+				/** 真ん中のX */
+				float CenterX() const { return (minX + maxX) * 0.5f; }
+			};
+			/**
+			 * @brief 動かせる範囲が決まっているか（動かせて、レールが ON で、範囲に長さがある）
+			 * @details レールを描くかどうかに使う。Rail が OFF の鏡は、どこまでも動かせるので範囲がない
+			 */
+			bool HasMoveRange() const { return isMovable && hasRail && railMaxX > railMinX; }
+			/** 動かせる範囲（HasMoveRange が true のときに使う） */
+			MoveRange GetMoveRange() const
+			{
+				MoveRange range;
+				range.minX = railMinX;
+				range.maxX = railMaxX;
+				range.y = center.y;
+				return range;
+			}
+
+
+		public:
 			/** x, y は中心 */
 			LightMirror(const char* name, float x, float y, float initialAngleDeg, float initialLength);
 		};
