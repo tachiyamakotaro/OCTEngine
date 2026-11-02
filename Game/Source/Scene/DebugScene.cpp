@@ -93,7 +93,7 @@ namespace app
 		// 霧のエフェクトを読み込んでおく（EffectEmitter::Init より先に必要）
 		EffectEngine::GetInstance()->ResistEffect(MIST_EFFECT_NUMBER, MIST_EFFECT_PATH);
 
-		// 地形の描画（今は黄色い床をブロックの上面に置く）
+		// 地形の描画（石積みの遺跡。Box.tkm + rock.DDS で、UV はワールド座標から作る：Assets/shader/stage.fx）
 		app::stage::StageRenderer::Config rendererConfig;
 		rendererConfig.modelPath = "Assets/modelData/Box.tkm";
 		rendererConfig.upAxis = enModelUpAxisZ;
@@ -1105,6 +1105,8 @@ namespace app
 				ImGui::TreePop();
 			}
 			ImGui::DragFloat("Floor Depth", &m_stageRenderer.GetConfig().depth, 5.0f, 10.0f, 5000.0f, "%.0f");
+			ImGui::DragFloat("Stone Texture Size", &m_stageRenderer.GetConfig().stoneTextureWorldSize, 5.0f, 25.0f, 2000.0f, "%.0f");
+			ImGui::SetItemTooltip("World length of one rock.DDS tile on the stage blocks. Smaller = smaller stones.");
 			ImGui::Checkbox("Gimmick Reflection", &m_gimmickRenderer.GetConfig().isDrawReflection);
 			ImGui::SetItemTooltip("Keep the Back Mirror's Plane Z at half of this so the mirror sits at the back edge of the floor.");
 			app::stage::BackMirror& backMirror = m_stage.GetBackMirror();

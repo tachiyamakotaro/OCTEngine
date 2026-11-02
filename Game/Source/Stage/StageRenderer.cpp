@@ -17,6 +17,21 @@ namespace app
 			m_config = config;
 			m_blocks = ModelGroup();
 			m_movingBlocks = ModelGroup();
+
+			// 地形ブロック：ワールド座標から UV を作るシェーダー（石の大きさをそろえる）。ライトの値は Draw で毎フレーム写す
+			m_stoneConstants = StoneConstants();
+			m_stoneConstants.texture[0] = m_config.stoneTextureWorldSize;
+			m_blocks.shader.fxFilePath = m_config.blockFxFilePath;
+			m_blocks.shader.psEntryPointFunc = m_config.isShadowReceiver ? "PSMainStage" : "PSMainStageNoShadow";
+			m_blocks.shader.constants = &m_stoneConstants;
+			m_blocks.shader.constantsSize = sizeof(StoneConstants);
+
+			// 動く床・動く壁：今まで通り model.fx（足場が動くと模様がその場に残ってしまうので、ワールド座標の UV は使わない）
+			m_movingBlocks.shader.fxFilePath = "Assets/shader/model.fx";
+			m_movingBlocks.shader.psEntryPointFunc = m_config.isShadowReceiver ? "PSMainShadowReceiver" : "PSMain";
+			m_movingBlocks.shader.constants = &SceneLight::GetInstance()->GetSceneLight();
+			m_movingBlocks.shader.constantsSize = sizeof(SceneLight::GetInstance()->GetSceneLight());
+
 			m_panels.clear();
 			m_panelCount = 0;
 			m_isInited = true;
@@ -63,11 +78,16 @@ namespace app
 
 		void StageRenderer::Draw(RenderContext& rc)
 		{
+			// 地形ブロックは自分の定数バッファを持っているので、ライトの値（カメラの位置など）と石の大きさを写す
+			// （石の大きさは ImGui で変えられるように、毎フレーム写す）
+			const SceneLightData& light = SceneLight::GetInstance()->GetSceneLight();
+			m_stoneConstants.light = light;
+			m_stoneConstants.texture[0] = m_config.stoneTextureWorldSize;
+
 			DrawGroup(rc, m_blocks);
 			DrawGroup(rc, m_movingBlocks);
 
 			// パネルは1枚ずつ自分の定数バッファを持っているので、ライトの値（カメラの位置など）もそれぞれに写す
-			const SceneLightData& light = SceneLight::GetInstance()->GetSceneLight();
 			for (size_t i = 0; i < m_panelCount; ++i)
 			{
 				m_panels[i]->constants.light = light;
@@ -81,7 +101,7 @@ namespace app
 			const size_t count = group.rects.size();
 
 			// 本物
-			Reserve(group.models, count, D3D12_CULL_MODE_BACK, modelPath);
+			Reserve(group.models, count, D3D12_CULL_MODE_BACK, modelPath, group.shader);
 			for (size_t i = 0; i < count; ++i)
 			{
 				Place(*group.models[i], group.rects[i], false, 0.0f);
@@ -92,7 +112,7 @@ namespace app
 			group.activeReflectionCount = 0;
 			if (mirror.isEnabled)
 			{
-				Reserve(group.reflectionModels, count, D3D12_CULL_MODE_FRONT, modelPath);
+				Reserve(group.reflectionModels, count, D3D12_CULL_MODE_FRONT, modelPath, group.shader);
 				for (size_t i = 0; i < count; ++i)
 				{
 					Place(*group.reflectionModels[i], group.rects[i], true, mirror.planeZ);
@@ -104,18 +124,20 @@ namespace app
 
 		void StageRenderer::DrawGroup(RenderContext& rc, ModelGroup& group)
 		{
+			// ModelRender::Draw と同じく、描く物として登録する（実際に描くのは RenderingEngine）
+			RenderingEngine* renderingEngine = RenderingEngine::GetInstance();
 			for (size_t i = 0; i < group.activeCount; ++i)
 			{
-				group.models[i]->Draw(rc);
+				renderingEngine->AddRenderObject(*group.models[i]);
 			}
 			for (size_t i = 0; i < group.activeReflectionCount; ++i)
 			{
-				group.reflectionModels[i]->Draw(rc);
+				renderingEngine->AddRenderObject(*group.reflectionModels[i]);
 			}
 		}
 
 
-		void StageRenderer::Place(ModelRender& model, const math::Rect& rect, const bool isReflected, const float planeZ)
+		void StageRenderer::Place(Model& model, const math::Rect& rect, const bool isReflected, const float planeZ)
 		{
 			Vector3 position;
 			Vector3 scale;
@@ -127,9 +149,7 @@ namespace app
 				position = render::ReflectPositionZ(position, planeZ);
 				scale = render::ReflectScaleZ(scale);
 			}
-			model.SetPosition(position);
-			model.SetScale(scale);
-			model.Update();
+			model.UpdateWorldMatrix(position, Quaternion::Identity, scale);
 		}
 
 
@@ -226,18 +246,31 @@ namespace app
 		}
 
 
-		void StageRenderer::Reserve(std::vector<std::unique_ptr<ModelRender>>& models, const size_t count, const D3D12_CULL_MODE cullMode, const std::string& modelPath)
+		void StageRenderer::Reserve(std::vector<std::unique_ptr<Model>>& models, const size_t count, const D3D12_CULL_MODE cullMode, const std::string& modelPath, const ShaderSetting& shader)
 		{
-			// ModelRender の初期化は重いので、足りない分だけ作り、余った分は描かないだけにする
+			// Model の初期化は重いので、足りない分だけ作り、余った分は描かないだけにする
+			// （中身は ModelRender::Init と同じ。シェーダーだけまとまりごとに変えられるようにしている）
 			while (models.size() < count)
 			{
-				auto model = std::make_unique<ModelRender>();
-				model->Init(
-					modelPath.c_str(), nullptr, 0,
-					false, m_config.isShadowReceiver,
-					&SceneLight::GetInstance()->GetSceneLight(), sizeof(SceneLight::GetInstance()->GetSceneLight()),
-					m_config.upAxis,
-					cullMode);
+				auto model = std::make_unique<Model>();
+
+				ModelInitData initData;
+				initData.m_tkmFilePath = modelPath.c_str();
+				initData.m_fxFilePath = shader.fxFilePath.c_str();
+				initData.m_vsEntryPointFunc = "VSMain";
+				initData.m_vsSkinEntryPointFunc = "VSMain";
+				initData.m_psEntryPointFunc = shader.psEntryPointFunc.c_str();
+				initData.m_modelUpAxis = m_config.upAxis;
+				initData.m_cullMode = cullMode;
+				// メインのレンダーターゲット（RenderingEngine の m_mainRenderTarget）と同じ形式
+				initData.m_colorBufferFormat[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+				// シェーダーに渡す値（b1）。Draw のたびに中身が GPU に送られる
+				initData.m_expandConstantBuffer = shader.constants;
+				initData.m_expandConstantBufferSize = shader.constantsSize;
+				// model.fx は t10 のシャドウマップを使うので、ModelRender と同じくつないでおく
+				initData.m_expandShaderResoruceView[0] = &RenderingEngine::GetInstance()->GetShadowMapTexture();
+				model->Init(initData);
+
 				models.push_back(std::move(model));
 			}
 		}

@@ -11,6 +11,11 @@
  *          動く床・動く壁に付いたソーラーパネルは、セルが並んだ模様をシェーダーで描き、たまった電気の量でセルが黒 → 灰色 → 白に変わって光る
  *          （シェーダーは Assets/shader/solarPanel.fx）。
  *          扉・光・反射鏡などはまだ StageDebugOverlay で描いている。
+ *
+ *          地形ブロックは石積みの遺跡に見えるよう、テクスチャをブロックの大きさに合わせて伸ばすのではなく、
+ *          ワールド座標から UV を作って同じ大きさの石が並ぶようにしている（シェーダーは Assets/shader/stage.fx）。
+ *          石の大きさは Config の stoneTextureWorldSize（テクスチャ1枚ぶんのワールドの長さ）で変えられる。
+ *          ModelRender は model.fx 固定なので、地形ブロックも Model を直接持っている（ソーラーパネルと同じ作り）。
  */
 #pragma once
 #include <memory>
@@ -63,6 +68,13 @@ namespace app
 				float depth = 300.0f;
 				/** 影を受けるか */
 				bool isShadowReceiver = true;
+				/** 地形ブロックのシェーダー（ワールド座標から UV を作り、石の大きさをそろえる） */
+				std::string blockFxFilePath = "Assets/shader/stage.fx";
+				/**
+				 * 地形ブロックのテクスチャ1枚ぶんのワールドの長さ（小さいほど石が小さく、たくさん並ぶ）
+				 * rock.DDS は石が4段なので、200 なら1段がおよそ 50。ブロックの高さが 100 の倍数なら、上の端が石の継ぎ目にそろう
+				 */
+				float stoneTextureWorldSize = 200.0f;
 			};
 
 
@@ -88,23 +100,39 @@ namespace app
 
 		public:
 			StageRenderer() = default;
-			// ModelRender を持っているのでコピー禁止
+			// Model を持っている（Model は m_stoneConstants の場所を覚えている）のでコピー禁止
 			StageRenderer(const StageRenderer&) = delete;
 			StageRenderer& operator=(const StageRenderer&) = delete;
 
 
 		private:
 			/**
+			 * @brief まとまりのモデルを描くシェーダーと、シェーダーに渡す値
+			 */
+			struct ShaderSetting
+			{
+				/** シェーダーのファイル */
+				std::string fxFilePath = "Assets/shader/model.fx";
+				/** ピクセルシェーダーの関数名 */
+				std::string psEntryPointFunc = "PSMain";
+				/** シェーダーに渡す値（b1）。Model がこの場所を覚えていて、描くたびに GPU に送る */
+				void* constants = nullptr;
+				/** シェーダーに渡す値の大きさ */
+				int constantsSize = 0;
+			};
+			/**
 			 * @brief 同じモデルで描く物のまとまり（地形ブロック / 動く床・動く壁）
 			 */
 			struct ModelGroup
 			{
+				/** 使うシェーダー（地形ブロックは stage.fx、動く床・動く壁は model.fx） */
+				ShaderSetting shader;
 				/** 今フレーム描く範囲（毎回メモリ確保しないよう持っておく） */
 				std::vector<math::Rect> rects;
 				/** モデル（範囲の数だけ使う） */
-				std::vector<std::unique_ptr<ModelRender>> models;
+				std::vector<std::unique_ptr<Model>> models;
 				/** 鏡に映ったモデル（範囲の数だけ使う） */
-				std::vector<std::unique_ptr<ModelRender>> reflectionModels;
+				std::vector<std::unique_ptr<Model>> reflectionModels;
 				/** 今フレーム描くモデルの数 */
 				size_t activeCount = 0;
 				/** 今フレーム描く鏡に映ったモデルの数 */
@@ -126,6 +154,16 @@ namespace app
 				float origin[4];	// xyz = パネルの角（模様はここからの距離で作るので、足場と一緒に模様も動く）
 			};
 			static_assert(sizeof(SceneLightData) % 16 == 0, "SceneLight の構造体の大きさが 16 の倍数でないと、HLSL とずれる");
+			/**
+			 * @brief 地形ブロックのシェーダーに渡す値（stage.fx の DirectionLightCb と同じ並び）
+			 * @details 前半は model.fx と同じライトの値。その後ろに石積みの値を float4 でつなげる。
+			 *          地形ブロックはどれも同じ値なので、全部のブロックで1つを使い回す。
+			 */
+			struct StoneConstants
+			{
+				SceneLightData light;
+				float texture[4];	// x = テクスチャ1枚ぶんのワールドの長さ, yzw = 使わない
+			};
 			/**
 			 * @brief ソーラーパネル1枚ぶんのモデルと、そのモデル専用のシェーダーに渡す値
 			 * @details パネルごとに色が違うので、1枚ずつ自分の定数バッファを持つ（LightBeamRenderer の光と同じ作り）。
@@ -151,14 +189,15 @@ namespace app
 			 * @param isReflected 鏡に映った像として置くか
 			 * @param planeZ 鏡の面のZ座標
 			 */
-			void Place(ModelRender& model, const math::Rect& rect, bool isReflected, float planeZ);
+			void Place(Model& model, const math::Rect& rect, bool isReflected, float planeZ);
 			/**
 			 * @brief 必要な数だけモデルを用意する
 			 * @param models 用意する先
 			 * @param cullMode カリング（鏡に映った像は表裏が逆になるので FRONT）
 			 * @param modelPath 使うモデル
+			 * @param shader 使うシェーダーと、シェーダーに渡す値
 			 */
-			void Reserve(std::vector<std::unique_ptr<ModelRender>>& models, size_t count, D3D12_CULL_MODE cullMode, const std::string& modelPath);
+			void Reserve(std::vector<std::unique_ptr<Model>>& models, size_t count, D3D12_CULL_MODE cullMode, const std::string& modelPath, const ShaderSetting& shader);
 			/** @brief 矩形の大きさに合わせた、モデルの位置と拡大率（Place と同じ計算） */
 			void CalcTransform(const math::Rect& rect, float depth, Vector3& outPosition, Vector3& outScale) const;
 			/**
@@ -177,6 +216,8 @@ namespace app
 			Config m_config;
 			/** 地形ブロック */
 			ModelGroup m_blocks;
+			/** 地形ブロックのシェーダーに渡す値（全部のブロックで使い回す。Model はこの場所を覚えている） */
+			StoneConstants m_stoneConstants;
 			/** 動く床・動く壁 */
 			ModelGroup m_movingBlocks;
 			/** ソーラーパネル（unique_ptr なので、増えても constants の場所は変わらない。Model はこの場所を覚えている） */
