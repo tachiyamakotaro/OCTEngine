@@ -16,55 +16,63 @@ namespace app
 		{
 			/**
 			 * @brief アニメーションデータ（PlayerAnimation と並びを合わせる）
-			 * @note 今はユニティちゃん。アニメーションは idle / run / jump / walk の4つだけなので、ほかは代用している（★仮）
+			 * @note 今は探検家の女の子（JustCreate Stylized Female）。Assets/animData/player/ の tka を使う
 			 *       モデルとボーンの並びが同じ tka しか使えない（ユニティちゃんの tka と Assets/animData/player/ の tka は混ぜない）
 			 */
 			const AnimationData PLAYER_ANIMATION_DATA[] =
 			{
-				{ "Assets/animData/idle.tka", true },	// Idle
-				{ "Assets/animData/run.tka",  true },	// Run
-				{ "Assets/animData/jump.tka", false },	// Jump
-				{ "Assets/animData/jump.tka", false },	// Fall      ★仮
-				{ "Assets/animData/idle.tka", true },	// Crouch    ★仮
-				{ "Assets/animData/idle.tka", true },	// LedgeHang ★仮
-				{ "Assets/animData/walk.tka", false },	// ClimbUp   ★仮
-				{ "Assets/animData/idle.tka", false },	// HardLand  ★仮
-				{ "Assets/animData/idle.tka", false },	// Dead      ★仮
-				{ "Assets/animData/idle.tka", true },	// GrabIdle  ★仮
-				{ "Assets/animData/walk.tka", true },	// Push      ★仮
-				{ "Assets/animData/walk.tka", true },	// Pull      ★仮
+				{ "Assets/animData/player/Player_Idle.tka",        true },	// Idle
+				{ "Assets/animData/player/Player_Run.tka",         true },	// Run
+				{ "Assets/animData/player/Player_Jump.tka",        false },	// Jump
+				{ "Assets/animData/player/Player_Fall.tka",        true },	// Fall
+				{ "Assets/animData/player/Player_Idle.tka",        true },	// Crouch    ★仮
+				{ "Assets/animData/player/Player_HangingIdle.tka", true },	// LedgeHang
+				{ "Assets/animData/player/Player_Climb.tka",       false },	// ClimbUp
+				{ "Assets/animData/player/Player_Idle.tka",        false },	// HardLand  ★仮
+				{ "Assets/animData/player/Player_Idle.tka",        false },	// Dead      ★仮
+				{ "Assets/animData/player/Player_PullIdle.tka",    true },	// GrabIdle
+				{ "Assets/animData/player/Player_Push.tka",        true },	// Push
+				{ "Assets/animData/player/Player_PullObject.tka",  true },	// Pull
 			};
 
-			// 新しいモデルのアニメーション（Assets/animData/player/ の tka を新しいモデルのもので上書きして使う）
-			// 新しいモデルに変えたら、上の表と入れ替える（ファイル名はこのまま使える）
+			// ユニティちゃん … 使わなくなったのでコメントアウト（戻すときは上の表と入れ替える）
 			//const AnimationData PLAYER_ANIMATION_DATA[] =
 			//{
-			//	{ "Assets/animData/player/Player_Idle.tka",        true },	// Idle
-			//	{ "Assets/animData/player/Player_Run.tka",         true },	// Run
-			//	{ "Assets/animData/player/Player_Jump.tka",        false },	// Jump
-			//	{ "Assets/animData/player/Player_Jump.tka",        false },	// Fall      ★仮
-			//	{ "Assets/animData/player/Player_Idle.tka",        true },	// Crouch    ★仮
-			//	{ "Assets/animData/player/Player_HangingIdle.tka", true },	// LedgeHang
-			//	{ "Assets/animData/player/Player_Climb.tka",       false },	// ClimbUp
-			//	{ "Assets/animData/player/Player_Idle.tka",        false },	// HardLand  ★仮
-			//	{ "Assets/animData/player/Player_Idle.tka",        false },	// Dead      ★仮
-			//	{ "Assets/animData/player/Player_PullIdle.tka",    true },	// GrabIdle
-			//	{ "Assets/animData/player/Player_Push.tka",        true },	// Push
-			//	{ "Assets/animData/player/Player_PullObject.tka",  true },	// Pull
+			//	{ "Assets/animData/idle.tka", true },	// Idle
+			//	{ "Assets/animData/run.tka",  true },	// Run
+			//	{ "Assets/animData/jump.tka", false },	// Jump
+			//	{ "Assets/animData/jump.tka", false },	// Fall      ★仮
+			//	{ "Assets/animData/idle.tka", true },	// Crouch    ★仮
+			//	{ "Assets/animData/idle.tka", true },	// LedgeHang ★仮
+			//	{ "Assets/animData/walk.tka", false },	// ClimbUp   ★仮
+			//	{ "Assets/animData/idle.tka", false },	// HardLand  ★仮
+			//	{ "Assets/animData/idle.tka", false },	// Dead      ★仮
+			//	{ "Assets/animData/idle.tka", true },	// GrabIdle  ★仮
+			//	{ "Assets/animData/walk.tka", true },	// Push      ★仮
+			//	{ "Assets/animData/walk.tka", true },	// Pull      ★仮
 			//};
 
 			static_assert(
 				sizeof(PLAYER_ANIMATION_DATA) / sizeof(PLAYER_ANIMATION_DATA[0]) == static_cast<size_t>(PlayerAnimation::Num),
 				"PLAYER_ANIMATION_DATA の数が PlayerAnimation と合っていません");
 
-			/** モデルデータ（ユニティちゃん） */
+			/** モデルデータ（探検家の女の子。UE から書き出したので Z が上） */
 			const ModelData PLAYER_MODEL_DATA =
 			{
-				"Assets/modelData/unityChan.tkm",
+				"Assets/modelData/player/player.tkm",
 				PLAYER_ANIMATION_DATA,
 				static_cast<int>(PlayerAnimation::Num),
-				enModelUpAxisY,
+				enModelUpAxisZ,
 			};
+
+			// ユニティちゃん … 使わなくなったのでコメントアウト
+			//const ModelData PLAYER_MODEL_DATA =
+			//{
+			//	"Assets/modelData/unityChan.tkm",
+			//	PLAYER_ANIMATION_DATA,
+			//	static_cast<int>(PlayerAnimation::Num),
+			//	enModelUpAxisY,
+			//};
 
 			// Remy（Mixamo）… 使わなくなったのでコメントアウト
 			//const ModelData PLAYER_MODEL_DATA =
@@ -150,6 +158,16 @@ namespace app
 		void Player::NotifyObjectRotated()
 		{
 			m_rotateActionTimer = m_parameter.rotateActionTime;
+		}
+
+
+		void Player::UpdateModel()
+		{
+			// 走りのアニメーションだけ速く再生して、足の動きと進む速さを合わせる（ほかは元の速さ）
+			const bool isRunning = GetCurrentAnimation() == static_cast<int>(PlayerAnimation::Run);
+			SetAnimationSpeed(isRunning ? m_parameter.runAnimationSpeed : 1.0f);
+
+			CharacterBase::UpdateModel();
 		}
 
 

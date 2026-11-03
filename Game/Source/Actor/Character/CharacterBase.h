@@ -171,6 +171,11 @@ namespace app
 			 * @brief 再生中のアニメーションクリップ番号
 			 */
 			inline int GetCurrentAnimation() const { return m_currentAnimation; }
+			/**
+			 * @brief アニメーションの再生速度を変える（1.0 で元の速さ）
+			 * @details 鏡に映る像も同じ速さにする
+			 */
+			void SetAnimationSpeed(float speed);
 
 
 		public:

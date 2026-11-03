@@ -18,9 +18,14 @@ namespace app
 		{
 			PlayerParameter()
 			{
-				// ユニティちゃんの身長は約119で、体の高さ（bodyHeight = 120）とほぼ同じなので拡大しない
+				// 探検家の女の子は 3ds Max で身長 約69.75（インチ）。
+				// ただし FBX を読み込んだときの単位の変換（センチ → インチ、0.394倍）が tka に2回かかっていて、
+				// ゲームでは 0.394倍の大きさで表示される。その分も戻して 1.7 × 2.54 ≒ 4.32倍で約119（体の高さ bodyHeight = 120 とほぼ同じ）
 				// ※ モデルを変えたら、ゲームで見ながら Tuning の「Model Scale」で合わせ、決まった値をここに書く
-				modelScale = 1.0f;
+				modelScale = 4.32f;
+
+				// ユニティちゃん … 使わなくなったのでコメントアウト（身長 約119なので拡大しない）
+				//modelScale = 1.0f;
 
 				// Remy（Mixamo）… 使わなくなったのでコメントアウト（身長 約149 → 0.8倍で約119）
 				//modelScale = 0.8f;
@@ -35,6 +40,14 @@ namespace app
 			float coyoteTime = 0.1f;
 			/** 着地前に押したジャンプを覚えておく時間（先行入力） */
 			float jumpBufferTime = 0.12f;
+
+			// ---- 走りのアニメーション ----
+			/**
+			 * @brief 走っているときのアニメーションの再生速度（1.0 で元の速さ）
+			 * @details Player_Run.tka は元の速さだと、進む速さ 約430 で足の動きと合う（modelScale 4.32 のとき）。
+			 *          「430 × この値」が runSpeed に近いほど、足がすべって見えない
+			 */
+			float runAnimationSpeed = 1.0f;
 
 			// ---- しゃがみ ----
 			/** しゃがんだときの体の高さ */
@@ -51,11 +64,11 @@ namespace app
 			float ledgeGrabBelow = 40.0f;
 			/** 崖から手を離したあと、再びつかめるようになるまでの時間 */
 			float ledgeRegrabCooldown = 0.3f;
-			/** 崖を登りきるまでの時間 */
-			float climbUpDuration = 0.5f;
+			/** 崖を登りきるまでの時間（Player_Climb.tka の長さ：72フレーム ÷ 30） */
+			float climbUpDuration = 2.4f;
 
 			// ---- 崖つかまり・崖登りの見た目（当たり判定は変わらない）----
-			// 今はユニティちゃん（ぶら下がり・崖登りの専用アニメーションがなく idle / walk で代用）なので、モデルはずらさない
+			// 探検家の女の子：ゲームで見ながら Tuning の「Hang Model 〜」「Climb Model 〜」で合わせ、決まった値をここに書く
 			/** ぶら下がっているときのモデルのずらし：前（崖の方）が正 */
 			float ledgeHangModelForward = 0.0f;
 			/** ぶら下がっているときのモデルのずらし：上が正 */
@@ -69,7 +82,15 @@ namespace app
 			 * @details true  … アニメーションの中で体が上がるモデル。体の動きはアニメーションに任せる
 			 *          false … 登りのアニメーションがないモデル（ユニティちゃん）。モデルは当たり判定と一緒に上がる
 			 */
-			bool isClimbModelAnchored = false;
+			bool isClimbModelAnchored = true;
+
+			// ユニティちゃん … 使わなくなったのでコメントアウト（専用アニメーションがなく idle / walk で代用していた）
+			//float climbUpDuration = 0.5f;
+			//float ledgeHangModelForward = 0.0f;
+			//float ledgeHangModelY = 0.0f;
+			//float climbModelForward = 0.0f;
+			//float climbModelY = 0.0f;
+			//bool isClimbModelAnchored = false;
 
 			// Remy（Mixamo）… 使わなくなったのでコメントアウト（新しいモデルで崖登りのアニメーションを入れるときの参考）
 			//float climbUpDuration = 1.13f;

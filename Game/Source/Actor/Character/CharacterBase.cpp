@@ -41,6 +41,14 @@ namespace app
 		}
 
 
+		void CharacterBase::SetAnimationSpeed(const float speed)
+		{
+			// 鏡に映る像も同じ速さにしておく（使っていなくても値を入れるだけなので問題ない）
+			m_modelRender.SetAnimationSpeed(speed);
+			m_reflectionRender.SetAnimationSpeed(speed);
+		}
+
+
 		void CharacterBase::SetupCharacter()
 		{
 			// 見た目のずらしを戻す（崖につかまったまま作り直したときに残らないように）

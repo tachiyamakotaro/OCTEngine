@@ -36,11 +36,11 @@ namespace app
 
 		constexpr StageInfo STAGE_INFO_TABLE[] = {
 
-			//{ "Stage04", "Assets/parameter/stage/Stage04_Object.json", "Assets/parameter/stage/Stage04_Gimmick.json",180.0f },
-			{ "Stage07", "Assets/parameter/stage/Stage07_Object.json", "Assets/parameter/stage/Stage07_Gimmick.json",240.0f },
-			//{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",270.0f },
-			//{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",270.0f },
-			//{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 330.0f },
+			{ "Stage04", "Assets/parameter/stage/Stage04_Object.json", "Assets/parameter/stage/Stage04_Gimmick.json",180.0f },
+			{ "Stage07", "Assets/parameter/stage/Stage07_Object.json", "Assets/parameter/stage/Stage07_Gimmick.json",270.0f },
+			//{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",300.0f },
+			//{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",300.0f },
+			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 330.0f },
 		};
 
 		/** ステージの数 */
