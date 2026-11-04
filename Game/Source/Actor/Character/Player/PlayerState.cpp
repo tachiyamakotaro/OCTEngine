@@ -358,7 +358,7 @@ namespace app
 		{
 			// 前半で体を持ち上げ、後半で崖の上へ前進する（角にめり込まないように順番に動かす）
 			// ※ アニメーションのルートモーションに合わせたくなったら、ここを差し替える
-			const float t = math::Clamp01(GetStateTime() / GetParam().climbUpDuration);
+			const float t = math::Clamp01(GetStateTime() / GetParam().GetClimbUpTime());
 			const float riseT = math::SmoothStep(t / CLIMB_RISE_END);
 			const float forwardT = math::SmoothStep((t - CLIMB_RISE_END) / (1.0f - CLIMB_RISE_END));
 
@@ -424,7 +424,7 @@ namespace app
 
 		int PlayerClimbUpState::CheckTransition()
 		{
-			if (GetStateTime() >= GetParam().climbUpDuration)
+			if (GetStateTime() >= GetParam().GetClimbUpTime())
 			{
 				return GetCommand().HasMoveInput() ? ToID(PlayerStateID::Run) : ToID(PlayerStateID::Idle);
 			}

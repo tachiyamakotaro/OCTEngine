@@ -116,7 +116,7 @@ namespace app
 			std::unique_ptr<CharacterStateMachine> CreateStateMachine() override;
 			void UpdateCommand(float deltaTime) override;
 			/**
-			 * @brief モデルの更新（走っている間だけアニメーションの再生速度を変えてから、基底の更新をする）
+			 * @brief モデルの更新（走り・崖登りのアニメーションの再生速度を変えてから、基底の更新をする）
 			 */
 			void UpdateModel() override;
 

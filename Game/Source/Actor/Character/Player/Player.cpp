@@ -163,9 +163,15 @@ namespace app
 
 		void Player::UpdateModel()
 		{
-			// 走りのアニメーションだけ速く再生して、足の動きと進む速さを合わせる（ほかは元の速さ）
-			const bool isRunning = GetCurrentAnimation() == static_cast<int>(PlayerAnimation::Run);
-			SetAnimationSpeed(isRunning ? m_parameter.runAnimationSpeed : 1.0f);
+			// 走り：足の動きと進む速さを合わせる。崖登り：登る速さを変える。ほかは元の速さ
+			float speed = 1.0f;
+			switch (static_cast<PlayerAnimation>(GetCurrentAnimation()))
+			{
+			case PlayerAnimation::Run:     speed = m_parameter.runAnimationSpeed;   break;
+			case PlayerAnimation::ClimbUp: speed = m_parameter.climbAnimationSpeed; break;
+			default: break;
+			}
+			SetAnimationSpeed(speed);
 
 			CharacterBase::UpdateModel();
 		}

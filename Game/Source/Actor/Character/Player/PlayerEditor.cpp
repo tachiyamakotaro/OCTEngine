@@ -42,13 +42,16 @@ namespace app
 		{
 			ImGui::DragFloat("Run Speed", &param.runSpeed, 5.0f, 0.0f, 3000.0f, "%.0f");
 			ImGui::DragFloat("Run Anim Speed", &param.runAnimationSpeed, 0.01f, 0.1f, 5.0f, "x%.2f");
-			ImGui::SetItemTooltip("Playback speed of the run animation.\nFeet match when Run Speed is about 430 x this value.");
+			ImGui::SetItemTooltip("Playback speed of the run animation.\nFeet match when Run Speed is about 470 x this value.");
 			ImGui::DragFloat("Jump Velocity", &param.jumpVelocity, 10.0f, 0.0f, 5000.0f, "%.0f");
 			ImGui::DragFloat("Gravity", &param.gravity, 10.0f, -20000.0f, 0.0f, "%.0f");
 			ImGui::DragFloat("Max Fall Speed", &param.maxFallSpeed, 10.0f, 0.0f, 10000.0f, "%.0f");
 			ImGui::DragFloat("Ledge Reach", &param.ledgeGrabReach, 1.0f, 0.0f, 200.0f, "%.0f");
 			ImGui::DragFloat("Ledge Above", &param.ledgeGrabAbove, 1.0f, 0.0f, 200.0f, "%.0f");
 			ImGui::DragFloat("Climb Duration", &param.climbUpDuration, 0.01f, 0.05f, 5.0f, "%.2f s");
+			ImGui::SetItemTooltip("Length of the climb animation at normal speed.");
+			ImGui::DragFloat("Climb Anim Speed", &param.climbAnimationSpeed, 0.01f, 0.1f, 5.0f, "x%.2f");
+			ImGui::SetItemTooltip("Playback speed of the climb animation.\nClimb time = Climb Duration / this value.");
 			ImGui::DragFloat("Grab Move Speed", &param.grabMoveSpeed, 5.0f, 0.0f, 3000.0f, "%.0f");
 			ImGui::SetItemTooltip("Move speed while dragging a mirror / shade board.");
 			ImGui::DragFloat("Rotate Action Time", &param.rotateActionTime, 0.01f, 0.0f, 3.0f, "%.2f s");
