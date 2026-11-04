@@ -71,7 +71,7 @@ namespace app
 			 * @brief 崖登りのアニメーションの再生速度（1.0 で元の速さ）
 			 * @details 登りきるまでの時間は climbUpDuration ÷ この値になる（1.5 なら 2.4 ÷ 1.5 = 1.6秒）
 			 */
-			float climbAnimationSpeed = 2.0f;
+			float climbAnimationSpeed = 2.5f;
 
 			/** 崖を登りきるまでの時間（アニメーションの長さ ÷ 再生速度） */
 			float GetClimbUpTime() const
