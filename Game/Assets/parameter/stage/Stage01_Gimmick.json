@@ -1,0 +1,15 @@
+﻿{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "R1_Lamp", "position": [600.0, 599.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R1_Mirror", "center": [600.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 600.0, "railMaxX": 600.0 },
+		{ "type": "LightReceiver", "name": "R1_Switch", "position": [1050.0, 35.0], "size": [50.0, 50.0] },
+		{ "type": "Door", "name": "R1_Door", "position": [1300.0, 100.0], "size": [40.0, 500.0], "requiredReceivers": ["R1_Switch"], "openSpeed": 2.0, "isLatch": true },
+		{ "type": "Checkpoint", "name": "Checkpoint1", "position": [1420.0, 100.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "R2_Lamp", "position": [2200.0, 599.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R2_Mirror", "center": [1950.0, 160.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 1950.0, "railMaxX": 2200.0 },
+		{ "type": "LightReceiver", "name": "R2_Switch", "position": [2650.0, 135.0], "size": [50.0, 50.0] },
+		{ "type": "Door", "name": "R2_Door", "position": [2850.0, 200.0], "size": [40.0, 400.0], "requiredReceivers": ["R2_Switch"], "openSpeed": 2.0, "isLatch": true },
+		{ "type": "Checkpoint", "name": "Checkpoint2", "position": [2980.0, 200.0], "size": [80.0, 200.0] },
+		{ "type": "Goal", "name": "Goal", "position": [3250.0, 200.0], "size": [150.0, 250.0] }
+	]
+}

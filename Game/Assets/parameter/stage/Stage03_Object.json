@@ -1,0 +1,15 @@
+﻿{
+	"stage": { "name": "Stage03", "playerStart": [100.0, 0.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [3700.0, 1500.0] } },
+	"gimmicks": [
+		{ "type": "StageBlock", "name": "LeftWall", "position": [-200.0, 0.0], "size": [100.0, 600.0] },
+		{ "type": "StageBlock", "name": "Ceiling1", "position": [-200.0, 600.0], "size": [1900.0, 100.0] },
+		{ "type": "StageBlock", "name": "CeilingStep", "position": [1600.0, 700.0], "size": [100.0, 300.0] },
+		{ "type": "StageBlock", "name": "Ceiling2", "position": [1600.0, 900.0], "size": [1800.0, 100.0] },
+		{ "type": "StageBlock", "name": "RightWall", "position": [3300.0, 480.0], "size": [100.0, 420.0] },
+		{ "type": "StageBlock", "name": "R1_Floor", "position": [-200.0, -400.0], "size": [800.0, 400.0] },
+		{ "type": "StageBlock", "name": "R1_PitBottom", "position": [600.0, -400.0], "size": [500.0, 150.0] },
+		{ "type": "StageBlock", "name": "R1_PitStep", "position": [600.0, -250.0], "size": [100.0, 120.0] },
+		{ "type": "StageBlock", "name": "R2_Floor", "position": [1100.0, -400.0], "size": [1300.0, 400.0] },
+		{ "type": "StageBlock", "name": "R2_Ledge", "position": [2400.0, -400.0], "size": [1000.0, 880.0] }
+	]
+}

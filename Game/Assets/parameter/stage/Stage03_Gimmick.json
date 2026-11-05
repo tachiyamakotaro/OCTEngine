@@ -1,0 +1,13 @@
+﻿{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "R1_Lamp", "position": [300.0, 599.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R1_Mirror", "center": [300.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 300.0, "railMaxX": 300.0 },
+		{ "type": "MovingBlock", "name": "R1_Bridge", "position": [1100.0, 0.0], "size": [500.0, 80.0], "moveOffset": [-500.0, 0.0], "moveSpeed": 250.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 1.0, "runTime": 4.0, "hasFrontPanel": true },
+		{ "type": "Checkpoint", "name": "Checkpoint1", "position": [1700.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "R2_Lamp", "position": [1950.0, 899.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R2_Mirror", "center": [1950.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1950.0, "railMaxX": 1950.0 },
+		{ "type": "MovingBlock", "name": "R2_Lift", "position": [2200.0, 0.0], "size": [200.0, 80.0], "moveOffset": [0.0, 400.0], "moveSpeed": 150.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 2.0, "runTime": 6.0, "hasFrontPanel": true },
+		{ "type": "Checkpoint", "name": "Checkpoint2", "position": [2550.0, 480.0], "size": [80.0, 200.0] },
+		{ "type": "Goal", "name": "Goal", "position": [2950.0, 480.0], "size": [150.0, 250.0] }
+	]
+}
