@@ -5,6 +5,8 @@
  *          ・近くの鏡の前でアクション（Bボタン）… 1段回転
  *              プレイヤーの向きに関係なく、いつも ROTATE_STEPS の向きに回る
  *          ・近くの鏡の前でつかむ（RB1）を押したまま左右に歩く … 鏡を引きずって動かす
+ *              レールの端や地形で鏡が止まり、キャラクターが鏡から離れたら、手を離す
+ *              （RB を押したままでも、ふつうの歩き方に戻る。もう一度つかむには RB を押し直す）
  *
  *          プレイヤーのステートには手を入れず、プレイヤーの「コマンド」と位置を見て鏡を動かす。
  *          プレイヤーの Update が終わったあとに毎フレーム呼ぶこと。
@@ -23,6 +25,7 @@ namespace app
 	namespace stage
 	{
 		class Stage;
+		class LightMirror;
 
 
 		/**
@@ -37,6 +40,8 @@ namespace app
 			float interactRangeX = 90.0f;
 			/** 鏡を操作できる縦の距離（足元から鏡の中心まで） */
 			float interactRangeY = 160.0f;
+			/** 鏡がついてこられなくなって（レールの端・地形）、つかんだ位置からこれだけ離れたら手を離す */
+			float releaseDistance = 30.0f;
 
 
 		public:
@@ -84,6 +89,8 @@ namespace app
 		private:
 			/** 操作できる一番近い鏡を探す */
 			int FindNearestMirror(const Stage& stage, const actor::CharacterBase& character) const;
+			/** 鏡がついてこられずに、キャラクターがつかんだ位置から離れたか */
+			bool IsLeftBehind(const LightMirror& mirror, float characterX) const;
 
 
 		private:
@@ -99,6 +106,8 @@ namespace app
 			bool m_isGrabbedThisFrame;
 			/** このフレームに動かした距離 */
 			float m_movedDistanceThisFrame;
+			/** 離れて手を離したあと、つかむ（RB）を一度離すのを待っているか（押したままだと、すぐつかみ直してしまうため） */
+			bool m_isWaitingGrabRelease;
 		};
 	}
 }

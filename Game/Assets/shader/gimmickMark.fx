@@ -1,9 +1,9 @@
 /*!
- * @brief ギミックの印（受光器の電球マーク・回せる反射鏡の歯車・動かせる反射鏡のレール）
+ * @brief ギミックの印（受光器の電球マーク・回せる反射鏡の歯車・動かせる反射鏡のレール・チェックポイントの旗）
  *
  * 白いテクスチャの薄い箱（solar_panel.tkm）を置き、形と色はここで作る。
  * 形はテクスチャではなく「印の中心からの距離」で作る（大きさを変えても形がくずれないように）。
- * 電球と歯車は、形の外側を clip で捨てるので、板の四角は見えない。
+ * 電球・歯車・旗・玉は、形の外側を clip で捨てるので、板の四角は見えない。
  *
  * model.fx を include して、頂点シェーダーとライトの計算はそのまま使う。
  * テクスチャは真っ白なので、CalcLitColor の結果は「ライト × 影」の明るさになる。
@@ -16,11 +16,12 @@
 
 // model.fx の DirectionLightCb の最後に足す値（C++ の GimmickMarkRenderer::MarkValues と同じ並び）
 //   markColor     : rgb = 地の色, a = 自分で光る強さ
-//   markDarkColor : rgb = 縁取り・暗い所の色, a = 形（0 = 箱, 1 = 電球, 2 = 歯車, 3 = レール）
+//   markDarkColor : rgb = 縁取り・暗い所の色, a = 形（0 = 箱, 1 = 電球, 2 = 歯車, 3 = レール, 4 = 旗, 5 = 玉）
 //   markCenter    : xyz = 印の中心（ワールド座標）, w = 印の大きさの半分（レールは高さの半分）
 //   markParam     : 電球 … y = 光り具合（0〜1）
 //                   歯車 … x = 回転（ラジアン）, w = 歯の数
 //                   レール … z = 長さの半分, w = 枕木の間隔
+//                   旗 … x = 波の角度（ラジアン）, y = 振れ幅（高さの半分に対する割合）, z = 幅の半分（高さの半分を 1 とした長さ）, w = 波の数
 //   markLitColor  : rgb = 光っているときの色, a = 光っているときに自分で光る強さ（電球だけ使う）
 // （fxc は複数行のマクロの中のコメントをうまく読めないことがあるので、マクロは1行で書く）
 #define MODEL_CB_EXTRA float4 markColor; float4 markDarkColor; float4 markCenter; float4 markParam; float4 markLitColor;
@@ -33,6 +34,8 @@ static const int SHAPE_SOLID = 0;
 static const int SHAPE_BULB = 1;
 static const int SHAPE_GEAR = 2;
 static const int SHAPE_RAIL = 3;
+static const int SHAPE_FLAG = 4;
+static const int SHAPE_BALL = 5;
 
 // ---- 電球（印の大きさの半分を 1 とした座標。電球は -0.5〜0.5 くらい、光の線は 0.97 くらいまで）----
 // ガラスの玉の中心と半径
@@ -73,6 +76,17 @@ static const float GEAR_OUTLINE_WIDTH = 0.07f;
 static const float RAIL_GROOVE_HALF = 0.42f;	// 真ん中のみぞの太さの半分
 static const float RAIL_EDGE = 0.86f;			// これより外は縁（暗い）
 static const float RAIL_TIE_HALF = 0.12f;		// 枕木の太さの半分（枕木の間隔に対する割合）
+
+// ---- 旗（高さの半分を 1 とした座標。ポール側が左、先が右）----
+static const float FLAG_TIP_HALF = 0.1f;		// 先の高さの半分（0 だと先がとがりすぎてちらつく）
+static const float FLAG_OUTLINE_WIDTH = 0.09f;	// 縁取りの太さ
+static const float FLAG_HEM_WIDTH = 0.1f;		// ポール側の折り返し（少し暗い帯）の幅（旗の長さに対する割合）
+static const float FLAG_FOLD_SHADE = 0.18f;		// はためきの山と谷の明るさの差
+
+// ---- 玉（大きさの半分を 1 とした座標）----
+static const float BALL_OUTLINE_WIDTH = 0.16f;	// 縁取りの太さ
+static const float2 BALL_HIGHLIGHT_CENTER = float2(-0.3f, 0.3f);	// てかりの中心
+static const float BALL_HIGHLIGHT_RADIUS = 0.28f;	// てかりの大きさ
 
 
 // ---------------------------------------------------------------------------
@@ -265,6 +279,62 @@ void ShadeRail(float2 local, float v, float tieCoord, float3 railAA, out float3 
 }
 
 
+// ---------------------------------------------------------------------------
+// 旗（ポール側から先へ細くなる三角。先にいくほど大きく上下にはためく）
+// ---------------------------------------------------------------------------
+void ShadeFlag(float2 q, float aa, out float3 albedo, out float3 emissive)
+{
+    float halfWidth = max(markParam.z, 0.01f);
+    float amplitude = markParam.y;
+    float waveCount = markParam.w;
+
+    // u：ポール側 0 〜 先 1
+    float u = saturate((q.x + halfWidth) / (halfWidth * 2.0f));
+    // はためき：先にいくほど上下にずれる（ポール側はポールに付いているので動かない）
+    float angle = u * waveCount * 6.2831853f - markParam.x;
+    float y = q.y - sin(angle) * amplitude * u;
+
+    // 三角の形：高さの半分が ポール側 1 → 先 FLAG_TIP_HALF に細くなる
+    float halfHeight = lerp(1.0f, FLAG_TIP_HALF, u);
+    // 斜めの辺までの距離（縦の距離を、辺の傾きの分だけ縮める）
+    float slope = (1.0f - FLAG_TIP_HALF) / (halfWidth * 2.0f);
+    float edge = (abs(y) - halfHeight) / sqrt(1.0f + slope * slope);
+    // 左右の端（ポール側・先）
+    float ends = abs(q.x) - halfWidth;
+    float flag = max(edge, ends);
+
+    // 旗の外側は捨てる
+    clip(-flag);
+
+    // 山と谷で明るさを変えて、布がはためいているように見せる
+    float fold = 1.0f + FLAG_FOLD_SHADE * cos(angle) * saturate(amplitude * 8.0f) * u;
+    float3 color = markColor.rgb * fold;
+    // ポール側の折り返し（少し暗い帯）
+    float hem = Inside(u - FLAG_HEM_WIDTH, aa / (halfWidth * 2.0f));
+    color = lerp(color, markColor.rgb * 0.8f, hem);
+    // 縁取り
+    float outline = 1.0f - Inside(flag + FLAG_OUTLINE_WIDTH, aa);
+    albedo = lerp(color, markDarkColor.rgb, outline);
+    emissive = markColor.rgb * markColor.a * (1.0f - outline);
+}
+
+
+// ---------------------------------------------------------------------------
+// 玉（旗のポールの先。左上にてかり）
+// ---------------------------------------------------------------------------
+void ShadeBall(float2 q, float aa, out float3 albedo, out float3 emissive)
+{
+    float ball = SdCircle(q, 1.0f);
+    clip(-ball);
+
+    float outline = 1.0f - Inside(ball + BALL_OUTLINE_WIDTH, aa);
+    float highlight = Inside(SdCircle(q - BALL_HIGHLIGHT_CENTER, BALL_HIGHLIGHT_RADIUS), aa);
+    float3 color = lerp(markColor.rgb, float3(1.0f, 1.0f, 1.0f), highlight * 0.6f);
+    albedo = lerp(color, markDarkColor.rgb, outline);
+    emissive = markColor.rgb * markColor.a * (1.0f - outline);
+}
+
+
 float4 PSMainGimmickMark(SPSIn In) : SV_Target0
 {
     // ライト × 影の明るさ（テクスチャが真っ白なので、色は付いていない）
@@ -294,6 +364,14 @@ float4 PSMainGimmickMark(SPSIn In) : SV_Target0
     else if (shape == SHAPE_RAIL)
     {
         ShadeRail(local, v, tieCoord, railAA, albedo, emissive);
+    }
+    else if (shape == SHAPE_FLAG)
+    {
+        ShadeFlag(q, aa, albedo, emissive);
+    }
+    else if (shape == SHAPE_BALL)
+    {
+        ShadeBall(q, aa, albedo, emissive);
     }
 
     // a は model.fx と同じく「カメラからの距離」のまま返す

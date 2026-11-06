@@ -3,7 +3,7 @@
 
 /**
  * @file GimmickMarkParameter.h
- * @brief ギミックの印（電球マーク・歯車・レール）の調整値（GimmickMarkEditor で変えられる値をまとめる）
+ * @brief ギミックの印（電球マーク・歯車・レール・チェックポイントの旗）の調整値（GimmickMarkEditor で変えられる値をまとめる）
  */
 namespace app
 {
@@ -108,6 +108,78 @@ namespace app
 
 
 		/**
+		 * @brief 旗のはためき方（振れ幅と速さはいつもセットで使うので1つにまとめる）
+		 */
+		struct FlagWave
+		{
+			/** 振れ幅（旗の高さの半分に対する割合。先にいくほど大きく揺れる） */
+			float amplitude = 0.1f;
+			/** 速さ（1秒に進む波の角度。ラジアン） */
+			float speed = 3.0f;
+		};
+
+
+		/**
+		 * @brief チェックポイントの旗の調整値
+		 * @details 旗はチェックポイントの範囲の下端の真ん中に立つ（台 → ポール → 先の玉 → 三角の旗）。
+		 *          通る前は白い旗がゆっくりはためき、通ると赤に変わって一瞬大きくなり、元気にはためく。
+		 */
+		struct FlagStyle
+		{
+			/** 描くか */
+			bool isVisible = true;
+			/** 奥行きの位置（+ が奥。プレイヤー（Z = 0）より奥に立てて、体を隠さないようにする） */
+			float z = 70.0f;
+
+			// ---- 台 ----
+			/** 台の幅（奥行きも同じ） */
+			float baseWidth = 44.0f;
+			/** 台の高さ */
+			float baseHeight = 16.0f;
+			/** 台の色（石） */
+			MarkColor base = { { 0.45f, 0.43f, 0.40f }, 0.0f };
+
+			// ---- ポール ----
+			/** ポールの太さ */
+			float poleWidth = 7.0f;
+			/** ポールの高さ（台の上から。プレイヤー（120）より高くして、遠くから見えるようにする） */
+			float poleHeight = 210.0f;
+			/** ポールの色（銀色。暗い所でも少し見えるよう、少しだけ光る） */
+			MarkColor pole = { { 0.80f, 0.80f, 0.84f }, 0.08f };
+
+			// ---- 先の玉 ----
+			/** 玉の直径 */
+			float knobSize = 16.0f;
+			/** 玉の色（金色） */
+			MarkColor knob = { { 0.96f, 0.78f, 0.26f }, 0.35f };
+
+			// ---- 旗 ----
+			/** 旗の幅（ポールから先までの長さ） */
+			float clothWidth = 86.0f;
+			/** 旗の高さ（ポール側の長さ） */
+			float clothHeight = 56.0f;
+			/** 旗の中にある波の数 */
+			float waveCount = 1.2f;
+			/** 通る前の旗（白） */
+			MarkColor clothOff = { { 0.95f, 0.95f, 0.92f }, 0.25f };
+			/** 通ったあとの旗（赤） */
+			MarkColor clothOn = { { 0.92f, 0.12f, 0.10f }, 0.45f };
+			/** 旗の縁取り */
+			MarkColor outline = { { 0.16f, 0.12f, 0.10f }, 0.0f };
+			/** 通る前のはためき方（ゆっくり小さく） */
+			FlagWave waveOff = { 0.06f, 2.0f };
+			/** 通ったあとのはためき方（速く大きく） */
+			FlagWave waveOn = { 0.16f, 6.0f };
+
+			// ---- 白 → 赤に変わるとき ----
+			/** 白から赤に変わりきるまでの時間（秒） */
+			float changeTime = 0.35f;
+			/** 変わる途中で旗が大きくなる量（0.35 なら一番大きいときに 1.35 倍） */
+			float popScale = 0.35f;
+		};
+
+
+		/**
 		 * @brief ギミックの印の調整値
 		 * @details 値を足すときは、このファイル・GimmickMarkEditor・仕様書の「調整値」の表の3か所を直す
 		 */
@@ -119,6 +191,8 @@ namespace app
 			GearStyle gear;
 			/** 動かせる反射鏡のレール */
 			RailStyle rail;
+			/** チェックポイントの旗 */
+			FlagStyle flag;
 			/** 印を置く奥行き */
 			MarkPlacement placement;
 		};

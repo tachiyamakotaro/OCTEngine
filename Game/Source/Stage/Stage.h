@@ -95,6 +95,11 @@ namespace app
 
 			/** @brief 体が触れているチェックポイント（なければ nullptr） */
 			const Checkpoint* FindCheckpoint(const math::Rect& body) const;
+			/**
+			 * @brief 体が触れているチェックポイントを「通った」ことにする（旗が赤くなる）
+			 * @return 触れているチェックポイント（なければ nullptr）
+			 */
+			const Checkpoint* ReachCheckpoint(const math::Rect& body);
 			/** @brief 体の中心が入っている、今使えるワープ（なければ nullptr） */
 			const WarpZone* FindWarpZone(const math::Rect& body) const;
 			/** @brief 体が触れているゴール（なければ nullptr） */

@@ -109,6 +109,20 @@ namespace app
 		}
 
 
+		const Checkpoint* Stage::ReachCheckpoint(const math::Rect& body)
+		{
+			for (Checkpoint& checkpoint : m_gimmicks.View<Checkpoint>())
+			{
+				if (body.Overlaps(checkpoint.rect))
+				{
+					checkpoint.isReached = true;
+					return &checkpoint;
+				}
+			}
+			return nullptr;
+		}
+
+
 		const WarpZone* Stage::FindWarpZone(const math::Rect& body) const
 		{
 			const math::Vec2 center = (body.min + body.max) * 0.5f;

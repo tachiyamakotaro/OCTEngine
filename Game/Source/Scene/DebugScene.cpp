@@ -246,7 +246,7 @@ namespace app
 
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
-		m_gimmickMarkRenderer.Update(m_stage);
+		m_gimmickMarkRenderer.Update(m_stage, deltaTime);
 		m_lightBeamRenderer.Update(m_stage);
 		m_colorLightRenderer.Update(m_stage, deltaTime);
 		m_colorGlassRenderer.Update(m_stage);
@@ -607,7 +607,8 @@ namespace app
 		{
 			return;
 		}
-		if (const app::stage::Checkpoint* checkpoint = m_stage.FindCheckpoint(m_player.GetController().GetBounds()))
+		// 触れたチェックポイントは「通った」ことになり、旗が赤くなる
+		if (const app::stage::Checkpoint* checkpoint = m_stage.ReachCheckpoint(m_player.GetController().GetBounds()))
 		{
 			// 新しいチェックポイントに触れたときだけ鳴らす（同じところに立っている間は鳴らさない）
 			if (checkpoint->name != m_respawnName)

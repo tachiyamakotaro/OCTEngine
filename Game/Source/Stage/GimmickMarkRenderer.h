@@ -8,7 +8,7 @@
 
 /**
  * @file GimmickMarkRenderer.h
- * @brief ギミックに「何ができるか」の印を描く（受光器の電球マーク・回せる反射鏡の歯車・動かせる反射鏡のレール）
+ * @brief ギミックに「何ができるか」の印を描く（受光器の電球マーク・回せる反射鏡の歯車・動かせる反射鏡のレール・チェックポイントの旗）
  */
 namespace app
 {
@@ -16,6 +16,7 @@ namespace app
 	{
 		class Stage;
 		class LightReceiver;
+		class Checkpoint;
 
 
 		/**
@@ -24,6 +25,7 @@ namespace app
 		 *            受光器（黄色）… 手前の面に電球マーク。光が当たっていなくても白っぽく少し光る。当たると強く光り、光の線が出る
 		 *            回せる反射鏡   … 回る軸の手前に歯車。鏡と一緒に回る
 		 *            動かせる反射鏡 … 動ける範囲（Rail Min X 〜 Max X）に、鏡の真ん中を通るレールと、両端の止め金。範囲を伸ばすとレールも伸びる
+		 *            チェックポイント … 範囲の下端の真ん中に旗（台・ポール・先の玉・三角の旗）。通る前は白、通ったら赤（Checkpoint::isReached）
 		 *          ・どこに・どの長さで描くかは、ギミックに聞かずに答えてもらう（LightMirror::HasMoveRange / GetMoveRange）
 		 *          ・印は白いテクスチャの箱（solar_panel.tkm）を薄い板にして置き、形と色はシェーダー（Assets/shader/gimmickMark.fx）が作る
 		 *          ・印ごとに色や光り具合が違うので、1つずつ自分の定数バッファを持つ（StageRenderer のソーラーパネルと同じ作り）
@@ -42,6 +44,8 @@ namespace app
 				Bulb = 1,	//!< 電球
 				Gear = 2,	//!< 歯車
 				Rail = 3,	//!< レール
+				Flag = 4,	//!< はためく三角の旗
+				Ball = 5,	//!< 玉（旗のポールの先）
 			};
 
 
@@ -58,9 +62,10 @@ namespace app
 			 */
 			void Init(const GimmickMarkParameter& parameter = GimmickMarkParameter());
 			/**
-			 * @brief ステージに合わせて印を置く（毎フレーム。鏡の操作のあとに呼ぶ）
+			 * @brief ステージに合わせて印を置く（毎フレーム。鏡の操作・チェックポイントの更新のあとに呼ぶ）
+			 * @param deltaTime 旗がはためく・白から赤に変わる時間を進める
 			 */
-			void Update(const Stage& stage);
+			void Update(const Stage& stage, float deltaTime);
 			/**
 			 * @brief 描く（不透明。GimmickRenderer の Draw のあとに呼ぶ）
 			 */
@@ -99,6 +104,27 @@ namespace app
 				Vector4 litColor;
 			};
 			/**
+			 * @brief 旗1本ぶんの動き（白 → 赤への変わり具合と、はためきの進み具合）
+			 * @details 旗の見た目は Checkpoint::isReached で決まるが、変わる途中の動きはギミックの状態ではないので、ここで持つ
+			 */
+			struct FlagMotion
+			{
+				/** 赤への変わり具合（0 = 白 〜 1 = 赤） */
+				float changeRate = 0.0f;
+				/** はためきの波の角度（ラジアン） */
+				float phase = 0.0f;
+
+				/**
+				 * @brief 時間を進める
+				 * @param isReached チェックポイントを通ったか（通っていなければ、すぐ白に戻す）
+				 */
+				void Advance(const FlagStyle& style, bool isReached, float deltaTime);
+				/** 今のはためき方（白と赤の間を混ぜる） */
+				FlagWave GetWave(const FlagStyle& style) const;
+				/** 今の旗の大きさの倍率（変わる途中だけ大きくなる） */
+				float GetPopScale(const FlagStyle& style) const;
+			};
+			/**
 			 * @brief 置く板1枚ぶん（どこに・どの大きさで・どう描くか）
 			 */
 			struct MarkPlate
@@ -134,6 +160,8 @@ namespace app
 			void PutBulbs(const Stage& stage);
 			/** 反射鏡の歯車とレールを置く */
 			void PutMirrorMarks(const Stage& stage);
+			/** チェックポイントの旗を置く（旗の動きも進める） */
+			void PutFlags(const Stage& stage, float deltaTime);
 
 			/** 受光器の電球マークの板 */
 			MarkPlate MakeBulb(const LightReceiver& receiver) const;
@@ -146,6 +174,18 @@ namespace app
 			 * @param side -1 で左端、+1 で右端
 			 */
 			MarkPlate MakeStopper(const LightMirror::MoveRange& range, float side) const;
+			/** 旗の台の板（foot は旗の足元。チェックポイントの下端の真ん中と、奥行きの位置） */
+			MarkPlate MakeFlagBase(const Vector3& foot) const;
+			/** 旗のポールの板 */
+			MarkPlate MakeFlagPole(const Vector3& foot) const;
+			/** 旗のポールの先の玉の板 */
+			MarkPlate MakeFlagKnob(const Vector3& foot) const;
+			/** はためく旗の板（色・大きさ・はためき方は motion で決まる） */
+			MarkPlate MakeFlagCloth(const Vector3& foot, const FlagMotion& motion) const;
+			/** 旗の足元（チェックポイントの下端の真ん中と、奥行きの位置） */
+			Vector3 GetFlagFoot(const Checkpoint& checkpoint) const;
+			/** ポールのてっぺんの高さ（足元から） */
+			float GetPoleTopHeight() const;
 
 			/** 板を1枚置く */
 			void Put(const MarkPlate& plate);
@@ -166,6 +206,8 @@ namespace app
 			std::vector<std::unique_ptr<MarkModel>> m_marks;
 			/** 今フレーム使っている数 */
 			size_t m_count = 0;
+			/** 旗の動き（ステージのチェックポイントと同じ順番） */
+			std::vector<FlagMotion> m_flagMotions;
 			/** 初期化済みか */
 			bool m_isInited = false;
 		};

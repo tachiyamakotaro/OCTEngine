@@ -1,6 +1,6 @@
 ﻿/**
  * @file GimmickMarkEditor.cpp
- * @brief ギミックの印（電球マーク・歯車・レール）を調整する ImGui
+ * @brief ギミックの印（電球マーク・歯車・レール・チェックポイントの旗）を調整する ImGui
  */
 #include "stdafx.h"
 #include "GimmickMarkEditor.h"
@@ -43,6 +43,7 @@ namespace app
 			DrawBulb(param.bulb);
 			DrawGear(param.gear);
 			DrawRail(param.rail);
+			DrawFlag(param.flag);
 			DrawPlacement(param.placement);
 
 			ImGui::Separator();
@@ -103,6 +104,51 @@ namespace app
 			ImGui::DragFloat("Stopper Width", &style.stopperWidth, 0.5f, 0.0f, 200.0f, "%.1f");
 			ImGui::DragFloat("Stopper Height", &style.stopperHeight, 0.5f, 0.0f, 200.0f, "%.1f");
 			DrawMarkColor("Stopper", style.stopper, 1.0f);
+			ImGui::PopID();
+		}
+
+
+		void GimmickMarkEditor::DrawFlag(FlagStyle& style)
+		{
+			ImGui::SeparatorText("Checkpoint Flag");
+			ImGui::PushID("Flag");
+			ImGui::Checkbox("Visible", &style.isVisible);
+			ImGui::DragFloat("Z", &style.z, 1.0f, -300.0f, 300.0f, "%.0f");
+			ImGui::SetItemTooltip("+ = farther from the camera. Behind the player (Z = 0) so the flag never hides the body.");
+			// 台・ポール・先の玉
+			ImGui::DragFloat("Base Width", &style.baseWidth, 0.5f, 0.0f, 200.0f, "%.1f");
+			ImGui::DragFloat("Base Height", &style.baseHeight, 0.5f, 0.0f, 200.0f, "%.1f");
+			DrawMarkColor("Base", style.base, 1.0f);
+			ImGui::DragFloat("Pole Width", &style.poleWidth, 0.5f, 1.0f, 50.0f, "%.1f");
+			ImGui::DragFloat("Pole Height", &style.poleHeight, 1.0f, 10.0f, 600.0f, "%.0f");
+			DrawMarkColor("Pole", style.pole, 1.0f);
+			ImGui::DragFloat("Knob Size", &style.knobSize, 0.5f, 0.0f, 100.0f, "%.1f");
+			DrawMarkColor("Knob", style.knob, 2.0f);
+			// 旗
+			ImGui::DragFloat("Cloth Width", &style.clothWidth, 0.5f, 1.0f, 400.0f, "%.1f");
+			ImGui::DragFloat("Cloth Height", &style.clothHeight, 0.5f, 1.0f, 300.0f, "%.1f");
+			ImGui::DragFloat("Wave Count", &style.waveCount, 0.01f, 0.0f, 5.0f, "%.2f");
+			DrawMarkColor("Cloth (Before)", style.clothOff, 2.0f);
+			DrawMarkColor("Cloth (Reached)", style.clothOn, 2.0f);
+			DrawMarkColor("Outline", style.outline, 0.0f);
+			DrawFlagWave("Wave (Before)", style.waveOff);
+			DrawFlagWave("Wave (Reached)", style.waveOn);
+			// 白 → 赤に変わるとき
+			ImGui::DragFloat("Change Time", &style.changeTime, 0.01f, 0.01f, 3.0f, "%.2f s");
+			ImGui::SetItemTooltip("Seconds to turn from white to red after the player passes.");
+			ImGui::DragFloat("Pop Scale", &style.popScale, 0.01f, 0.0f, 2.0f, "%.2f");
+			ImGui::SetItemTooltip("How much bigger the flag gets while it turns red. 0 = no pop.");
+			ImGui::PopID();
+		}
+
+
+		void GimmickMarkEditor::DrawFlagWave(const char* label, FlagWave& wave)
+		{
+			ImGui::PushID(label);
+			ImGui::TextUnformatted(label);
+			ImGui::DragFloat("Amplitude", &wave.amplitude, 0.005f, 0.0f, 1.0f, "%.3f");
+			ImGui::SetItemTooltip("Up-down swing at the tip. 1 = half the cloth height.");
+			ImGui::DragFloat("Speed", &wave.speed, 0.05f, 0.0f, 30.0f, "%.2f");
 			ImGui::PopID();
 		}
 

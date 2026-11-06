@@ -21,6 +21,12 @@ namespace app
 			m_isGrabbedThisFrame = false;
 			m_movedDistanceThisFrame = 0.0f;
 
+			// つかむ（RB）を離したら、またつかめるようにする
+			if (!command.grabHold)
+			{
+				m_isWaitingGrabRelease = false;
+			}
+
 			// 引きずり中：つかむを離した・地面から離れた・鏡が消えた ならやめる
 			if (m_isDragging)
 			{
@@ -50,7 +56,7 @@ namespace app
 			}
 
 			// 引きずり開始
-			if (!m_isDragging && command.grabHold && mirror.isMovable && character.GetController().IsOnGround())
+			if (!m_isDragging && !m_isWaitingGrabRelease && command.grabHold && mirror.isMovable && character.GetController().IsOnGround())
 			{
 				m_isDragging = true;
 				m_isGrabbedThisFrame = true;
@@ -68,6 +74,14 @@ namespace app
 					m_movedDistanceThisFrame = math::Abs(targetX - mirror.center.x);
 					mirror.center.x = targetX;
 				}
+
+				// レールの端・地形で鏡がついてこられず、キャラクターが離れたら手を離す
+				// （ふつうの歩き方に戻る。RB を押したままなら、一度離すまでつかみ直さない）
+				if (IsLeftBehind(mirror, position.x))
+				{
+					m_isDragging = false;
+					m_isWaitingGrabRelease = true;
+				}
 			}
 		}
 
@@ -80,6 +94,7 @@ namespace app
 			m_isRotatedThisFrame = false;
 			m_isGrabbedThisFrame = false;
 			m_movedDistanceThisFrame = 0.0f;
+			m_isWaitingGrabRelease = false;
 		}
 
 
@@ -108,6 +123,14 @@ namespace app
 		}
 
 
+		bool MirrorInteractor::IsLeftBehind(const LightMirror& mirror, const float characterX) const
+		{
+			// つかんだときの「鏡とキャラクターの差」から、今の差がどれだけずれたか
+			const float offsetX = mirror.center.x - characterX;
+			return math::Abs(offsetX - m_dragOffsetX) > releaseDistance;
+		}
+
+
 		MirrorInteractor::MirrorInteractor()
 			: m_focusedIndex(-1)
 			, m_isDragging(false)
@@ -115,6 +138,7 @@ namespace app
 			, m_isRotatedThisFrame(false)
 			, m_isGrabbedThisFrame(false)
 			, m_movedDistanceThisFrame(0.0f)
+			, m_isWaitingGrabRelease(false)
 		{}
 	}
 }

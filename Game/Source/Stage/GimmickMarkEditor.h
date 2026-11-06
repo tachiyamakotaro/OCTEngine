@@ -3,7 +3,7 @@
 
 /**
  * @file GimmickMarkEditor.h
- * @brief ギミックの印（電球マーク・歯車・レール）を調整する ImGui（デバッグウィンドウの「Gimmick Marks」の中身）
+ * @brief ギミックの印（電球マーク・歯車・レール・チェックポイントの旗）を調整する ImGui（デバッグウィンドウの「Gimmick Marks」の中身）
  */
 namespace app
 {
@@ -13,6 +13,8 @@ namespace app
 		struct BulbStyle;
 		struct GearStyle;
 		struct RailStyle;
+		struct FlagStyle;
+		struct FlagWave;
 		struct MarkPlacement;
 
 
@@ -42,6 +44,13 @@ namespace app
 			void DrawGear(GearStyle& style);
 			/** 動かせる反射鏡のレール */
 			void DrawRail(RailStyle& style);
+			/** チェックポイントの旗 */
+			void DrawFlag(FlagStyle& style);
+			/**
+			 * @brief 旗のはためき方1つぶん
+			 * @param label 項目の名前（通る前・通ったあと）
+			 */
+			void DrawFlagWave(const char* label, FlagWave& wave);
 			/** 印を置く奥行き */
 			void DrawPlacement(MarkPlacement& placement);
 		};

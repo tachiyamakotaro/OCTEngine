@@ -1,11 +1,12 @@
 ﻿/**
  * @file GimmickMarkRenderer.cpp
- * @brief ギミックに「何ができるか」の印を描く（受光器の電球マーク・回せる反射鏡の歯車・動かせる反射鏡のレール）
+ * @brief ギミックに「何ができるか」の印を描く（受光器の電球マーク・回せる反射鏡の歯車・動かせる反射鏡のレール・チェックポイントの旗）
  */
 #include "stdafx.h"
 #include "GimmickMarkRenderer.h"
 
 #include "Stage.h"
+#include <cmath>
 
 
 namespace
@@ -23,6 +24,27 @@ namespace
 	/** 止め金の左右（MakeStopper の side） */
 	constexpr float LEFT_SIDE = -1.0f;
 	constexpr float RIGHT_SIDE = 1.0f;
+	/** 旗の板の厚さ */
+	constexpr float FLAG_CLOTH_THICKNESS = 2.0f;
+	/** 旗をポールのてっぺんからどれだけ下げて付けるか（先の玉と重ならないように） */
+	constexpr float FLAG_CLOTH_TOP_GAP = 4.0f;
+	/** 旗ごとに、はためきの始まりをずらす角度（ラジアン。並んだ旗が同じ動きにならないように） */
+	constexpr float FLAG_PHASE_SHIFT = 1.7f;
+	/** はためきの角度をこの値で戻す（ずっと増えて float の精度が落ちないように。2π の倍数） */
+	constexpr float FLAG_PHASE_WRAP = app::math::PI * 2.0f * 64.0f;
+
+
+	/** 印の色を混ぜる（t = 0 で a、t = 1 で b。光る強さも混ぜる） */
+	app::stage::MarkColor LerpMarkColor(const app::stage::MarkColor& a, const app::stage::MarkColor& b, const float t)
+	{
+		app::stage::MarkColor color;
+		for (int i = 0; i < 3; ++i)
+		{
+			color.rgb[i] = app::math::Lerp(a.rgb[i], b.rgb[i], t);
+		}
+		color.glow = app::math::Lerp(a.glow, b.glow, t);
+		return color;
+	}
 }
 
 
@@ -36,11 +58,12 @@ namespace app
 			m_initialParameter = parameter;
 			m_marks.clear();
 			m_count = 0;
+			m_flagMotions.clear();
 			m_isInited = true;
 		}
 
 
-		void GimmickMarkRenderer::Update(const Stage& stage)
+		void GimmickMarkRenderer::Update(const Stage& stage, const float deltaTime)
 		{
 			if (!m_isInited)
 			{
@@ -49,6 +72,7 @@ namespace app
 			m_count = 0;
 			PutBulbs(stage);
 			PutMirrorMarks(stage);
+			PutFlags(stage, deltaTime);
 		}
 
 
@@ -95,6 +119,37 @@ namespace app
 				{
 					Put(MakeGear(mirror));
 				}
+			}
+		}
+
+
+		void GimmickMarkRenderer::PutFlags(const Stage& stage, const float deltaTime)
+		{
+			const auto checkpoints = stage.GetGimmicks().View<Checkpoint>();
+			// チェックポイントが増えたら、増えた分の動きを作る（はためきの始まりを少しずつずらす）
+			while (m_flagMotions.size() < checkpoints.size())
+			{
+				FlagMotion motion;
+				motion.phase = FLAG_PHASE_SHIFT * static_cast<float>(m_flagMotions.size());
+				m_flagMotions.push_back(motion);
+			}
+
+			const FlagStyle& style = m_parameter.flag;
+			size_t index = 0;
+			for (const Checkpoint& checkpoint : checkpoints)
+			{
+				FlagMotion& motion = m_flagMotions[index++];
+				motion.Advance(style, checkpoint.isReached, deltaTime);
+				if (!style.isVisible)
+				{
+					continue;
+				}
+				const Vector3 foot = GetFlagFoot(checkpoint);
+				Put(MakeFlagBase(foot));
+				Put(MakeFlagPole(foot));
+				Put(MakeFlagCloth(foot, motion));
+				// 玉は旗とポールの上にかぶせる（最後に置く）
+				Put(MakeFlagKnob(foot));
 			}
 		}
 
@@ -171,6 +226,137 @@ namespace app
 			plate.values.param = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 			plate.values.litColor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 			return plate;
+		}
+
+
+		GimmickMarkRenderer::MarkPlate GimmickMarkRenderer::MakeFlagBase(const Vector3& foot) const
+		{
+			const FlagStyle& style = m_parameter.flag;
+
+			MarkPlate plate;
+			plate.center = Vector3(foot.x, foot.y + style.baseHeight * 0.5f, foot.z);
+			plate.size = Vector3(style.baseWidth, style.baseHeight, style.baseWidth);
+			plate.values.color = style.base.ToShaderValue();
+			plate.values.darkColor = Vector4(0.0f, 0.0f, 0.0f, static_cast<float>(Shape::Solid));
+			plate.values.center = Vector4(plate.center.x, plate.center.y, plate.center.z, style.baseHeight * 0.5f);
+			plate.values.param = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			plate.values.litColor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			return plate;
+		}
+
+
+		GimmickMarkRenderer::MarkPlate GimmickMarkRenderer::MakeFlagPole(const Vector3& foot) const
+		{
+			const FlagStyle& style = m_parameter.flag;
+
+			MarkPlate plate;
+			plate.center = Vector3(foot.x, foot.y + style.baseHeight + style.poleHeight * 0.5f, foot.z);
+			plate.size = Vector3(style.poleWidth, style.poleHeight, style.poleWidth);
+			plate.values.color = style.pole.ToShaderValue();
+			plate.values.darkColor = Vector4(0.0f, 0.0f, 0.0f, static_cast<float>(Shape::Solid));
+			plate.values.center = Vector4(plate.center.x, plate.center.y, plate.center.z, style.poleHeight * 0.5f);
+			plate.values.param = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			plate.values.litColor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			return plate;
+		}
+
+
+		GimmickMarkRenderer::MarkPlate GimmickMarkRenderer::MakeFlagKnob(const Vector3& foot) const
+		{
+			const FlagStyle& style = m_parameter.flag;
+			// 玉はポールより手前に少し出す（ポールの太さの半分 + すき間）
+			const float z = foot.z - style.poleWidth * 0.5f - m_parameter.placement.surfaceGap;
+
+			MarkPlate plate;
+			plate.center = Vector3(foot.x, foot.y + GetPoleTopHeight(), z);
+			plate.size = Vector3(style.knobSize, style.knobSize, FLAG_CLOTH_THICKNESS);
+			plate.values.color = style.knob.ToShaderValue();
+			plate.values.darkColor = Vector4(style.outline.rgb[0], style.outline.rgb[1], style.outline.rgb[2], static_cast<float>(Shape::Ball));
+			plate.values.center = Vector4(plate.center.x, plate.center.y, plate.center.z, style.knobSize * 0.5f);
+			plate.values.param = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			plate.values.litColor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			return plate;
+		}
+
+
+		GimmickMarkRenderer::MarkPlate GimmickMarkRenderer::MakeFlagCloth(const Vector3& foot, const FlagMotion& motion) const
+		{
+			const FlagStyle& style = m_parameter.flag;
+			const float popScale = motion.GetPopScale(style);
+			const float width = math::Max(style.clothWidth, 0.0f) * popScale;
+			const float height = math::Max(style.clothHeight, 0.0f) * popScale;
+			const FlagWave wave = motion.GetWave(style);
+			// ポールの右側に付ける（上の端はポールのてっぺんより少し下。大きくなるときもポール側の上の端はそのまま）
+			const float top = foot.y + GetPoleTopHeight() - FLAG_CLOTH_TOP_GAP;
+			const float left = foot.x + style.poleWidth * 0.5f;
+			// 旗はポールの手前の面にそろえる（ポールと同じ奥行きの位置だと、ポールの中に埋まる）
+			const float z = foot.z - style.poleWidth * 0.5f;
+			// はためいて上下にはみ出す分だけ、板を大きくしておく（形はシェーダーが作り、外側は捨てる）
+			const float waveMargin = math::Max(wave.amplitude, 0.0f) * height * 0.5f;
+
+			MarkPlate plate;
+			plate.center = Vector3(left + width * 0.5f, top - height * 0.5f, z);
+			plate.size = Vector3(width, height + waveMargin * 2.0f, FLAG_CLOTH_THICKNESS);
+			// 白 → 赤（色も光る強さも混ぜる）
+			plate.values.color = LerpMarkColor(style.clothOff, style.clothOn, motion.changeRate).ToShaderValue();
+			plate.values.darkColor = Vector4(style.outline.rgb[0], style.outline.rgb[1], style.outline.rgb[2], static_cast<float>(Shape::Flag));
+			plate.values.center = Vector4(plate.center.x, plate.center.y, plate.center.z, height * 0.5f);
+			// x = 波の角度, y = 振れ幅, z = 幅の半分（高さの半分を 1 とした長さ）, w = 波の数
+			const float halfWidthRate = height > 0.0f ? width / height : 0.0f;
+			plate.values.param = Vector4(motion.phase, wave.amplitude, halfWidthRate, style.waveCount);
+			plate.values.litColor = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+			return plate;
+		}
+
+
+		Vector3 GimmickMarkRenderer::GetFlagFoot(const Checkpoint& checkpoint) const
+		{
+			const math::Vec2 spawn = checkpoint.GetSpawnPosition();
+			return Vector3(spawn.x, spawn.y, m_parameter.flag.z);
+		}
+
+
+		float GimmickMarkRenderer::GetPoleTopHeight() const
+		{
+			const FlagStyle& style = m_parameter.flag;
+			return style.baseHeight + style.poleHeight;
+		}
+
+
+		void GimmickMarkRenderer::FlagMotion::Advance(const FlagStyle& style, const bool isReached, const float deltaTime)
+		{
+			// 通ったら少しずつ赤へ。通っていない（ステージを読み直した）ならすぐ白に戻す
+			if (isReached)
+			{
+				const float changeTime = math::Max(style.changeTime, 0.01f);
+				changeRate = math::MoveTowards(changeRate, 1.0f, deltaTime / changeTime);
+			}
+			else
+			{
+				changeRate = 0.0f;
+			}
+			// はためき（赤くなるほど速い）
+			phase += GetWave(style).speed * deltaTime;
+			if (phase > FLAG_PHASE_WRAP)
+			{
+				phase -= FLAG_PHASE_WRAP;
+			}
+		}
+
+
+		FlagWave GimmickMarkRenderer::FlagMotion::GetWave(const FlagStyle& style) const
+		{
+			FlagWave wave;
+			wave.amplitude = math::Lerp(style.waveOff.amplitude, style.waveOn.amplitude, changeRate);
+			wave.speed = math::Lerp(style.waveOff.speed, style.waveOn.speed, changeRate);
+			return wave;
+		}
+
+
+		float GimmickMarkRenderer::FlagMotion::GetPopScale(const FlagStyle& style) const
+		{
+			// 変わり始めと変わり終わりは 1 倍、真ん中で一番大きい（山なり）
+			return 1.0f + style.popScale * std::sin(math::PI * changeRate);
 		}
 
 
