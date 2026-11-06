@@ -1,0 +1,16 @@
+{
+	"stage": { "name": "Stage06", "playerStart": [100.0, 0.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [4600.0, 1100.0] } },
+	"gimmicks": [
+		{ "type": "StageBlock", "name": "LeftWall", "position": [-200.0, 0.0], "size": [100.0, 700.0] },
+		{ "type": "StageBlock", "name": "Ceiling", "position": [-200.0, 600.0], "size": [3500.0, 100.0] },
+		{ "type": "StageBlock", "name": "R1_Floor", "position": [-200.0, -400.0], "size": [1100.0, 400.0] },
+		{ "type": "StageBlock", "name": "R1_FloorR", "position": [900.0, -400.0], "size": [1300.0, 400.0] },
+		{ "type": "StageBlock", "name": "R2_FloorR", "position": [2920.0, -400.0], "size": [380.0, 400.0] },
+		{ "type": "StageBlock", "name": "R1_LightStopper", "position": [1580.0, 0.0], "size": [80.0, 100.0] },
+		{ "type": "StageBlock", "name": "R3_Floor", "position": [3300.0, -400.0], "size": [400.0, 400.0] },
+		{ "type": "StageBlock", "name": "R3_Ceiling", "position": [3300.0, 900.0], "size": [1300.0, 100.0] },
+		{ "type": "StageBlock", "name": "R3_CeilingStep", "position": [3300.0, 600.0], "size": [50.0, 300.0] },
+		{ "type": "StageBlock", "name": "R3_GoalLedge", "position": [3950.0, -400.0], "size": [650.0, 880.0] },
+		{ "type": "StageBlock", "name": "RightWall", "position": [4500.0, 480.0], "size": [100.0, 420.0] }
+	]
+}

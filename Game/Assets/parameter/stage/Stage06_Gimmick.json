@@ -1,0 +1,19 @@
+{
+	"gimmicks": [
+		{ "type": "EmitRay", "name": "R1_RedLamp", "position": [400.0, 599.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Red" },
+		{ "type": "LightMirror", "name": "R1_Mirror", "center": [400.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 400.0, "railMaxX": 400.0 },
+		{ "type": "Checkpoint", "name": "Checkpoint1", "position": [1460.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "R2_RedLamp", "position": [2300.0, 599.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Red" },
+		{ "type": "EmitRay", "name": "R2_BlueLamp", "position": [2500.0, 599.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Blue" },
+		{ "type": "LightMirror", "name": "R2_RailMirror", "center": [2300.0, 60.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 2300.0, "railMaxX": 2500.0 },
+		{ "type": "ColorReceiver", "name": "R2_BlueSensor", "position": [3053.0, 35.0], "size": [47.0, 55.0], "requiredColor": "Blue" },
+		{ "type": "Door", "name": "R2_Door", "position": [3100.0, 0.0], "size": [40.0, 600.0], "requiredReceivers": ["R2_BlueSensor"], "openSpeed": 2.0, "isLatch": true },
+		{ "type": "Checkpoint", "name": "Checkpoint2", "position": [3180.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "EmitRay", "name": "R3_Lamp", "position": [3500.0, 899.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
+		{ "type": "LightMirror", "name": "R3_Mirror", "center": [3500.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 3500.0, "railMaxX": 3500.0 },
+		{ "type": "MovingBlock", "name": "R3_Lift", "position": [3700.0, 20.0], "size": [200.0, 80.0], "moveOffset": [0.0, 400.0], "moveSpeed": 150.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 2.0, "runTime": 6.0, "hasFrontPanel": true },
+		{ "type": "Goal", "name": "Goal", "position": [4200.0, 480.0], "size": [150.0, 250.0] },
+		{ "type": "ColorReceiver", "name": "ColorReceiver1", "position": [800.0, 525.0], "size": [60.0, 80.0], "requiredColor": "Red" },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [825.0, 60.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 825.0, "railMaxX": 825.0 }
+	]
+}

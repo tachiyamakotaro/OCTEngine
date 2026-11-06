@@ -1,4 +1,4 @@
-﻿{
+{
 	"stage": { "name": "Stage03", "playerStart": [100.0, 0.0], "backMirror": { "enabled": false, "planeZ": 150.0, "position": [-100.0, 0.0], "size": [3700.0, 1500.0] } },
 	"gimmicks": [
 		{ "type": "StageBlock", "name": "LeftWall", "position": [-200.0, 0.0], "size": [100.0, 600.0] },
