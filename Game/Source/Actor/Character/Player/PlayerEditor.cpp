@@ -55,7 +55,7 @@ namespace app
 			ImGui::DragFloat("Grab Move Speed", &param.grabMoveSpeed, 5.0f, 0.0f, 3000.0f, "%.0f");
 			ImGui::SetItemTooltip("Move speed while dragging a mirror / shade board.");
 			ImGui::DragFloat("Rotate Action Time", &param.rotateActionTime, 0.01f, 0.0f, 3.0f, "%.2f s");
-			ImGui::SetItemTooltip("How long the push animation plays after rotating a mirror.");
+			ImGui::SetItemTooltip("How long the grab-idle animation plays after rotating a mirror.");
 			ImGui::DragFloat("Hang Model Forward", &param.ledgeHangModelForward, 0.5f, -200.0f, 200.0f, "%.1f");
 			ImGui::DragFloat("Hang Model Y", &param.ledgeHangModelY, 0.5f, -200.0f, 200.0f, "%.1f");
 			ImGui::SetItemTooltip("Shift the model while hanging so the hands are on the ledge corner.");

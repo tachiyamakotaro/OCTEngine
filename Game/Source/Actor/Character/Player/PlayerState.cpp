@@ -3,9 +3,9 @@
  * @brief プレイヤーの各ステート
  */
 #include "stdafx.h"
+#include "PlayerState.h"
 #include "Player.h"
 #include "PlayerParameter.h"
-#include "PlayerState.h"
 #include "PlayerStatus.h"
 #include "Source/Core/Math/MathUtil.h"
 
@@ -473,7 +473,7 @@ namespace app
 			const float velocityX = GetController().GetVelocity().x;
 			if (player.IsRotatingObject())
 			{
-				// 鏡を回す：押す動き
+				// 鏡を回す：つかんだまま止まっている姿勢（その場から動かない）
 				animation = PlayerAnimation::GrabIdle;
 			}
 			else if (math::Abs(velocityX) >= STOP_SPEED)

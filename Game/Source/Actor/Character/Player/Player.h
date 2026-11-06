@@ -37,8 +37,8 @@ namespace app
 			ClimbUp,
 			HardLand,
 			Dead,
-			GrabIdle,	//!< 物をつかんで止まっている
-			Push,		//!< 物を押す（鏡を回すときもこれ）
+			GrabIdle,	//!< 物をつかんで止まっている（鏡を回すときもこれ）
+			Push,		//!< 物を押す
 			Pull,		//!< 物を引く
 			Num
 		};
