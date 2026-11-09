@@ -1,18 +1,15 @@
-﻿{
+{
 	"gimmicks": [
-		{ "type": "EmitRay", "name": "R1_Lamp", "position": [300.0, 699.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
-		{ "type": "LightMirror", "name": "R1_Mirror", "center": [300.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 300.0, "railMaxX": 300.0 },
-		{ "type": "IceBlock", "name": "R1_IceWall", "position": [1000.0, 0.0], "size": [80.0, 700.0], "kind": "Melt", "meltTime": 1.0, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
-		{ "type": "Checkpoint", "name": "Checkpoint1", "position": [1250.0, 0.0], "size": [80.0, 200.0] },
-		{ "type": "DarkZone", "name": "R2_Dark", "position": [1650.0, -700.0], "size": [2550.0, 2000.0], "isWholeStage": false, "darkness": 0.93, "lightRadius": 70.0, "lightSoftWidth": 160.0, "playerLightRadius": 90.0, "playerLightSoftWidth": 80.0, "isPlayerRevealingFloors": true, "edgeFeather": 80.0, "slantLeft": 0.0, "slantRight": 0.0, "bendLeft": 0.0, "bendRight": 0.0, "bendLeftHeight": 0.5, "bendRightHeight": 0.5, "topDropLeft": 0.0, "topDropRight": 0.0 },
-		{ "type": "FrontWall", "name": "R2_FrontWall", "position": [1650.0, -700.0], "size": [2550.0, 2000.0], "darkZone": "R2_Dark", "fadeTime": 0.35, "colorR": 0.255, "colorG": 0.259, "colorB": 0.2, "stoneScale": 140.0, "edgeFeather": 153.0, "rimWidth": 82.0 },
-		{ "type": "HiddenFloor", "name": "R2_StoneA1", "position": [1830.0, -5.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
-		{ "type": "HiddenFloor", "name": "R2_StoneA2", "position": [2070.0, -5.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
-		{ "type": "HiddenFloor", "name": "R2_StoneA3", "position": [2310.0, -5.0], "size": [100.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
+		{ "type": "EmitRay", "name": "R1_Lamp", "position": [-1175.0, 699.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Red" },
+		{ "type": "LightMirror", "name": "R1_Mirror", "center": [-1175.0, 60.0], "angleDeg": 0.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": -1175.0, "railMaxX": -1175.0 },
+		{ "type": "IceBlock", "name": "R1_IceWall", "position": [-750.0, 0.0], "size": [80.0, 700.0], "kind": "Melt", "meltTime": 1.0, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
+		{ "type": "Checkpoint", "name": "Checkpoint1", "position": [-400.0, 0.0], "size": [80.0, 200.0] },
+		{ "type": "DarkZone", "name": "R2_Dark", "position": [-1250.0, -700.0], "size": [3736.0, 2000.0], "isWholeStage": false, "darkness": 0.93, "lightRadius": 70.0, "lightSoftWidth": 160.0, "playerLightRadius": 90.0, "playerLightSoftWidth": 80.0, "isPlayerRevealingFloors": true, "edgeFeather": 80.0, "slantLeft": 0.0, "slantRight": 0.0, "bendLeft": 0.0, "bendRight": 0.0, "bendLeftHeight": 0.5, "bendRightHeight": 0.5, "topDropLeft": 0.0, "topDropRight": 0.0 },
+		{ "type": "FrontWall", "name": "R2_FrontWall", "position": [-1250.0, -700.0], "size": [3743.0, 2000.0], "darkZone": "R2_Dark", "fadeTime": 0.35, "colorR": 0.255, "colorG": 0.259, "colorB": 0.2, "stoneScale": 140.0, "edgeFeather": 153.0, "rimWidth": 82.0 },
+		{ "type": "HiddenFloor", "name": "R2_StoneA1", "position": [25.0, -25.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
+		{ "type": "HiddenFloor", "name": "R2_StoneA2", "position": [350.0, -5.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
+		{ "type": "HiddenFloor", "name": "R2_StoneA3", "position": [575.0, -300.0], "size": [100.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
 		{ "type": "Checkpoint", "name": "Checkpoint2", "position": [2510.0, 0.0], "size": [80.0, 200.0] },
-		{ "type": "EmitRay", "name": "R2_RedLamp", "position": [2600.0, 699.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Red" },
-		{ "type": "EmitRay", "name": "R2_GreenLamp", "position": [2700.0, 699.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Green" },
-		{ "type": "EmitRay", "name": "R2_BlueLamp", "position": [2800.0, 699.0], "angleDeg": -90.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "Blue" },
 		{ "type": "LightMirror", "name": "R2_RailMirror", "center": [2550.0, 60.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 2550.0, "railMaxX": 2800.0 },
 		{ "type": "HiddenFloor", "name": "R2_StoneB1", "position": [3030.0, -5.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
 		{ "type": "HiddenFloor", "name": "R2_StoneB2", "position": [3270.0, -5.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
@@ -27,6 +24,8 @@
 		{ "type": "IceBlock", "name": "R3_IceWall", "position": [4250.0, 900.0], "size": [80.0, 400.0], "kind": "Melt", "meltTime": 1.0, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
 		{ "type": "ColorReceiver", "name": "R3_BlueSensor", "position": [4553.0, 932.0], "size": [47.0, 55.0], "requiredColor": "Blue" },
 		{ "type": "Door", "name": "R3_Door", "position": [4600.0, 900.0], "size": [40.0, 400.0], "requiredReceivers": ["R3_BlueSensor"], "openSpeed": 2.0, "isLatch": true },
-		{ "type": "Goal", "name": "Goal", "position": [4800.0, 900.0], "size": [150.0, 250.0] }
+		{ "type": "Goal", "name": "Goal", "position": [4800.0, 900.0], "size": [150.0, 250.0] },
+		{ "type": "LightMirror", "name": "Mirror1", "center": [500.0, 59.0], "angleDeg": 270.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 500.0, "railMaxX": 500.0 },
+		{ "type": "LightMirror", "name": "Mirror2", "center": [500.0, -350.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 475.0, "railMaxX": 475.0 }
 	]
 }

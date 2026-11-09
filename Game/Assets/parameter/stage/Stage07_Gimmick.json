@@ -56,6 +56,7 @@
 		{ "type": "EmitRay", "name": "Lamp9", "position": [4884.0, 1956.0], "angleDeg": 0.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
 		{ "type": "EmitRay", "name": "Lamp10", "position": [6946.0, 1950.0], "angleDeg": 180.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
 		{ "type": "LightMirror", "name": "Mirror22", "center": [5350.0, 1950.0], "angleDeg": 45.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 300.0, "railMaxX": 300.0 },
-		{ "type": "LightMirror", "name": "Mirror23", "center": [6175.0, 1950.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1125.0, "railMaxX": 1125.0 }
+		{ "type": "LightMirror", "name": "Mirror23", "center": [6175.0, 1950.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 1125.0, "railMaxX": 1125.0 },
+		{ "type": "FrontWall", "name": "FrontWall1", "position": [2300.0, 675.0], "size": [2097.0, 2202.0], "darkZone": "R2_Dark", "fadeTime": 0.35, "colorR": 0.205, "colorG": 0.206, "colorB": 0.162, "stoneScale": 140.0, "edgeFeather": 8.0, "rimWidth": 40.0 }
 	]
 }
