@@ -18,15 +18,15 @@ namespace app
 		{
 			PlayerParameter()
 			{
-				// ユニティちゃんの身長は約119で、体の高さ（bodyHeight = 120）とほぼ同じなので拡大しない
+				// 探検家の女の子は 3ds Max で身長 約69.75（インチ）。
+				// FBX を読み込んだときの単位の変換（0.394倍）が tka に2回かかっていて、ゲームでは 0.394倍の大きさで表示される。
+				// その分も戻すと 1.7 × 2.54 ≒ 4.32倍で約119。画面の中で小さく見えるので、見た目だけ 1.1倍の 4.75（身長 約131）にしている。
+				// 当たり判定（bodyHeight）は変えない
 				// ※ モデルを変えたら、ゲームで見ながら Tuning の「Model Scale」で合わせ、決まった値をここに書く
-				modelScale = 1.0f;
+				modelScale = 4.75f;
 
-				// 探検家の女の子 … 仮のモデルなのでコメントアウト
-				// 3ds Max で身長 約69.75（インチ）。FBX を読み込んだときの単位の変換（0.394倍）が tka に2回かかっていて、
-				// ゲームでは 0.394倍の大きさで表示される。その分も戻すと 1.7 × 2.54 ≒ 4.32倍で約119。
-				// 画面の中で小さく見えるので、見た目だけ 1.1倍の 4.75（身長 約131）にしていた。当たり判定（bodyHeight）は変えない
-				//modelScale = 4.75f;
+				// ユニティちゃん … コメントアウト（身長 約119で、体の高さ bodyHeight = 120 とほぼ同じなので拡大しない）
+				//modelScale = 1.0f;
 
 				// Remy（Mixamo）… 使わなくなったのでコメントアウト（身長 約149 → 0.8倍で約119）
 				//modelScale = 0.8f;
@@ -45,12 +45,12 @@ namespace app
 			// ---- 走りのアニメーション ----
 			/**
 			 * @brief 走っているときのアニメーションの再生速度（1.0 で元の速さ）
-			 * @details ユニティちゃんの run.tka は元の速さのまま使う。
-			 *          探検家の女の子の Player_Run.tka は、進む速さ 約470 で足の動きと合っていた（modelScale 4.75 のとき）ので 0.85 にしていた
+			 * @details 探検家の女の子の Player_Run.tka は、進む速さ 約470 で足の動きと合う（modelScale 4.75 のとき）。
+			 *          「470 × この値」が runSpeed に近いほど、足がすべって見えない（runSpeed 400 なら 約0.85）
 			 */
-			float runAnimationSpeed = 1.0f;
-			// 探検家の女の子 … 仮のモデルなのでコメントアウト
-			//float runAnimationSpeed = 0.85f;
+			float runAnimationSpeed = 0.85f;
+			// ユニティちゃん … コメントアウト（run.tka は元の速さのまま使う）
+			//float runAnimationSpeed = 1.0f;
 
 			// ---- しゃがみ ----
 			/** しゃがんだときの体の高さ */
@@ -67,13 +67,13 @@ namespace app
 			float ledgeGrabBelow = 40.0f;
 			/** 崖から手を離したあと、再びつかめるようになるまでの時間 */
 			float ledgeRegrabCooldown = 0.3f;
-			/** 崖登りのアニメーションの長さ（元の速さのとき。ユニティちゃんは専用のアニメーションがないので、登りきるまでの時間そのもの） */
-			float climbUpDuration = 0.5f;
+			/** 崖登りのアニメーションの長さ（元の速さのとき。Player_Climb.tka：72フレーム ÷ 30） */
+			float climbUpDuration = 2.4f;
 			/**
 			 * @brief 崖登りのアニメーションの再生速度（1.0 で元の速さ）
 			 * @details 登りきるまでの時間は climbUpDuration ÷ この値になる（2.0 なら 2.4 ÷ 2.0 = 1.2秒）
 			 */
-			float climbAnimationSpeed = 1.0f;
+			float climbAnimationSpeed = 2.8f;
 
 			/** 崖を登りきるまでの時間（アニメーションの長さ ÷ 再生速度） */
 			float GetClimbUpTime() const
@@ -82,7 +82,7 @@ namespace app
 			}
 
 			// ---- 崖つかまり・崖登りの見た目（当たり判定は変わらない）----
-			// 今はユニティちゃん（ぶら下がり・崖登りの専用アニメーションがなく idle / walk で代用）なので、モデルはずらさない
+			// 探検家の女の子：ゲームで見ながら Tuning の「Hang Model 〜」「Climb Model 〜」で合わせ、決まった値をここに書く
 			/** ぶら下がっているときのモデルのずらし：前（崖の方）が正 */
 			float ledgeHangModelForward = 0.0f;
 			/** ぶら下がっているときのモデルのずらし：上が正 */
@@ -96,16 +96,16 @@ namespace app
 			 * @details true  … アニメーションの中で体が上がるモデル。体の動きはアニメーションに任せる
 			 *          false … 登りのアニメーションがないモデル（ユニティちゃん）。モデルは当たり判定と一緒に上がる
 			 */
-			bool isClimbModelAnchored = false;
+			bool isClimbModelAnchored = true;
 
-			// 探検家の女の子 … 仮のモデルなのでコメントアウト（Player_Climb.tka：72フレーム ÷ 30。ずらしはゲームで見ながら合わせる）
-			//float climbUpDuration = 2.4f;
-			//float climbAnimationSpeed = 2.0f;
+			// ユニティちゃん … コメントアウト（専用アニメーションがなく idle / walk で代用。モデルはずらさない）
+			//float climbUpDuration = 0.5f;
+			//float climbAnimationSpeed = 1.0f;
 			//float ledgeHangModelForward = 0.0f;
 			//float ledgeHangModelY = 0.0f;
 			//float climbModelForward = 0.0f;
 			//float climbModelY = 0.0f;
-			//bool isClimbModelAnchored = true;
+			//bool isClimbModelAnchored = false;
 
 			// Remy（Mixamo）… 使わなくなったのでコメントアウト（新しいモデルで崖登りのアニメーションを入れるときの参考）
 			//float climbUpDuration = 1.13f;
