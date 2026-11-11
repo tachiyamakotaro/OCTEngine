@@ -36,15 +36,15 @@ namespace app
 
 		constexpr StageInfo STAGE_INFO_TABLE[] = {
 
-			//{ "Stage01", "Assets/parameter/stage/Stage01_Object.json", "Assets/parameter/stage/Stage01_Gimmick.json", 150.0f },
-			//{ "Stage02", "Assets/parameter/stage/Stage02_Object.json", "Assets/parameter/stage/Stage02_Gimmick.json", 150.0f },
-			//{ "Stage03", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json", 150.0f },
+			{ "stage01", "assets/parameter/stage/stage01_object.json", "assets/parameter/stage/stage01_gimmick.json", 150.0f },
+			//{ "stage02", "assets/parameter/stage/stage02_object.json", "assets/parameter/stage/stage02_gimmick.json", 150.0f },
+			//{ "stage03", "Assets/parameter/stage/Stage03_Object.json", "Assets/parameter/stage/Stage03_Gimmick.json", 150.0f },
 			//{ "Stage04", "Assets/parameter/stage/Stage04_Object.json", "Assets/parameter/stage/Stage04_Gimmick.json",180.0f },
 			//{ "Stage05", "Assets/parameter/stage/Stage05_Object.json", "Assets/parameter/stage/Stage05_Gimmick.json",180.0f },
-			//{ "Stage06", "Assets/parameter/stage/Stage06_Object.json", "Assets/parameter/stage/Stage06_Gimmick.json",180.0f },
+			{ "Stage06", "Assets/parameter/stage/Stage06_Object.json", "Assets/parameter/stage/Stage06_Gimmick.json",180.0f },
 			{ "Stage07", "Assets/parameter/stage/Stage07_Object.json", "Assets/parameter/stage/Stage07_Gimmick.json",210.0f },
-			//{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",270.0f },
-			//{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",270.0f },
+			{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",270.0f },
+			{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",270.0f },
 			//{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 300.0f },
 		};
 
