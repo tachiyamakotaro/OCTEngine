@@ -289,6 +289,7 @@
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
+    <ClCompile Include="Source\Render\BloomEditor.cpp" />
     <ClCompile Include="Source\Render\ColorBoxRenderer.cpp" />
     <ClCompile Include="Source\Render\DarknessRenderer.cpp" />
     <ClCompile Include="Source\Render\IceRenderer.cpp" />
@@ -402,6 +403,7 @@
     <ClInclude Include="Source\Physics\ICollisionWorld.h" />
     <ClInclude Include="Source\Physics\MirroredCollisionWorld.h" />
     <ClInclude Include="Source\Physics\SimpleCollisionWorld.h" />
+    <ClInclude Include="Source\Render\BloomEditor.h" />
     <ClInclude Include="Source\Render\ColorBoxRenderer.h" />
     <ClInclude Include="Source\Render\DarknessRenderer.h" />
     <ClInclude Include="Source\Render\IceRenderer.h" />

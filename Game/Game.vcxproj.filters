@@ -366,6 +366,9 @@
     <ClCompile Include="Source\Stage\GimmickMarkRenderer.cpp">
       <Filter>Source\Stage</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Render\BloomEditor.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -714,6 +717,9 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\GimmickMarkRenderer.h">
       <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\BloomEditor.h">
+      <Filter>Source\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

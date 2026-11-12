@@ -2,6 +2,7 @@
 #include "Source/Actor/Character/Player/PlayerEditor.h"
 #include "Source/Camera/CameraEditor.h"
 #include "Source/Core/Math/Vec2.h"
+#include "Source/Render/BloomEditor.h"
 #include "Source/Render/MirrorGlassEditor.h"
 #include "Source/Render/OutlineEditor.h"
 #include "Source/Sound/GameplaySEEditor.h"
@@ -204,6 +205,7 @@ namespace app
 		actor::PlayerEditor m_playerEditor;
 		camera::CameraEditor m_cameraEditor;
 		render::OutlineEditor m_outlineEditor;
+		render::BloomEditor m_bloomEditor;
 		render::MirrorGlassEditor m_mirrorGlassEditor;
 		GameplaySEEditor m_seEditor;
 		stage::GimmickMarkEditor m_gimmickMarkEditor;

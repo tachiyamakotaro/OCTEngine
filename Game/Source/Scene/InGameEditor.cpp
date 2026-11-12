@@ -196,6 +196,11 @@ namespace app
 		{
 			m_outlineEditor.Draw(*RenderingEngine::GetInstance());
 		}
+		// ---- ブルーム（明るい所から光があふれる効果） ----
+		if (ImGui::CollapsingHeader("Bloom"))
+		{
+			m_bloomEditor.Draw(*RenderingEngine::GetInstance());
+		}
 		// ---- カメラ ----
 		if (ImGui::CollapsingHeader("Camera"))
 		{
