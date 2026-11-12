@@ -263,6 +263,8 @@ namespace app
 			int m_currentAnimation;
 			/** モデルを読み込んだか */
 			bool m_isModelInited;
+			/** 次のアニメーションを補間なしで切り替えるか（作り直した直後に前のポーズが混ざらないように） */
+			bool m_isNextAnimationSnap;
 			/** 鏡に映る像のモデルレンダー（EnableReflection したときだけ使う） */
 			ModelRender m_reflectionRender;
 			/** 鏡に映る像を作るか */

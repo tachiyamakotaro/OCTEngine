@@ -28,8 +28,8 @@ namespace app
 				{ "Assets/animData/player/Player_Idle.tka",        true },	// Crouch    ★仮
 				{ "Assets/animData/player/Player_HangingIdle.tka", true },	// LedgeHang
 				{ "Assets/animData/player/Player_Climb.tka",       false },	// ClimbUp
-				{ "Assets/animData/player/Player_Idle.tka",        false },	// HardLand  ★仮
-				{ "Assets/animData/player/Player_Idle.tka",        false },	// Dead      ★仮
+				{ "Assets/animData/player/Player_FallDamage.tka",  false },	// HardLand
+				{ "Assets/animData/player/Player_FallDeath.tka",   false },	// Dead
 				{ "Assets/animData/player/Player_PullIdle.tka",    true },	// GrabIdle
 				{ "Assets/animData/player/Player_Push.tka",        true },	// Push
 				{ "Assets/animData/player/Player_PullObject.tka",  true },	// Pull

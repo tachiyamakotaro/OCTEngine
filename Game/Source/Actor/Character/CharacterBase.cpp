@@ -29,13 +29,17 @@ namespace app
 			}
 			m_currentAnimation = clipNo;
 
+			// 作り直した直後の1回だけは補間しない（死亡などの前のポーズが混ざって見えないように）
+			const float playInterpolateTime = m_isNextAnimationSnap ? 0.0f : interpolateTime;
+			m_isNextAnimationSnap = false;
+
 			if (m_isModelInited && clipNo >= 0 && clipNo < m_clipNum)
 			{
-				m_modelRender.PlayAnimation(clipNo, interpolateTime);
+				m_modelRender.PlayAnimation(clipNo, playInterpolateTime);
 				// 鏡に映る像も同じアニメーションを同じタイミングで再生する
 				if (m_isReflectionEnabled)
 				{
-					m_reflectionRender.PlayAnimation(clipNo, interpolateTime);
+					m_reflectionRender.PlayAnimation(clipNo, playInterpolateTime);
 				}
 			}
 		}
@@ -67,6 +71,10 @@ namespace app
 			// ステータス
 			m_status = CreateStatus();
 			m_status->Setup(param);
+
+			// 再開したときは、前のアニメーション（死亡など）から補間せずに最初のステートのアニメーションへすぐ切り替える
+			m_currentAnimation = -1;
+			m_isNextAnimationSnap = true;
 
 			// ステートマシン（Setup で最初のステートの Enter まで呼ばれる）
 			m_stateMachine = CreateStateMachine();
@@ -239,6 +247,7 @@ namespace app
 			, m_clipNum(0)
 			, m_currentAnimation(-1)
 			, m_isModelInited(false)
+			, m_isNextAnimationSnap(false)
 			, m_isReflectionEnabled(false)
 			, m_isReflectionVisible(false)
 			, m_reflectionPlaneZ(0.0f)
