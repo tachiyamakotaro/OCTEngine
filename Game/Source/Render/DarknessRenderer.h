@@ -69,6 +69,10 @@ namespace app
 				float wholeStageSize = 40000.0f;
 				/** 手前の壁（FrontWall）の板を置く奥行き（暗がりの板より手前にする） */
 				float frontWallZ = -180.0f;
+				/** 暗がりを描くか（スクリーンショット用に一時的に消すとき false。暗がりの足場の見え方など、ゲームの計算は変わらない） */
+				bool isDrawZones = true;
+				/** 手前の壁を描くか（スクリーンショット用に一時的に消すとき false） */
+				bool isDrawFrontWalls = true;
 			};
 
 

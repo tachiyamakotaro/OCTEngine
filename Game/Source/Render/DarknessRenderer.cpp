@@ -193,6 +193,11 @@ namespace app
 		void DarknessRenderer::Draw(RenderContext& rc)
 		{
 			(void)rc;
+			// 消している間は登録しない（板の位置などは Update で計算したまま）
+			if (!m_config.isDrawZones)
+			{
+				return;
+			}
 			// エンジンは登録した順に描く。半透明なので、ほかのモデルのあと、光の前に登録する
 			const SceneLightData& light = SceneLight::GetInstance()->GetSceneLight();
 			for (size_t i = 0; i < m_zoneCount; ++i)
@@ -206,6 +211,10 @@ namespace app
 		void DarknessRenderer::DrawFrontWalls(RenderContext& rc)
 		{
 			(void)rc;
+			if (!m_config.isDrawFrontWalls)
+			{
+				return;
+			}
 			// 壁は一番手前に見せたいので、ほかの半透明の物（光・炎）を全部登録したあとに登録する
 			const SceneLightData& light = SceneLight::GetInstance()->GetSceneLight();
 			for (size_t i = 0; i < m_wallCount; ++i)

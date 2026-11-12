@@ -161,9 +161,10 @@ namespace app
 
 			// 暗がりの足場：見えている間だけ描く。ふだんは暗い石のモデル、プレイヤーが乗っている間だけ明るい石のモデル
 			// （光に近いだけで明るくすると特別な床に見えるので、明るさは暗がりの透け具合だけで見せる）
+			// isShowAllHiddenFloors が ON なら、見えていない足場も描く（スクリーンショット用）
 			for (const HiddenFloor& floor : stage.GetGimmicks().View<HiddenFloor>())
 			{
-				if (floor.IsVisible())
+				if (floor.IsVisible() || m_config.isShowAllHiddenFloors)
 				{
 					PutRect(floor.isPlayerOn ? ModelKind::HiddenFloor : ModelKind::HiddenFloorDim, floor.rect, m_config.hiddenFloorDepth);
 				}

@@ -9,6 +9,7 @@
 #include "MistEffectParameter.h"
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Camera/GameCamera.h"
+#include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Sound/GameplaySEPlayer.h"
 #include "Source/Stage/Editor/StageDebugOverlay.h"
@@ -231,6 +232,13 @@ namespace app
 			m_mirrorGlassEditor.Draw(*m_targets.mirrorGlass);
 			ImGui::TreePop();
 		}
+		if (ImGui::TreeNode("Darkness"))
+		{
+			m_darknessEditor.Draw(*m_targets.darknessRenderer);
+			ImGui::Checkbox("Show All Hidden Floors", &m_targets.gimmickRenderer->GetConfig().isShowAllHiddenFloors);
+			ImGui::SetItemTooltip("Draw every Hidden Floor even when it is not lit (for screenshots).\nWhether the player can stand on it does not change.");
+			ImGui::TreePop();
+		}
 		DrawStageView();
 	}
 
@@ -272,7 +280,7 @@ namespace app
 		const InGameEditTargets& t = m_targets;
 		return t.player != nullptr && t.stage != nullptr && t.stageTimer != nullptr && t.timerUI != nullptr
 			&& t.mirrorPromptUI != nullptr && t.camera != nullptr && t.sePlayer != nullptr && t.overlay != nullptr
-			&& t.mirrorGlass != nullptr && t.stageRenderer != nullptr && t.gimmickRenderer != nullptr
+			&& t.mirrorGlass != nullptr && t.darknessRenderer != nullptr && t.stageRenderer != nullptr && t.gimmickRenderer != nullptr
 			&& t.gimmickMarkRenderer != nullptr && t.mistEffect != nullptr;
 	}
 }

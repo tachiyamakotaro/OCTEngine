@@ -155,6 +155,7 @@ namespace app
 		editTargets.sePlayer = &m_sePlayer;
 		editTargets.overlay = &m_overlay;
 		editTargets.mirrorGlass = &m_mirrorGlass;
+		editTargets.darknessRenderer = &m_darknessRenderer;
 		editTargets.stageRenderer = &m_stageRenderer;
 		editTargets.gimmickRenderer = &m_gimmickRenderer;
 		editTargets.gimmickMarkRenderer = &m_gimmickMarkRenderer;

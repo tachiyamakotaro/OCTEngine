@@ -142,6 +142,8 @@ namespace app
 
 				/** 鏡に映った像も描くか */
 				bool isDrawReflection = true;
+				/** 暗がりの足場を、照らされていなくても全部描くか（スクリーンショット用。乗れるかどうかは変わらない） */
+				bool isShowAllHiddenFloors = false;
 			};
 
 

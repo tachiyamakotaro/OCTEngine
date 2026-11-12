@@ -369,6 +369,9 @@
     <ClCompile Include="Source\Render\BloomEditor.cpp">
       <Filter>Source\Render</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Render\DarknessEditor.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -719,6 +722,9 @@
       <Filter>Source\Stage</Filter>
     </ClInclude>
     <ClInclude Include="Source\Render\BloomEditor.h">
+      <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Render\DarknessEditor.h">
       <Filter>Source\Render</Filter>
     </ClInclude>
   </ItemGroup>

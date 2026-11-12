@@ -3,6 +3,7 @@
 #include "Source/Camera/CameraEditor.h"
 #include "Source/Core/Math/Vec2.h"
 #include "Source/Render/BloomEditor.h"
+#include "Source/Render/DarknessEditor.h"
 #include "Source/Render/MirrorGlassEditor.h"
 #include "Source/Render/OutlineEditor.h"
 #include "Source/Sound/GameplaySEEditor.h"
@@ -32,6 +33,7 @@ namespace app
 	namespace render
 	{
 		class MirrorGlass;
+		class DarknessRenderer;
 	}
 	namespace stage
 	{
@@ -67,6 +69,7 @@ namespace app
 		GameplaySEPlayer* sePlayer = nullptr;
 		stage::StageDebugOverlay* overlay = nullptr;
 		render::MirrorGlass* mirrorGlass = nullptr;
+		render::DarknessRenderer* darknessRenderer = nullptr;
 		stage::StageRenderer* stageRenderer = nullptr;
 		stage::GimmickRenderer* gimmickRenderer = nullptr;
 		stage::GimmickMarkRenderer* gimmickMarkRenderer = nullptr;
@@ -183,7 +186,7 @@ namespace app
 		std::optional<RespawnPoint> DrawWarpButtons(const InGameStatus& status);
 		/** 機能ごとの調整（○○Editor を並べる） */
 		void DrawFeatureEditors();
-		/** 表示（当たり判定などの重ね描き・霧の煙・鏡のガラス・地形と奥の鏡） */
+		/** 表示（当たり判定などの重ね描き・霧の煙・鏡のガラス・暗がり・地形と奥の鏡） */
 		void DrawDisplay(const InGameStatus& status);
 		/** 霧の煙の調整 */
 		void DrawMistEffect(const InGameStatus& status);
@@ -207,6 +210,7 @@ namespace app
 		render::OutlineEditor m_outlineEditor;
 		render::BloomEditor m_bloomEditor;
 		render::MirrorGlassEditor m_mirrorGlassEditor;
+		render::DarknessEditor m_darknessEditor;
 		GameplaySEEditor m_seEditor;
 		stage::GimmickMarkEditor m_gimmickMarkEditor;
 	};
