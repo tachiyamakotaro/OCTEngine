@@ -105,6 +105,8 @@ namespace app
 			bool OverlapsTerrain(const math::Rect& box) const;
 			/** @brief 足元の動く床が、このフレームでどれだけ動いたか（乗っていなければ false） */
 			bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const;
+			/** @brief box と重なる当たり判定のうち、崖としてつかめる物だけ集める */
+			void QueryLedgeOverlap(const math::Rect& box, std::vector<math::Rect>& out) const;
 
 
 		public:

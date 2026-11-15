@@ -55,6 +55,27 @@ namespace app
 			}
 
 			/**
+			 * @brief box と重なる「崖としてつかめる」地形をすべて out に追加する
+			 * @details ふつうは QueryOverlap と同じ。溶けている最中の氷のような「乗れるけどつかめない」地形があるワールドだけ override する。
+			 * @param box 調べる範囲
+			 * @param out 結果の追加先（クリアはしない）
+			 */
+			virtual void QueryLedgeOverlap(const math::Rect& box, std::vector<math::Rect>& out) const
+			{
+				QueryOverlap(box, out);
+			}
+
+			/**
+			 * @brief box の範囲に、崖としてつかめる地形があるか
+			 */
+			bool AnyLedgeOverlap(const math::Rect& box) const
+			{
+				std::vector<math::Rect> hits;
+				QueryLedgeOverlap(box, hits);
+				return !hits.empty();
+			}
+
+			/**
 			 * @brief box の範囲に地形がないか
 			 */
 			bool IsBoxFree(const math::Rect& box) const

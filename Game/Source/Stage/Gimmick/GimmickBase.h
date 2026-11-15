@@ -200,6 +200,12 @@ namespace app
 			 * @return この床の上に立っていたら true
 			 */
 			virtual bool GetCarryDelta(const math::Rect& groundProbe, math::Vec2& outDelta) const { return false; }
+			/**
+			 * @brief 今、崖としてつかめるか
+			 * @details false の間は、乗ったりぶつかったりはできるが、崖つかまりの対象にならない
+			 *          （ぶら下がっている最中に false になったら手が離れる）。つかまれたくない時がある物だけ override する。
+			 */
+			virtual bool IsLedgeGrabbable() const { return true; }
 
 
 		public:

@@ -111,6 +111,8 @@ namespace app
 			CollisionKind GetCollision(math::Rect& outRect) const override;
 			/** box と重なる、残っているマスの当たり判定を足す（となりのマスはまとめた矩形にする） */
 			CollisionKind QueryCollision(const math::Rect& box, std::vector<math::Rect>* out) const override;
+			/** 溶けている最中はつかめない（つかんだまま溶けて消えると、空中に浮いてしまうため） */
+			bool IsLedgeGrabbable() const override { return !IsMelting(); }
 
 			/** 光が通る順にマスを調べ、最初の残っているマスで止める */
 			bool IntersectLight(const math::Vec2& origin, const math::Vec2& direction, LightHit& outHit) const override;

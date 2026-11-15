@@ -156,7 +156,10 @@ namespace app
 			inline void EndLedgeCarry() { m_isLedgeCarry = false; }
 			/** @brief BeginLedgeCarry してから、つかんだ床と一緒に動いた量 */
 			inline const math::Vec2& GetLedgeCarryOffset() const { return m_ledgeCarryOffset; }
-			/** @brief 床と一緒に動こうとしたら地形にぶつかって、崖から手が離れたか */
+			/**
+			 * @brief 崖から手が離れたか
+			 * @details 床と一緒に動こうとしたら地形にぶつかった、またはつかんだ角の地形がなくなった・つかめなくなった（溶けている氷など）
+			 */
 			inline bool IsLedgeLost() const { return m_isLedgeLost; }
 
 
@@ -181,8 +184,10 @@ namespace app
 			math::Rect GetGroundProbe() const;
 			/** つかんだ角のすぐ内側の小さな箱（つかんでいる動く床を探すのに使う） */
 			math::Rect GetLedgeProbe() const;
-			/** つかんだ角が動く床なら、動いた分だけ一緒に動く */
+			/** つかんだ角が動く床なら、動いた分だけ一緒に動く。角がなくなっていたら手を離す */
 			void CarryWithLedge();
+			/** 崖から手が離れたことにする（一緒に動くのをやめ、IsLedgeLost を true にする） */
+			void LoseLedge();
 
 
 		private:

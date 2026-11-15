@@ -190,6 +190,19 @@ namespace app
 		}
 
 
+		void GimmickManager::QueryLedgeOverlap(const math::Rect& box, std::vector<math::Rect>& out) const
+		{
+			for (const std::unique_ptr<GimmickBase>& gimmick : m_gimmicks)
+			{
+				// つかめるかどうかは、ギミック自身が答える（溶けている最中の氷は false）
+				if (gimmick->IsLedgeGrabbable())
+				{
+					gimmick->QueryCollision(box, &out);
+				}
+			}
+		}
+
+
 		std::string GimmickManager::MakeUniqueName(const char* prefix) const
 		{
 			for (int n = 1; ; ++n)

@@ -279,26 +279,39 @@ namespace app
 
 		void CharacterController::CarryWithLedge()
 		{
+			// 1. つかんだ角が動く床なら、動いた分だけ一緒に動く
 			math::Vec2 carry = math::Vec2::Zero();
-			if (!m_collisionWorld->GetCarryDelta(GetLedgeProbe(), carry))
+			if (m_collisionWorld->GetCarryDelta(GetLedgeProbe(), carry))
 			{
-				return;
+				// 横を先に動かす（床が横に動いたとき、体が床の横の面にめり込んだまま縦に動かすと、床の上か下へはじき出されてしまう）
+				const math::Vec2 before = m_position;
+				MoveAxisX(carry.x);
+				MoveAxisY(carry.y);
+				m_ledgeCorner += carry;
+				m_ledgeCarryOffset += carry;
+
+				// 地形にぶつかって床と同じだけ動けなかったら、手が離れたことにする（床が下りて足が地面に着いた、など）
+				const math::Vec2 moved = m_position - before;
+				if (math::Abs(moved.x - carry.x) > CONTACT_PROBE || math::Abs(moved.y - carry.y) > CONTACT_PROBE)
+				{
+					LoseLedge();
+					return;
+				}
 			}
 
-			// 横を先に動かす（床が横に動いたとき、体が床の横の面にめり込んだまま縦に動かすと、床の上か下へはじき出されてしまう）
-			const math::Vec2 before = m_position;
-			MoveAxisX(carry.x);
-			MoveAxisY(carry.y);
-			m_ledgeCorner += carry;
-			m_ledgeCarryOffset += carry;
-
-			// 地形にぶつかって床と同じだけ動けなかったら、手が離れたことにする（床が下りて足が地面に着いた、など）
-			const math::Vec2 moved = m_position - before;
-			if (math::Abs(moved.x - carry.x) > CONTACT_PROBE || math::Abs(moved.y - carry.y) > CONTACT_PROBE)
+			// 2. つかんだ角に、つかめる地形がもうなければ手が離れる
+			//    （氷が溶け始めた・溶けて消えた・光の足場が消えた、など。重力を止めたままだと空中に浮いてしまうため）
+			if (!m_collisionWorld->AnyLedgeOverlap(GetLedgeProbe()))
 			{
-				m_isLedgeCarry = false;
-				m_isLedgeLost = true;
+				LoseLedge();
 			}
+		}
+
+
+		void CharacterController::LoseLedge()
+		{
+			m_isLedgeCarry = false;
+			m_isLedgeLost = true;
 		}
 
 
@@ -403,8 +416,9 @@ namespace app
 				probe.max.x = m_position.x;
 			}
 
+			// つかめる地形だけ（溶けている最中の氷などは候補に入れない）
 			std::vector<math::Rect> candidates;
-			m_collisionWorld->QueryOverlap(probe, candidates);
+			m_collisionWorld->QueryLedgeOverlap(probe, candidates);
 
 			bool isFound = false;
 			float bestScore = FLT_MAX;

@@ -306,7 +306,7 @@ namespace app
 
 		int PlayerLedgeHangState::CheckTransition()
 		{
-			// 動く床と一緒に動けずに手が離れた（床が下りて足が地面に着いた、など）
+			// 手が離れた（動く床と一緒に動けなかった・つかんだ角の氷が溶け始めた／消えた、など）
 			if (GetController().IsLedgeLost())
 			{
 				return ToID(PlayerStateID::Fall);
