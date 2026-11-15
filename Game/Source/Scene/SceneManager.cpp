@@ -7,6 +7,7 @@
 #include "ResultScene.h"
 #include "SceneManager.h"
 #include "Source/Core/Fade.h"
+#include "Source/PlayLog/PlayLog.h"
 #include "Source/Sound/SoundManager.h"
 #include "TitleScene.h"
 
@@ -186,6 +187,12 @@ namespace app
 		if (it == m_sceneMap.end())
 		{
 			return;
+		}
+		// インゲーム以外のシーン（タイトル・リザルトなど）に移ったら、1プレイぶんのプレイログをファイルにする
+		// （次のステージへ進むとき＝インゲームからインゲームのときは、記録を続ける）
+		if (id != DebugScene::ID())
+		{
+			playlog::PlayLog::Get().FinishPlay();
 		}
 		m_currentScene = it->second();
 		m_currentScene->Start();

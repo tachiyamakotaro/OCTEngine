@@ -239,5 +239,7 @@ namespace app
 		app::math::Vec2 m_dragCameraTarget;
 		/** 時間切れになってからの時間（TIME UP を見せてからやり直す） */
 		float m_timeUpTimer;
+		/** 今の死亡をプレイログに記録したか（1回の死亡で1回だけ記録するため） */
+		bool m_isDeathLogged;
 	};
 }

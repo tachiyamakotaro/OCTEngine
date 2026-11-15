@@ -11,6 +11,7 @@
 #include "Source/Actor/Character/CharacterStatus.h"
 #include "Source/Camera/CameraStageBounds.h"
 #include "Source/Core/DebugUI.h"
+#include "Source/PlayLog/PlayLog.h"
 #include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
@@ -71,6 +72,7 @@ namespace app
 		, m_dragGrabOffset()
 		, m_dragCameraTarget()
 		, m_timeUpTimer(0.0f)
+		, m_isDeathLogged(false)
 	{}
 
 
@@ -79,6 +81,8 @@ namespace app
 		// ステージ（今のステージの JSON を読む。どのファイルかは StageCatalog.h）
 		m_stageEditor.SetStageInfo(&app::stage::GetCurrentStageInfo());
 		LoadStage();
+		// プレイログ：ここからの記録はこのステージのもの
+		app::playlog::PlayLog::Get().StartStage(app::stage::GetCurrentStageInfo().name);
 
 		// BGM
 		SoundManager::Get().PlayBGM(enSoundKind_InGame);
@@ -330,6 +334,7 @@ namespace app
 			{
 				// 最後のステージ：ゲームクリア（リザルトへ）
 				id = ResultScene::ID();
+				app::playlog::PlayLog::Get().RecordGameClear();
 				SoundManager::Get().FadeOutBGM(CLEAR_FADE_TIME);
 			}
 			return true;
@@ -377,6 +382,8 @@ namespace app
 		app::stage::SetCurrentStageIndex(index);
 		// エディタの保存先も切り替える
 		m_stageEditor.SetStageInfo(&app::stage::GetCurrentStageInfo());
+		// プレイログ：ここからの記録は切り替えたステージのもの
+		app::playlog::PlayLog::Get().StartStage(app::stage::GetCurrentStageInfo().name);
 		ReloadStage();
 	}
 
@@ -436,6 +443,8 @@ namespace app
 			m_player.GetPlayerController().SetEnabled(false);
 			// 時間を止める（残り時間はそのまま表示しておく）
 			m_stageTimer.SetRunning(false);
+			// プレイログ：クリアタイム（今の挑戦で経った時間）
+			app::playlog::PlayLog::Get().RecordClear(app::playlog::PlayTime(m_stageTimer.GetElapsed()));
 			// 鏡を引きずっていたら音を止めて、ゴールの音を鳴らす
 			m_sePlayer.StopLoops();
 			m_sePlayer.Play(enSoundKind_Goal);
@@ -751,7 +760,19 @@ namespace app
 		if (!m_player.GetStatus()->IsDead() || m_stageTimer.IsTimeUp())
 		{
 			m_deadTimer = 0.0f;
+			m_isDeathLogged = false;
 			return;
+		}
+
+		// プレイログ：死んだ最初のフレームで1回だけ記録する（奈落より下にいれば奈落、それ以外は落下ダメージ）
+		if (!m_isDeathLogged)
+		{
+			const app::math::Vec2 position = m_player.GetPosition();
+			const app::playlog::DeathCause cause = (position.y < KILL_Y)
+				? app::playlog::DeathCause::Pit
+				: app::playlog::DeathCause::Damage;
+			app::playlog::PlayLog::Get().RecordDeath(cause, position);
+			m_isDeathLogged = true;
 		}
 
 		m_deadTimer += deltaTime;
@@ -786,6 +807,8 @@ namespace app
 			m_mirrorInteractor.Reset();
 			m_sePlayer.StopLoops();
 			m_sePlayer.Play(enSoundKind_TimeUp);
+			// プレイログ：時間切れまでに遊んだ時間（＝制限時間）
+			app::playlog::PlayLog::Get().RecordTimeUp(app::playlog::PlayTime(m_stageTimer.GetElapsed()));
 		}
 
 		// TIME UP を少し見せてから、ステージを最初からやり直す（チェックポイントも消す）

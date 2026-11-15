@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "Game.h"
 #include "Source/Core/Fade.h"
+#include "Source/PlayLog/PlayLog.h"
 #include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
 #include "imgui.h"
@@ -21,6 +22,9 @@ Game::~Game()
 	app::SceneManager::DestroyInstance();
 	app::core::Fade::Delete();
 	app::SoundManager::DestroyInstance();
+	// プレイログ（インゲーム中にゲームを終えたときは、ここでファイルを作る）
+	app::playlog::PlayLog::Get().FinishPlay();
+	app::playlog::PlayLog::DestroyInstance();
 }
 
 
@@ -29,6 +33,8 @@ bool Game::Start()
 	// サウンド → フェード → シーンの管理 の順に作る（最初のシーン＝タイトルもここで作られる）
 	app::SoundManager::CreateInstance();
 	app::core::Fade::Create();
+	// プレイログ（シーンより先に作る。シーンの管理とインゲームのシーンが使うため）
+	app::playlog::PlayLog::CreateInstance();
 	app::SceneManager::CreateInstance();
 	return true;
 }

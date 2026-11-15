@@ -61,6 +61,9 @@
     <Filter Include="Source\Timer">
       <UniqueIdentifier>{0ddcdd65-4670-4141-a5e9-d02c69d6c71b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\PlayLog">
+      <UniqueIdentifier>{167f45d4-036e-48cc-8c44-711592798269}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -371,6 +374,18 @@
     </ClCompile>
     <ClCompile Include="Source\Render\DarknessEditor.cpp">
       <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayLog\PlayLog.cpp">
+      <Filter>Source\PlayLog</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayLog\PlayLogFile.cpp">
+      <Filter>Source\PlayLog</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayLog\PlayTime.cpp">
+      <Filter>Source\PlayLog</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\PlayLog\StageRecord.cpp">
+      <Filter>Source\PlayLog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -726,6 +741,18 @@
     </ClInclude>
     <ClInclude Include="Source\Render\DarknessEditor.h">
       <Filter>Source\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PlayLog\PlayLog.h">
+      <Filter>Source\PlayLog</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PlayLog\PlayLogFile.h">
+      <Filter>Source\PlayLog</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PlayLog\PlayTime.h">
+      <Filter>Source\PlayLog</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\PlayLog\StageRecord.h">
+      <Filter>Source\PlayLog</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
