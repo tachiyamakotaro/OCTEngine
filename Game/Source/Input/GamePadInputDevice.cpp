@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file GamePadInputDevice.cpp
  * @brief OCTEngine(k2EngineLow) の g_pad を読む入力デバイス
  */
@@ -34,8 +34,9 @@ namespace app
 			case InputAction::Up:		return pad->IsPress(enButtonUp) || pad->GetLStickYF() > STICK_THRESHOLD;
 			case InputAction::Down:		return pad->IsPress(enButtonDown) || pad->GetLStickYF() < -STICK_THRESHOLD;
 			case InputAction::Jump:		return pad->IsPress(enButtonA);
-			case InputAction::Grab:		return pad->IsPress(enButtonRB1);
-			case InputAction::Action:	return pad->IsPress(enButtonB);
+			case InputAction::Grab:			return pad->IsPress(enButtonB);
+			case InputAction::RotateLeft:	return pad->IsPress(enButtonLB1);
+			case InputAction::RotateRight:	return pad->IsPress(enButtonRB1);
 			default:					return false;
 			}
 		}

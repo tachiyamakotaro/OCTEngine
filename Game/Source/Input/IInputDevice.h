@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file IInputDevice.h
  * @brief 入力デバイスのインターフェース
  * @details PlayerController は g_pad を直接触らず、このインターフェース越しに入力を読む。
@@ -24,8 +24,9 @@ namespace app
 			Up,			//!< 上（崖を登る）
 			Down,		//!< 下（しゃがむ / 崖から手を離す）
 			Jump,		//!< ジャンプ
-			Grab,		//!< つかむ（自動つかまりOFFのとき使う）
-			Action,		//!< 調べる・鏡を動かすなど
+			Grab,		//!< つかむ（反射鏡・日よけ板を引きずる。自動つかまりOFFのときは崖つかまりにも使う）
+			RotateLeft,	//!< 左に回す（反射鏡を反時計回りに回す）
+			RotateRight,//!< 右に回す（反射鏡を時計回りに回す）
 			Num
 		};
 

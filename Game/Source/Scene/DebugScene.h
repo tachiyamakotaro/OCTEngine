@@ -49,7 +49,7 @@
   *          ・GameplaySEPlayer … プレイヤーの動き・ダメージ・ギミックの SE（ワープ・ゴールなどはこのシーンから鳴らす）
   *          ・StageTimer       … 時間制限（残り時間を数える。制限時間は StageCatalog.h の表）
   *          ・TimerUI          … 時間制限の表示（画面の上の真ん中。時間切れで TIME UP）
-  *          ・MirrorPromptUI   … 反射鏡の近くで出すボタンの表示（回転できる鏡は B、動かせる鏡は RB）
+  *          ・MirrorPromptUI   … 反射鏡の近くで出すボタンの表示（回転できる鏡は LB / RB、動かせる鏡は B）
   *
   *          時間切れになると操作を止めて TIME UP を出し、少し待ってからステージを最初からやり直す。
   *
@@ -190,7 +190,7 @@ namespace app
 		app::timer::StageTimer m_stageTimer;
 		/** 時間制限の表示 */
 		app::ui::TimerUI m_timerUI;
-		/** 反射鏡のインタラクト表示（B で回転 / RB で移動） */
+		/** 反射鏡のインタラクト表示（LB / RB で回転 / B で移動） */
 		app::ui::MirrorPromptUI m_mirrorPromptUI;
 
 		/** プレイヤーの開始位置 */

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file CharacterCommand.h
  * @brief キャラクターへの「こう動きたい」という命令
  * @details ステートはボタンではなくこのコマンドを見て動く。
@@ -35,8 +35,10 @@ namespace app
 			bool jumpHold = false;
 			/** つかむを押している */
 			bool grabHold = false;
-			/** アクションを押した瞬間 */
-			bool actionTrigger = false;
+			/** 左に回す（反時計回り）を押した瞬間 */
+			bool rotateLeftTrigger = false;
+			/** 右に回す（時計回り）を押した瞬間 */
+			bool rotateRightTrigger = false;
 
 
 			/**

@@ -1,6 +1,6 @@
 ﻿/**
  * @file MirrorPromptUI.cpp
- * @brief 反射鏡の近くで出すボタンのインタラクト表示（B で回転 / RB で移動）
+ * @brief 反射鏡の近くで出すボタンのインタラクト表示（LB / RB で回転 / B で移動）
  */
 #include "stdafx.h"
 #include "MirrorPromptUI.h"
@@ -18,6 +18,7 @@ namespace
 	const char* const PLATE_PATH = "Assets/sprite/prompt/plate.dds";
 	const char* const POINTER_PATH = "Assets/sprite/prompt/pointer.dds";
 	const char* const BUTTON_B_PATH = "Assets/sprite/prompt/button_b.dds";
+	const char* const BUTTON_LB_PATH = "Assets/sprite/prompt/button_lb.dds";
 	const char* const BUTTON_RB_PATH = "Assets/sprite/prompt/button_rb.dds";
 	const char* const ICON_ROTATE_CW_PATH = "Assets/sprite/prompt/icon_rotate_cw.dds";
 	const char* const ICON_ROTATE_CCW_PATH = "Assets/sprite/prompt/icon_rotate_ccw.dds";
@@ -27,6 +28,7 @@ namespace
 	constexpr float PLATE_PIXEL_W = 256.0f, PLATE_PIXEL_H = 128.0f;
 	constexpr float POINTER_PIXEL_W = 64.0f, POINTER_PIXEL_H = 40.0f;
 	constexpr float BUTTON_B_PIXEL_SIZE = 128.0f;
+	/** LB / RB（バンパー。LB も同じ大きさ） */
 	constexpr float BUTTON_RB_PIXEL_W = 192.0f, BUTTON_RB_PIXEL_H = 112.0f;
 	constexpr float ICON_PIXEL_SIZE = 128.0f;
 
@@ -43,7 +45,7 @@ namespace
 	constexpr float POINTER_OVERLAP = 2.0f;
 	/** B ボタンの高さ */
 	constexpr float BUTTON_B_HEIGHT = 54.0f;
-	/** RB ボタンの高さ */
+	/** LB / RB ボタンの高さ */
 	constexpr float BUTTON_RB_HEIGHT = 42.0f;
 	/** 板の真ん中から見た、ボタンの横の位置 */
 	constexpr float BUTTON_OFFSET_X = -32.0f;
@@ -66,11 +68,11 @@ namespace
 	/** ふわふわ上下する幅（ピクセル）と速さ */
 	constexpr float BOB_AMPLITUDE = 4.0f;
 	constexpr float BOB_SPEED = 3.0f;
-	/** B を押したときの演出の時間（秒） */
+	/** LB / RB を押したときの演出の時間（秒） */
 	constexpr float ROTATE_PULSE_TIME = 0.3f;
-	/** B を押した瞬間の大きさ（1 + この値） */
+	/** LB / RB を押した瞬間の大きさ（1 + この値） */
 	constexpr float ROTATE_PULSE_SCALE = 0.3f;
-	/** 引きずっている間の RB の大きさ（押している見た目） */
+	/** 引きずっている間の B の大きさ（押している見た目） */
 	constexpr float DRAG_PRESSED_SCALE = 0.9f;
 	/** 引きずっている間、左右の矢印が揺れる幅（ピクセル）と速さ */
 	constexpr float DRAG_WOBBLE_AMPLITUDE = 5.0f;
@@ -79,7 +81,7 @@ namespace
 	constexpr float PLATE_ALPHA = 0.62f;
 	/** 表示全体の大きさ（1 で元の大きさ。三角の先を中心に縮める） */
 	constexpr float UI_SCALE = 0.75f;
-	/** B を押したときに、回転のアイコンを1回転させるか（今は切っている。B が跳ねる演出は残す） */
+	/** LB / RB を押したときに、回転のアイコンを1回転させるか（今は切っている。ボタンが跳ねる演出は残す） */
 	constexpr bool IS_ROTATE_SPIN_ENABLED = false;
 
 	/** 鏡のいちばん上から表示までの高さの初期値（ワールドの長さ） */
@@ -144,15 +146,15 @@ namespace app
 			: m_isVisible(true)
 			, m_anchorOffsetY(DEFAULT_ANCHOR_OFFSET_Y)
 			, m_prevIndex(-1)
-			, m_entries{ EntryKind::Rotate, EntryKind::Move }
+			, m_entries{ EntryKind::RotateLeft, EntryKind::RotateRight, EntryKind::Move }
 			, m_entryCount(0)
 			, m_anchorX(0.0f)
 			, m_anchorY(0.0f)
-			, m_isClockwise(true)
 			, m_isDragging(false)
 			, m_alpha(0.0f)
 			, m_popTimer(0.0f)
-			, m_rotatePulseTimer(0.0f)
+			, m_rotateLeftPulseTimer(0.0f)
+			, m_rotateRightPulseTimer(0.0f)
 			, m_elapsed(0.0f)
 		{}
 
@@ -169,6 +171,7 @@ namespace app
 			}
 			m_pointer.Init(POINTER_PATH, POINTER_PIXEL_W, POINTER_PIXEL_H, POINTER_HEIGHT);
 			m_buttonB.Init(BUTTON_B_PATH, BUTTON_B_PIXEL_SIZE, BUTTON_B_PIXEL_SIZE, BUTTON_B_HEIGHT);
+			m_buttonLB.Init(BUTTON_LB_PATH, BUTTON_RB_PIXEL_W, BUTTON_RB_PIXEL_H, BUTTON_RB_HEIGHT);
 			m_buttonRB.Init(BUTTON_RB_PATH, BUTTON_RB_PIXEL_W, BUTTON_RB_PIXEL_H, BUTTON_RB_HEIGHT);
 			m_iconRotateCW.Init(ICON_ROTATE_CW_PATH, ICON_PIXEL_SIZE, ICON_PIXEL_SIZE, ICON_SIZE);
 			m_iconRotateCCW.Init(ICON_ROTATE_CCW_PATH, ICON_PIXEL_SIZE, ICON_PIXEL_SIZE, ICON_SIZE);
@@ -180,7 +183,8 @@ namespace app
 			const actor::CharacterBase& /*character*/, const bool canGrab, const bool isAllowed, const float deltaTime)
 		{
 			m_elapsed += deltaTime;
-			m_rotatePulseTimer = m_rotatePulseTimer > deltaTime ? m_rotatePulseTimer - deltaTime : 0.0f;
+			m_rotateLeftPulseTimer = m_rotateLeftPulseTimer > deltaTime ? m_rotateLeftPulseTimer - deltaTime : 0.0f;
+			m_rotateRightPulseTimer = m_rotateRightPulseTimer > deltaTime ? m_rotateRightPulseTimer - deltaTime : 0.0f;
 
 			// ---- 操作できる鏡と、できること ----
 			const int index = interactor.GetFocusedMirrorIndex();
@@ -196,9 +200,10 @@ namespace app
 			{
 				if (mirror->isRotatable)
 				{
-					entries[count++] = EntryKind::Rotate;
+					entries[count++] = EntryKind::RotateLeft;
+					entries[count++] = EntryKind::RotateRight;
 				}
-				// 日よけ板が近くて RB が板のほうに使われるときは出さない（引きずっている最中は出したまま）
+				// 日よけ板が近くて B が板のほうに使われるときは出さない（引きずっている最中は出したまま）
 				if (mirror->isMovable && (canGrab || interactor.IsDragging()))
 				{
 					entries[count++] = EntryKind::Move;
@@ -227,12 +232,13 @@ namespace app
 				m_entryCount = count;
 				m_alpha = Clamp01(m_alpha + deltaTime / APPEAR_TIME);
 				m_popTimer += deltaTime;
-				// 押したときに回る向き（MirrorInteractor：プレイヤーの向きに関係なく ROTATE_STEPS の向き）
-				m_isClockwise = stage::MirrorInteractor::ROTATE_STEPS < 0;
 				m_isDragging = interactor.IsDragging();
-				if (interactor.IsRotatedThisFrame())
+				// 押したほうのボタンを跳ねさせる
+				switch (interactor.GetRotatedDirectionThisFrame())
 				{
-					m_rotatePulseTimer = ROTATE_PULSE_TIME;
+				case stage::MirrorInteractor::RotateDirection::Left:	m_rotateLeftPulseTimer = ROTATE_PULSE_TIME;		break;
+				case stage::MirrorInteractor::RotateDirection::Right:	m_rotateRightPulseTimer = ROTATE_PULSE_TIME;	break;
+				default: break;
 				}
 			}
 			else
@@ -315,29 +321,52 @@ namespace app
 				const float buttonX = plateX + BUTTON_OFFSET_X;
 				const float iconX = plateX + ICON_OFFSET_X;
 
-				if (m_entries[i] == EntryKind::Rotate)
+				const EntryKind kind = m_entries[i];
+				if (kind == EntryKind::Move)
 				{
-					// B を押した瞬間に跳ねて、アイコンが回る向きに1回転する
-					const float pulse = m_rotatePulseTimer / ROTATE_PULSE_TIME;
+					// 引きずっている間は、B が黄色く小さくなって（押している見た目）、矢印が左右に揺れる
+					const float buttonScale = m_isDragging ? DRAG_PRESSED_SCALE : 1.0f;
+					const Vector4 buttonColor = WithAlpha(m_isDragging ? menu_color::Selected : menu_color::White, m_alpha);
+					const float wobble = m_isDragging ? std::sin(m_elapsed * DRAG_WOBBLE_SPEED) * DRAG_WOBBLE_AMPLITUDE : 0.0f;
+					place(GetButtonSprite(kind), buttonX, plateCenterY, buttonScale, buttonColor);
+					place(GetIconSprite(kind), iconX + wobble, plateCenterY, 1.0f, iconColor);
+				}
+				else
+				{
+					// LB / RB を押した瞬間に、押したほうのボタンが跳ねる（アイコンを回る向きに1回転させることもできる）
+					const bool isClockwise = kind == EntryKind::RotateRight;
+					const float pulse = (isClockwise ? m_rotateRightPulseTimer : m_rotateLeftPulseTimer) / ROTATE_PULSE_TIME;
 					const float buttonScale = 1.0f + ROTATE_PULSE_SCALE * pulse * pulse;
 					const float spin = 1.0f - pulse;
 					const float spinEased = 1.0f - (1.0f - spin) * (1.0f - spin) * (1.0f - spin);
 					// Z 回転はプラスで反時計回り。時計回りはマイナス
-					const float spinDeg = IS_ROTATE_SPIN_ENABLED ? (m_isClockwise ? -360.0f : 360.0f) * spinEased : 0.0f;
-					place(m_buttonB, buttonX, plateCenterY, buttonScale, iconColor);
-					UISprite& icon = m_isClockwise ? m_iconRotateCW : m_iconRotateCCW;
-					place(icon, iconX, plateCenterY, 1.0f, iconColor, spinDeg);
-				}
-				else
-				{
-					// 引きずっている間は、RB が黄色く小さくなって（押している見た目）、矢印が左右に揺れる
-					const float buttonScale = m_isDragging ? DRAG_PRESSED_SCALE : 1.0f;
-					const Vector4 buttonColor = WithAlpha(m_isDragging ? menu_color::Selected : menu_color::White, m_alpha);
-					const float wobble = m_isDragging ? std::sin(m_elapsed * DRAG_WOBBLE_SPEED) * DRAG_WOBBLE_AMPLITUDE : 0.0f;
-					place(m_buttonRB, buttonX, plateCenterY, buttonScale, buttonColor);
-					place(m_iconMove, iconX + wobble, plateCenterY, 1.0f, iconColor);
+					const float spinDeg = IS_ROTATE_SPIN_ENABLED ? (isClockwise ? -360.0f : 360.0f) * spinEased : 0.0f;
+					place(GetButtonSprite(kind), buttonX, plateCenterY, buttonScale, iconColor);
+					place(GetIconSprite(kind), iconX, plateCenterY, 1.0f, iconColor, spinDeg);
 				}
 				plateX += PLATE_WIDTH + PLATE_GAP;
+			}
+		}
+
+
+		UISprite& MirrorPromptUI::GetButtonSprite(const EntryKind kind)
+		{
+			switch (kind)
+			{
+			case EntryKind::RotateLeft:		return m_buttonLB;
+			case EntryKind::RotateRight:	return m_buttonRB;
+			default:						return m_buttonB;
+			}
+		}
+
+
+		UISprite& MirrorPromptUI::GetIconSprite(const EntryKind kind)
+		{
+			switch (kind)
+			{
+			case EntryKind::RotateLeft:		return m_iconRotateCCW;
+			case EntryKind::RotateRight:	return m_iconRotateCW;
+			default:						return m_iconMove;
 			}
 		}
 
@@ -365,16 +394,8 @@ namespace app
 			m_pointer.Draw(rc);
 			for (int i = 0; i < m_entryCount; ++i)
 			{
-				if (m_entries[i] == EntryKind::Rotate)
-				{
-					m_buttonB.Draw(rc);
-					(m_isClockwise ? m_iconRotateCW : m_iconRotateCCW).Draw(rc);
-				}
-				else
-				{
-					m_buttonRB.Draw(rc);
-					m_iconMove.Draw(rc);
-				}
+				GetButtonSprite(m_entries[i]).Draw(rc);
+				GetIconSprite(m_entries[i]).Draw(rc);
 			}
 		}
 	}

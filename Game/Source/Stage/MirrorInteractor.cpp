@@ -8,6 +8,15 @@
 #include "Source/Actor/Character/CharacterBase.h"
 
 
+namespace
+{
+	/** RB で回す段数（右＝時計回り。LightMirror::Rotate は正で反時計回り） */
+	constexpr int ROTATE_RIGHT_STEPS = -1;
+	/** LB で回す段数（左＝反時計回り） */
+	constexpr int ROTATE_LEFT_STEPS = 1;
+}
+
+
 namespace app
 {
 	namespace stage
@@ -17,11 +26,11 @@ namespace app
 			GimmickManager& gimmicks = stage.GetGimmicks();
 			const actor::CharacterCommand& command = character.GetCommand();
 			const math::Vec2& position = character.GetPosition();
-			m_isRotatedThisFrame = false;
+			m_rotatedDirection = RotateDirection::None;
 			m_isGrabbedThisFrame = false;
 			m_movedDistanceThisFrame = 0.0f;
 
-			// つかむ（RB）を離したら、またつかめるようにする
+			// つかむ（B）を離したら、またつかめるようにする
 			if (!command.grabHold)
 			{
 				m_isWaitingGrabRelease = false;
@@ -48,11 +57,12 @@ namespace app
 
 			LightMirror& mirror = static_cast<LightMirror&>(*gimmicks.Get(static_cast<size_t>(m_focusedIndex)));
 
-			// 回転（プレイヤーの向きに関係なく、いつも同じ向きに回す）
-			if (command.actionTrigger && mirror.isRotatable)
+			// 回転（RB で右＝時計回り、LB で左＝反時計回り。プレイヤーの向きには関係しない）
+			const RotateDirection direction = ToRotateDirection(command);
+			if (direction != RotateDirection::None && mirror.isRotatable)
 			{
-				mirror.Rotate(ROTATE_STEPS);
-				m_isRotatedThisFrame = true;
+				mirror.Rotate(direction == RotateDirection::Right ? ROTATE_RIGHT_STEPS : ROTATE_LEFT_STEPS);
+				m_rotatedDirection = direction;
 			}
 
 			// 引きずり開始
@@ -76,7 +86,7 @@ namespace app
 				}
 
 				// レールの端・地形で鏡がついてこられず、キャラクターが離れたら手を離す
-				// （ふつうの歩き方に戻る。RB を押したままなら、一度離すまでつかみ直さない）
+				// （ふつうの歩き方に戻る。B を押したままなら、一度離すまでつかみ直さない）
 				if (IsLeftBehind(mirror, position.x))
 				{
 					m_isDragging = false;
@@ -91,7 +101,7 @@ namespace app
 			m_focusedIndex = -1;
 			m_isDragging = false;
 			m_dragOffsetX = 0.0f;
-			m_isRotatedThisFrame = false;
+			m_rotatedDirection = RotateDirection::None;
 			m_isGrabbedThisFrame = false;
 			m_movedDistanceThisFrame = 0.0f;
 			m_isWaitingGrabRelease = false;
@@ -123,6 +133,17 @@ namespace app
 		}
 
 
+		MirrorInteractor::RotateDirection MirrorInteractor::ToRotateDirection(const actor::CharacterCommand& command)
+		{
+			// 両方同時に押したときは、どちらに回すか決められないので回さない
+			if (command.rotateLeftTrigger == command.rotateRightTrigger)
+			{
+				return RotateDirection::None;
+			}
+			return command.rotateRightTrigger ? RotateDirection::Right : RotateDirection::Left;
+		}
+
+
 		bool MirrorInteractor::IsLeftBehind(const LightMirror& mirror, const float characterX) const
 		{
 			// つかんだときの「鏡とキャラクターの差」から、今の差がどれだけずれたか
@@ -135,7 +156,7 @@ namespace app
 			: m_focusedIndex(-1)
 			, m_isDragging(false)
 			, m_dragOffsetX(0.0f)
-			, m_isRotatedThisFrame(false)
+			, m_rotatedDirection(RotateDirection::None)
 			, m_isGrabbedThisFrame(false)
 			, m_movedDistanceThisFrame(0.0f)
 			, m_isWaitingGrabRelease(false)

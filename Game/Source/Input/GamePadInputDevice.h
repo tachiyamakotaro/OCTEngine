@@ -14,7 +14,7 @@ namespace app
 		 * @brief ゲームパッド入力デバイス
 		 * @details ボタン割り当て：
 		 *          左右 = 左スティック or 十字キー / 上下 = 左スティック or 十字キー
-		 *          A = ジャンプ / RB1 = つかむ / B = アクション
+		 *          A = ジャンプ / B = つかむ / LB1 = 左に回す / RB1 = 右に回す
 		 */
 		class GamePadInputDevice : public IInputDevice
 		{

@@ -330,8 +330,8 @@ namespace app
 				{
 					const LightMirror& lightMirror = *focusedMirror;
 					std::string prompt;
-					if (lightMirror.isRotatable) { prompt += "[B] Rotate"; }
-					if (lightMirror.isMovable) { prompt += prompt.empty() ? "[RB] Drag" : "   [RB] Drag"; }
+					if (lightMirror.isRotatable) { prompt += "[LB/RB] Rotate"; }
+					if (lightMirror.isMovable) { prompt += prompt.empty() ? "[B] Drag" : "   [B] Drag"; }
 					if (interactor->IsDragging()) { prompt = "Dragging..."; }
 					const math::Rect bounds = lightMirror.GetBounds();
 					front.Label({ lightMirror.center.x, bounds.max.y + 25.0f }, prompt.c_str(), OVERLAY_COLOR_TEXT, true);

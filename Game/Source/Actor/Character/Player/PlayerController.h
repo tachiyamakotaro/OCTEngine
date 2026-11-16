@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file PlayerController.h
  * @brief プレイヤーの入力をキャラクターコマンドに変換するクラス
  * @details 入力デバイス → CharacterCommand の変換だけを担当する（体を動かすのは CharacterController）。
@@ -63,8 +63,10 @@ namespace app
 			bool m_isEnabled;
 			/** 前フレームにジャンプを押していたか */
 			bool m_wasJumpPressed;
-			/** 前フレームにアクションを押していたか */
-			bool m_wasActionPressed;
+			/** 前フレームに左に回すを押していたか */
+			bool m_wasRotateLeftPressed;
+			/** 前フレームに右に回すを押していたか */
+			bool m_wasRotateRightPressed;
 		};
 	}
 }

@@ -2,11 +2,12 @@
  * @file MirrorInteractor.h
  * @brief プレイヤーによる反射鏡の操作（回転・移動）
  * @details 操作方法
- *          ・近くの鏡の前でアクション（Bボタン）… 1段回転
- *              プレイヤーの向きに関係なく、いつも ROTATE_STEPS の向きに回る
- *          ・近くの鏡の前でつかむ（RB1）を押したまま左右に歩く … 鏡を引きずって動かす
+ *          ・近くの鏡の前で RB … 右に1段回転（時計回り）
+ *          ・近くの鏡の前で LB … 左に1段回転（反時計回り）
+ *              プレイヤーの向きには関係しない。LB と RB を同じフレームに押したときは回さない
+ *          ・近くの鏡の前でつかむ（Bボタン）を押したまま左右に歩く … 鏡を引きずって動かす
  *              レールの端や地形で鏡が止まり、キャラクターが鏡から離れたら、手を離す
- *              （RB を押したままでも、ふつうの歩き方に戻る。もう一度つかむには RB を押し直す）
+ *              （B を押したままでも、ふつうの歩き方に戻る。もう一度つかむには B を押し直す）
  *
  *          プレイヤーのステートには手を入れず、プレイヤーの「コマンド」と位置を見て鏡を動かす。
  *          プレイヤーの Update が終わったあとに毎フレーム呼ぶこと。
@@ -19,6 +20,7 @@ namespace app
 	namespace actor
 	{
 		class CharacterBase;
+		struct CharacterCommand;
 	}
 
 
@@ -34,8 +36,13 @@ namespace app
 		class MirrorInteractor
 		{
 		public:
-			/** Bボタンで回す向き（-1 = 時計回り、1 = 反時計回り）。プレイヤーの向きには関係しない */
-			static constexpr int ROTATE_STEPS = -1;
+			/** 鏡を回した向き */
+			enum class RotateDirection
+			{
+				None,	// 回していない
+				Left,	// 左（反時計回り。LB）
+				Right,	// 右（時計回り。RB）
+			};
 			/** 鏡を操作できる横の距離（体の中心から鏡の中心まで） */
 			float interactRangeX = 90.0f;
 			/** 鏡を操作できる縦の距離（足元から鏡の中心まで） */
@@ -67,7 +74,11 @@ namespace app
 			/**
 			 * @brief このフレームに鏡を回したか（音や演出のきっかけに使う）
 			 */
-			inline bool IsRotatedThisFrame() const { return m_isRotatedThisFrame; }
+			inline bool IsRotatedThisFrame() const { return m_rotatedDirection != RotateDirection::None; }
+			/**
+			 * @brief このフレームに鏡を回した向き（回していなければ None）。UI で押したボタンを跳ねさせるときに使う
+			 */
+			inline RotateDirection GetRotatedDirectionThisFrame() const { return m_rotatedDirection; }
 			/**
 			 * @brief このフレームに鏡をつかんだか（引きずり始めた瞬間）
 			 */
@@ -89,6 +100,8 @@ namespace app
 		private:
 			/** 操作できる一番近い鏡を探す */
 			int FindNearestMirror(const Stage& stage, const actor::CharacterBase& character) const;
+			/** コマンドから、回す向きを決める（LB と RB を同時に押したときは回さない） */
+			static RotateDirection ToRotateDirection(const actor::CharacterCommand& command);
 			/** 鏡がついてこられずに、キャラクターがつかんだ位置から離れたか */
 			bool IsLeftBehind(const LightMirror& mirror, float characterX) const;
 
@@ -100,13 +113,13 @@ namespace app
 			bool m_isDragging;
 			/** 引きずり始めたときの、鏡の中心とキャラクターのX座標の差 */
 			float m_dragOffsetX;
-			/** このフレームに回したか */
-			bool m_isRotatedThisFrame;
+			/** このフレームに回した向き */
+			RotateDirection m_rotatedDirection;
 			/** このフレームにつかんだか */
 			bool m_isGrabbedThisFrame;
 			/** このフレームに動かした距離 */
 			float m_movedDistanceThisFrame;
-			/** 離れて手を離したあと、つかむ（RB）を一度離すのを待っているか（押したままだと、すぐつかみ直してしまうため） */
+			/** 離れて手を離したあと、つかむ（B）を一度離すのを待っているか（押したままだと、すぐつかみ直してしまうため） */
 			bool m_isWaitingGrabRelease;
 		};
 	}

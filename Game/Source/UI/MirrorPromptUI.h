@@ -1,15 +1,15 @@
 ﻿/**
  * @file MirrorPromptUI.h
- * @brief 反射鏡の近くで出すボタンのインタラクト表示（B で回転 / RB で移動）
+ * @brief 反射鏡の近くで出すボタンのインタラクト表示（LB / RB で回転 / B で移動）
  * @details 見た目
  *          ・鏡の上に、暗い半透明の板に乗せた「ボタン＋何が起きるかのアイコン」を出す
- *              回転できる鏡 … [B ↻]（プレイヤーが左を向いているときは ↺。押すと回る向きと同じ）
- *              動かせる鏡   … [RB ⟷]
- *              両方できる鏡 … [B ↻] [RB ⟷] を横に並べる
+ *              回転できる鏡 … [LB ↺] [RB ↻]（LB で左＝反時計回り、RB で右＝時計回り）
+ *              動かせる鏡   … [B ⟷]
+ *              両方できる鏡 … [LB ↺] [RB ↻] [B ⟷] を横に並べる
  *          ・板の下の小さな三角が、操作できる鏡を指す
  *          ・近づくと少し大きい状態から縮んで出てくる（ポップ）。離れると薄くなって消える
- *          ・B を押した瞬間：B が跳ねて、回転のアイコンが1回転する
- *          ・RB で引きずっている間：RB が黄色くなって少し縮み（押している見た目）、左右の矢印が揺れる
+ *          ・LB / RB を押した瞬間：押したほうのボタンが跳ねる（回転のアイコンが1回転する演出は今は切っている）
+ *          ・B で引きずっている間：B が黄色くなって少し縮み（押している見た目）、左右の矢印が揺れる
  *
  *          どの鏡を操作できるかは MirrorInteractor（GetFocusedMirrorIndex）を見るだけで、何も変えない。
  *          座標は画面の真ん中が原点、上が +Y（画面は 1920x1080）。鏡のワールド座標をカメラで画面の位置に変えて置く。
@@ -55,7 +55,7 @@ namespace app
 			 * @param stage ステージ（操作対象の鏡を取り出す）
 			 * @param interactor 反射鏡の操作（どの鏡が操作できるか・回したか・引きずっているか）
 			 * @param character 操作しているキャラクター（向きで回転のアイコンを変える）
-			 * @param canGrab RB で鏡をつかめるか（日よけ板が近くて RB が板のほうに使われるときは false）
+			 * @param canGrab B で鏡をつかめるか（日よけ板が近くて B が板のほうに使われるときは false）
 			 * @param isAllowed 出してよいか（ゴールしたあと・時間切れの間などは false）
 			 * @param deltaTime 演出に使う時間
 			 */
@@ -76,11 +76,12 @@ namespace app
 			/** 並べる項目（1つの板） */
 			enum class EntryKind
 			{
-				Rotate,		// B で回転
-				Move,		// RB で移動
+				RotateLeft,		// LB で左に回転（反時計回り）
+				RotateRight,	// RB で右に回転（時計回り）
+				Move,			// B で移動
 			};
 			/** 並べられる項目の数 */
-			static constexpr int MAX_ENTRY_COUNT = 2;
+			static constexpr int MAX_ENTRY_COUNT = 3;
 
 			/**
 			 * @brief 鏡の上の点（ワールド）を画面の位置に変える
@@ -89,6 +90,10 @@ namespace app
 			bool WorldToScreen(float worldX, float worldY, float& outX, float& outY) const;
 			/** 全部の画像を置く（並べる項目・位置・演出をまとめて反映する） */
 			void PlaceAll();
+			/** 項目のボタンの画像 */
+			UISprite& GetButtonSprite(EntryKind kind);
+			/** 項目のアイコンの画像 */
+			UISprite& GetIconSprite(EntryKind kind);
 
 
 		private:
@@ -107,8 +112,6 @@ namespace app
 			/** 三角の先の画面の位置（消えていく間は最後の位置に残す） */
 			float m_anchorX;
 			float m_anchorY;
-			/** 回転のアイコンを時計回りにするか（MirrorInteractor::ROTATE_STEPS で決まる） */
-			bool m_isClockwise;
 			/** 引きずっているか */
 			bool m_isDragging;
 
@@ -117,8 +120,10 @@ namespace app
 			float m_alpha;
 			/** 出てきてからの時間（ポップの演出） */
 			float m_popTimer;
-			/** B を押したときの演出の残り時間 */
-			float m_rotatePulseTimer;
+			/** LB を押したときの演出の残り時間 */
+			float m_rotateLeftPulseTimer;
+			/** RB を押したときの演出の残り時間 */
+			float m_rotateRightPulseTimer;
 			/** ふわふわ上下するための時間 */
 			float m_elapsed;
 
@@ -129,6 +134,8 @@ namespace app
 			UISprite m_pointer;
 			/** B ボタン */
 			UISprite m_buttonB;
+			/** LB ボタン */
+			UISprite m_buttonLB;
 			/** RB ボタン */
 			UISprite m_buttonRB;
 			/** 回転のアイコン（時計回り・反時計回り） */

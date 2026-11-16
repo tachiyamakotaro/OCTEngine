@@ -2,7 +2,7 @@
  * @file ShadeInteractor.h
  * @brief プレイヤーによる日よけ板の操作（つかんで左右に動かす）
  * @details 操作方法
- *          ・近くの日よけ板の前（下）でつかむ（RB1）を押したまま左右に歩く … 板を引きずって動かす
+ *          ・近くの日よけ板の前（下）でつかむ（Bボタン）を押したまま左右に歩く … 板を引きずって動かす
  *          反射鏡の操作（MirrorInteractor）と同じボタンなので、同時につかまないようにシーン側で順番を決める。
  *            ・反射鏡を引きずっている間は、板をつかまない（Update の canGrab を false にする）
  *            ・板を引きずっている間は、反射鏡を操作しない（MirrorInteractor を Reset する）
@@ -46,7 +46,7 @@ namespace app
 			 */
 			void Update(Stage& stage, const actor::CharacterBase& character, bool canGrab);
 			/**
-			 * @brief 操作対象の板が、全ギミックの何番目か（なければ -1）。UI で「RBでつかむ」などを出すときに使う
+			 * @brief 操作対象の板が、全ギミックの何番目か（なければ -1）。UI で「Bでつかむ」などを出すときに使う
 			 * @details stage.GetGimmicks().Get(index) で取り出し、ShadeBoard に dynamic_cast して使う
 			 */
 			inline int GetFocusedIndex() const { return m_focusedIndex; }

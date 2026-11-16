@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file PlayerController.cpp
  * @brief プレイヤーの入力をキャラクターコマンドに変換するクラス
  */
@@ -22,7 +22,8 @@ namespace app
 
 			using input::InputAction;
 			const bool isJumpPressed = m_device->IsPress(InputAction::Jump);
-			const bool isActionPressed = m_device->IsPress(InputAction::Action);
+			const bool isRotateLeftPressed = m_device->IsPress(InputAction::RotateLeft);
+			const bool isRotateRightPressed = m_device->IsPress(InputAction::RotateRight);
 
 			if (m_isEnabled)
 			{
@@ -33,12 +34,14 @@ namespace app
 				outCommand.jumpTrigger = isJumpPressed && !m_wasJumpPressed;
 				outCommand.jumpHold = isJumpPressed;
 				outCommand.grabHold = m_device->IsPress(InputAction::Grab);
-				outCommand.actionTrigger = isActionPressed && !m_wasActionPressed;
+				outCommand.rotateLeftTrigger = isRotateLeftPressed && !m_wasRotateLeftPressed;
+				outCommand.rotateRightTrigger = isRotateRightPressed && !m_wasRotateRightPressed;
 			}
 
 			// 受付停止中も前フレームの状態は更新する（再開した瞬間に「押した」と誤判定しないため）
 			m_wasJumpPressed = isJumpPressed;
-			m_wasActionPressed = isActionPressed;
+			m_wasRotateLeftPressed = isRotateLeftPressed;
+			m_wasRotateRightPressed = isRotateRightPressed;
 		}
 
 
@@ -47,7 +50,8 @@ namespace app
 			, m_isMirrorX(false)
 			, m_isEnabled(true)
 			, m_wasJumpPressed(false)
-			, m_wasActionPressed(false)
+			, m_wasRotateLeftPressed(false)
+			, m_wasRotateRightPressed(false)
 		{}
 	}
 }

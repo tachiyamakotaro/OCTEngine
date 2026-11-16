@@ -202,7 +202,7 @@ namespace app
 		{
 			m_isDraggingPlayer = false;
 		}
-		// 日よけ板と反射鏡は同じボタン（RB1）でつかむので、同時につかまないようにする
+		// 日よけ板と反射鏡は同じボタン（B）でつかむので、同時につかまないようにする
 		// ・反射鏡を引きずっている間は、日よけ板をつかまない
 		// ・日よけ板を引きずっている間は、反射鏡を操作しない（Reset で「回した」などの印も消しておく）
 		m_shadeInteractor.Update(m_stage, m_player, !m_mirrorInteractor.IsDragging());
@@ -274,7 +274,7 @@ namespace app
 			m_darknessRenderer.Update(m_stage, (body.min + body.max) * 0.5f, m_gameCamera.GetParameter().isOrtho);
 		}
 		// 反射鏡のインタラクト表示（鏡の位置を画面の位置に変えるので、鏡の操作とカメラを動かしたあとに更新する）
-		// ・日よけ板が近いときは RB が板のほうに使われるので、鏡の RB は出さない
+		// ・日よけ板が近いときは B が板のほうに使われるので、鏡の B は出さない
 		// ・ゴールしたあと・時間切れの間・デバッグでプレイヤーをつかんでいる間は出さない
 		m_mirrorPromptUI.Update(m_stage, m_mirrorInteractor, m_player,
 			m_shadeInteractor.GetFocusedIndex() < 0,
