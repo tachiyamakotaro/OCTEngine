@@ -37,7 +37,7 @@
 		{ "type": "LightMirror", "name": "Mirror15", "center": [9575.0, 1175.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 9475.0, "railMaxX": 9875.0 },
 		{ "type": "ColorReceiver", "name": "ColorReceiver1", "position": [10429.0, 1150.0], "size": [47.0, 55.0], "requiredColor": "Red" },
 		{ "type": "Door", "name": "Door1", "position": [10475.0, 1225.0], "size": [150.0, 399.0], "requiredReceivers": ["ColorReceiver1"], "openSpeed": 2.0, "isLatch": true },
-		{ "type": "LightMirror", "name": "Mirror16", "center": [9350.0, 725.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 9250.0, "railMaxX": 9650.0 },
+		{ "type": "LightMirror", "name": "Mirror16", "center": [9350.0, 725.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 9177.0, "railMaxX": 9519.0 },
 		{ "type": "LightMirror", "name": "Mirror17", "center": [9350.0, 1075.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": true, "hasRail": true, "railMinX": 9311.0, "railMaxX": 9463.0 },
 		{ "type": "LightMirror", "name": "Mirror18", "center": [9575.0, 200.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 9475.0, "railMaxX": 9875.0 },
 		{ "type": "LightMirror", "name": "Mirror19", "center": [9075.0, 200.0], "angleDeg": 225.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 8975.0, "railMaxX": 9375.0 },
@@ -88,6 +88,6 @@
 		{ "type": "LightMirror", "name": "Mirror36", "center": [2575.0, 950.0], "angleDeg": 135.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 2564.248, "railMaxX": 2745.2 },
 		{ "type": "LightMirror", "name": "Mirror37", "center": [2575.0, 725.0], "angleDeg": 315.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 2564.248, "railMaxX": 2564.248 },
 		{ "type": "EmitRay", "name": "Lamp10", "position": [3024.0, 200.0], "angleDeg": 180.0, "isOn": true, "isWideBeam": false, "wideBeamWidth": 140.0, "color": "White" },
-		{ "type": "LightMirror", "name": "Mirror27", "center": [2425.0, 200.0], "angleDeg": 270.0, "length": 80.0, "isDoubleSided": false, "isRotatable": true, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 2425.0, "railMaxX": 2425.0 }
+		{ "type": "LightMirror", "name": "Mirror27", "center": [2425.0, 200.0], "angleDeg": 270.0, "length": 80.0, "isDoubleSided": false, "isRotatable": false, "rotationStepDeg": 45.0, "isMovable": false, "hasRail": false, "railMinX": 2425.0, "railMaxX": 2425.0 }
 	]
 }
