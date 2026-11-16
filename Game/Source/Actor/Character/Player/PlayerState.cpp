@@ -306,12 +306,19 @@ namespace app
 
 		int PlayerLedgeHangState::CheckTransition()
 		{
+			const CharacterController& controller = GetController();
+			const CharacterCommand& command = GetCommand();
 			// 手が離れた（動く床と一緒に動けなかった・つかんだ角の氷が溶け始めた／消えた、など）
-			if (GetController().IsLedgeLost())
+			// または、下から昇ってきた動く足場などに押し出された（ぶら下がったままだと、押された位置で空中に浮いてしまう）
+			if (controller.IsLedgeLost() || controller.IsPushedOut())
 			{
+				// 足が床に着いていれば、その床に立つ
+				if (controller.IsOnGround())
+				{
+					return command.HasMoveInput() ? ToID(PlayerStateID::Run) : ToID(PlayerStateID::Idle);
+				}
 				return ToID(PlayerStateID::Fall);
 			}
-			const CharacterCommand& command = GetCommand();
 			if (command.up || m_machine->IsJumpBuffered())
 			{
 				return ToID(PlayerStateID::ClimbUp);

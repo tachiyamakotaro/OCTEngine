@@ -106,6 +106,11 @@ namespace app
 			 * @param direction 右なら 1、左なら -1
 			 */
 			inline bool IsTouchingWall(const int direction) const { return direction > 0 ? m_isTouchingWallRight : m_isTouchingWallLeft; }
+			/**
+			 * @brief このフレームで、動いてきた地形に押し出されたか
+			 * @details 下から昇ってきた動く足場・閉じてきた扉・体の位置に出た光の足場など、地形の方が体にめり込んできたとき
+			 */
+			inline bool IsPushedOut() const { return m_isPushedOut; }
 
 			// ---- 体の大きさ ----
 			inline float GetWidth() const { return m_width; }
@@ -154,7 +159,7 @@ namespace app
 			void BeginLedgeCarry(const math::Vec2& corner, int facing);
 			/** @brief 一緒に動くのをやめる（運ばれた量 GetLedgeCarryOffset は、次に Begin するまで残る） */
 			inline void EndLedgeCarry() { m_isLedgeCarry = false; }
-			/** @brief BeginLedgeCarry してから、つかんだ床と一緒に動いた量 */
+			/** @brief BeginLedgeCarry してから、つかんだ床と一緒に動いた量（動いてきた地形に押し出された分も含む） */
 			inline const math::Vec2& GetLedgeCarryOffset() const { return m_ledgeCarryOffset; }
 			/**
 			 * @brief 崖から手が離れたか
@@ -186,6 +191,8 @@ namespace app
 			math::Rect GetLedgeProbe() const;
 			/** つかんだ角が動く床なら、動いた分だけ一緒に動く。角がなくなっていたら手を離す */
 			void CarryWithLedge();
+			/** 体が、つかんだ崖の上にいるか（崖登りの後半） */
+			bool IsAboveLedge() const;
 			/** 崖から手が離れたことにする（一緒に動くのをやめ、IsLedgeLost を true にする） */
 			void LoseLedge();
 
@@ -222,6 +229,8 @@ namespace app
 			bool m_isTouchingWallLeft;
 			/** 右の壁に接しているか */
 			bool m_isTouchingWallRight;
+			/** このフレームで、動いてきた地形に押し出されたか */
+			bool m_isPushedOut;
 
 			/** 崖につかまって、つかんだ床と一緒に動いているか */
 			bool m_isLedgeCarry;
@@ -231,7 +240,7 @@ namespace app
 			math::Vec2 m_ledgeCorner;
 			/** 崖の方向（右なら 1、左なら -1） */
 			int m_ledgeFacing;
-			/** BeginLedgeCarry してから、一緒に動いた量 */
+			/** BeginLedgeCarry してから、一緒に動いた量（押し出された分も含む） */
 			math::Vec2 m_ledgeCarryOffset;
 		};
 	}

@@ -36,6 +36,7 @@ namespace app
 			// （ステートマシンを作り直すと、前のステートの Exit が呼ばれないため）
 			m_isGravityEnabled = true;
 			m_isLedgeCarry = false;
+			m_isPushedOut = false;
 			m_width = width;
 			m_height = height;
 			m_collisionWorld = world;
@@ -67,6 +68,7 @@ namespace app
 				m_isJustLanded = false;
 				m_isTouchingWallLeft = false;
 				m_isTouchingWallRight = false;
+				m_isPushedOut = false;
 				return;
 			}
 
@@ -90,7 +92,17 @@ namespace app
 			}
 
 			// 地形の方が動いてめり込んでいたら先に押し出す
+			const math::Vec2 beforePush = m_position;
 			ResolvePenetration();
+			const math::Vec2 pushed = m_position - beforePush;
+			m_isPushedOut = (pushed.x != 0.0f || pushed.y != 0.0f);
+			// 崖を登っている途中に、下から昇ってきた足場に押し上げられたら、押された分も「一緒に動いた量」に入れる
+			// （崖登りは毎フレーム「補間した位置 + この量」に置き直すので、入れないと足場の中へ戻されてガタガタする）
+			// 上への押し出しだけ入れる（天井などに下や横へ押されたぶんまで入れると、登る道がずれたままになり登りきれなくなる）
+			if (m_isLedgeCarry && pushed.y > 0.0f)
+			{
+				m_ledgeCarryOffset.y += pushed.y;
+			}
 
 			// 速いときに薄い床をすり抜けないよう、移動を細かく分ける
 			const float maxStep = math::Min(m_width, m_height) * MAX_STEP_RATIO;
@@ -283,10 +295,20 @@ namespace app
 			math::Vec2 carry = math::Vec2::Zero();
 			if (m_collisionWorld->GetCarryDelta(GetLedgeProbe(), carry))
 			{
-				// 横を先に動かす（床が横に動いたとき、体が床の横の面にめり込んだまま縦に動かすと、床の上か下へはじき出されてしまう）
+				// 床はもう動いているので、体と床が離れている向きを先に動かす（逆にすると、床にめり込んではじき出されてしまう）
+				// ・崖の横にいる（ぶら下がり・崖登りの前半）→ 横を先に（床が横に動いたとき、縦を先にすると床の上か下へはじき出される）
+				// ・崖の上にいる（崖登りの後半）→ 縦を先に（床が上がったとき、横を先にすると床の横へはじき出される）
 				const math::Vec2 before = m_position;
-				MoveAxisX(carry.x);
-				MoveAxisY(carry.y);
+				if (IsAboveLedge())
+				{
+					MoveAxisY(carry.y);
+					MoveAxisX(carry.x);
+				}
+				else
+				{
+					MoveAxisX(carry.x);
+					MoveAxisY(carry.y);
+				}
 				m_ledgeCorner += carry;
 				m_ledgeCarryOffset += carry;
 
@@ -305,6 +327,13 @@ namespace app
 			{
 				LoseLedge();
 			}
+		}
+
+
+		bool CharacterController::IsAboveLedge() const
+		{
+			// 足元が、つかんだ角の高さ以上にある（崖登りで、体が崖の上まで持ち上がった）
+			return m_position.y >= m_ledgeCorner.y;
 		}
 
 
@@ -486,6 +515,7 @@ namespace app
 			, m_isHitCeiling(false)
 			, m_isTouchingWallLeft(false)
 			, m_isTouchingWallRight(false)
+			, m_isPushedOut(false)
 			, m_isLedgeCarry(false)
 			, m_isLedgeLost(false)
 			, m_ledgeCorner(math::Vec2::Zero())
