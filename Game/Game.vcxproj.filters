@@ -402,6 +402,12 @@
     <ClCompile Include="Source\Stage\Goal\GoalGateRenderer.cpp">
       <Filter>Source\Stage\Goal</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Scene\StageIntroScene.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\StageIntroUI.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -783,6 +789,12 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\Goal\GoalParameter.h">
       <Filter>Source\Stage\Goal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\StageIntroScene.h">
+      <Filter>Source\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\StageIntroUI.h">
+      <Filter>Source\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

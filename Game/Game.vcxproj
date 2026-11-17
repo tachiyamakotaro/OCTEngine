@@ -308,6 +308,7 @@
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
     <ClCompile Include="Source\Scene\ResultScene.cpp" />
     <ClCompile Include="Source\Scene\SceneManager.cpp" />
+    <ClCompile Include="Source\Scene\StageIntroScene.cpp" />
     <ClCompile Include="Source\Scene\TitleScene.cpp" />
     <ClCompile Include="Source\Sound\GameplaySEEditor.cpp" />
     <ClCompile Include="Source\Sound\GameplaySEPlayer.cpp" />
@@ -372,6 +373,7 @@
     <ClCompile Include="Source\UI\MirrorPromptUI.cpp" />
     <ClCompile Include="Source\UI\PauseMenu.cpp" />
     <ClCompile Include="Source\UI\SoundOptionMenu.cpp" />
+    <ClCompile Include="Source\UI\StageIntroUI.cpp" />
     <ClCompile Include="Source\UI\TimerUI.cpp" />
     <ClCompile Include="Source\UI\TitleMenu.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -434,6 +436,7 @@
     <ClInclude Include="Source\Scene\MistEffectParameter.h" />
     <ClInclude Include="Source\Scene\ResultScene.h" />
     <ClInclude Include="Source\Scene\SceneManager.h" />
+    <ClInclude Include="Source\Scene\StageIntroScene.h" />
     <ClInclude Include="Source\Scene\TitleScene.h" />
     <ClInclude Include="Source\Sound\GameplaySEEditor.h" />
     <ClInclude Include="Source\Sound\GameplaySEPlayer.h" />
@@ -505,6 +508,7 @@
     <ClInclude Include="Source\UI\MirrorPromptUI.h" />
     <ClInclude Include="Source\UI\PauseMenu.h" />
     <ClInclude Include="Source\UI\SoundOptionMenu.h" />
+    <ClInclude Include="Source\UI\StageIntroUI.h" />
     <ClInclude Include="Source\UI\TimerUI.h" />
     <ClInclude Include="Source\UI\TitleMenu.h" />
     <ClInclude Include="Source\UI\UISprite.h" />

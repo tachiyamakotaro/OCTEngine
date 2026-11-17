@@ -7,6 +7,7 @@
 
 #include "imgui.h"
 #include "ResultScene.h"
+#include "StageIntroScene.h"
 #include "Source/Actor/Character/CharacterStateMachine.h"
 #include "Source/Actor/Character/CharacterStatus.h"
 #include "Source/Camera/CameraStageBounds.h"
@@ -339,19 +340,21 @@ namespace app
 		if (m_isCleared && m_clearSequence.IsFinished())
 		{
 			fadeTime = CLEAR_FADE_TIME;
+			// BGM は次のシーンで鳴らし直す（ステージの番号を出している間は鳴らさない）
+			SoundManager::Get().FadeOutBGM(CLEAR_FADE_TIME);
 			const int nextStage = app::stage::GetCurrentStageIndex() + 1;
 			if (nextStage < app::stage::STAGE_COUNT)
 			{
-				// 次のステージがある：インゲームを作り直す（新しい DebugScene の Start が次のステージの JSON を読む）
+				// 次のステージがある：「STAGE 〇」を出してから、インゲームを作り直す
+				// （新しい DebugScene の Start が次のステージの JSON を読む）
 				app::stage::SetCurrentStageIndex(nextStage);
-				id = DebugScene::ID();
+				id = StageIntroScene::ID();
 			}
 			else
 			{
 				// 最後のステージ：ゲームクリア（リザルトへ）
 				id = ResultScene::ID();
 				app::playlog::PlayLog::Get().RecordGameClear();
-				SoundManager::Get().FadeOutBGM(CLEAR_FADE_TIME);
 			}
 			return true;
 		}

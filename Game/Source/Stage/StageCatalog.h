@@ -62,6 +62,16 @@ namespace app
 		int GetCurrentStageIndex();
 		/** @brief 今遊ぶステージの番号を決める（範囲外なら一番近いステージにする） */
 		void SetCurrentStageIndex(int index);
+		/**
+		 * @brief 今遊ぶステージの番号（画面に出す番号。1 から数える）
+		 * @details STAGE_INFO_TABLE の上から何番目か。ファイルの名前（stage02 など）とは関係ない
+		 */
+		int GetCurrentStageNumber();
+		/**
+		 * @brief 今遊ぶステージが最後のステージか（STAGE_INFO_TABLE の一番下）
+		 * @details 表にステージを足すと、一番下のステージが最後のステージになる
+		 */
+		bool IsCurrentStageFinal();
 		/** @brief 今遊ぶステージの情報 */
 		const StageInfo& GetCurrentStageInfo();
 		/**

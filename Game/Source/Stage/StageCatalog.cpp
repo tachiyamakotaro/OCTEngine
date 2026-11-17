@@ -30,6 +30,18 @@ namespace app
 		}
 
 
+		int GetCurrentStageNumber()
+		{
+			return s_currentStageIndex + 1;
+		}
+
+
+		bool IsCurrentStageFinal()
+		{
+			return s_currentStageIndex == STAGE_COUNT - 1;
+		}
+
+
 		const StageInfo& GetCurrentStageInfo()
 		{
 			return STAGE_INFO_TABLE[s_currentStageIndex];

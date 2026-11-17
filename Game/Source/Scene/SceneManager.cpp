@@ -6,6 +6,7 @@
 #include "DebugScene.h"
 #include "ResultScene.h"
 #include "SceneManager.h"
+#include "StageIntroScene.h"
 #include "Source/Core/Fade.h"
 #include "Source/PlayLog/PlayLog.h"
 #include "Source/Sound/SoundManager.h"
@@ -32,6 +33,7 @@ namespace app
 
 		// ここでシーンを登録する
 		AddSceneMap<TitleScene>();
+		AddSceneMap<StageIntroScene>();
 		AddSceneMap<DebugScene>();
 		AddSceneMap<ResultScene>();
 

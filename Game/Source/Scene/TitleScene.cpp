@@ -3,7 +3,7 @@
  * @brief タイトルシーン
  */
 #include "stdafx.h"
-#include "DebugScene.h"
+#include "StageIntroScene.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
 #include "TitleScene.h"
@@ -86,7 +86,8 @@ namespace app
 	{
 		if (m_isNextScene)
 		{
-			id = DebugScene::ID();
+			// 「STAGE 1」を出してからインゲームへ
+			id = StageIntroScene::ID();
 			fadeTime = NEXT_SCENE_FADE_TIME;
 			return true;
 		}
