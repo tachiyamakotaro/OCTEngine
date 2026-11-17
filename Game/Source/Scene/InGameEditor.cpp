@@ -9,6 +9,9 @@
 #include "MistEffectParameter.h"
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Camera/GameCamera.h"
+#include "Source/Core/IrisWipe.h"
+#include "Source/Stage/Goal/ClearSequence.h"
+#include "Source/Stage/Goal/GoalGateRenderer.h"
 #include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/MirrorGlass.h"
 #include "Source/Sound/GameplaySEPlayer.h"
@@ -187,6 +190,11 @@ namespace app
 		{
 			m_gimmickMarkEditor.Draw(*m_targets.gimmickMarkRenderer);
 		}
+		// ---- ゴールの門とクリアの演出（扉が開く・丸く閉じるフェード） ----
+		if (ImGui::CollapsingHeader("Goal"))
+		{
+			m_goalEditor.Draw(*m_targets.clearSequence, *m_targets.goalGateRenderer, *m_targets.irisWipe);
+		}
 		// ---- 動きの調整 ----
 		if (ImGui::CollapsingHeader("Tuning"))
 		{
@@ -281,6 +289,7 @@ namespace app
 		return t.player != nullptr && t.stage != nullptr && t.stageTimer != nullptr && t.timerUI != nullptr
 			&& t.mirrorPromptUI != nullptr && t.camera != nullptr && t.sePlayer != nullptr && t.overlay != nullptr
 			&& t.mirrorGlass != nullptr && t.darknessRenderer != nullptr && t.stageRenderer != nullptr && t.gimmickRenderer != nullptr
-			&& t.gimmickMarkRenderer != nullptr && t.mistEffect != nullptr;
+			&& t.gimmickMarkRenderer != nullptr && t.mistEffect != nullptr
+			&& t.clearSequence != nullptr && t.goalGateRenderer != nullptr && t.irisWipe != nullptr;
 	}
 }

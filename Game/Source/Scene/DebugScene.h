@@ -1,6 +1,9 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/Player.h"
 #include "Source/Camera/GameCamera.h"
+#include "Source/Core/IrisWipe.h"
+#include "Source/Stage/Goal/ClearSequence.h"
+#include "Source/Stage/Goal/GoalGateRenderer.h"
 #include "Source/Input/GamePadInputDevice.h"
 #include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/LightBeamRenderer.h"
@@ -50,11 +53,15 @@
   *          ・StageTimer       … 時間制限（残り時間を数える。制限時間は StageCatalog.h の表）
   *          ・TimerUI          … 時間制限の表示（画面の上の真ん中。時間切れで TIME UP）
   *          ・MirrorPromptUI   … 反射鏡の近くで出すボタンの表示（回転できる鏡は LB / RB、動かせる鏡は B）
+  *          ・GoalGateRenderer … ゴールの門（遺跡の扉・扉の奥の光・松明の炎）
+  *          ・ClearSequence    … クリアの演出の流れ（扉が開く → 丸く閉じる → 次のステージへ）
+  *          ・IrisWipe         … 丸く閉じるフェード（プレイヤーを中心に、黒い画面の丸い穴が小さくなる）
   *
   *          時間切れになると操作を止めて TIME UP を出し、少し待ってからステージを最初からやり直す。
   *
   *          ステージは StageCatalog.h の今のステージの JSON を読む（LoadStage）。
-  *          ゴールに触れて少し待つと、次のステージへ移る（シーンを作り直す）。最後のステージならリザルト（ゲームクリア）へ移る。
+  *          ゴールに触れると扉が開き、丸く閉じるフェードで真っ暗になったら、次のステージへ移る（シーンを作り直す）。
+  *          最後のステージならリザルト（ゲームクリア）へ移る。
   *
   *          プレイヤーは NewGO せずシーンが直接持ち、更新の順番をシーンが決めている。
   *          （ステージ → プレイヤー → 鏡の操作 の順にしないと、光や扉が1フレームずれるため）
@@ -72,7 +79,7 @@ namespace app
 		bool Start() override;
 		void Update() override;
 		void Render(RenderContext& rc) override;
-		/** ゴールして少し待ったら次のステージへ（最後のステージならリザルトへ） */
+		/** ゴールして、クリアの演出（扉が開く → 丸く閉じる）が終わったら次のステージへ（最後のステージならリザルトへ） */
 		bool RequestScene(uint32_t& id, float& fadeTime) override;
 		/** ポーズできる（ゴールしたあと・時間切れのあとはできない） */
 		bool CanPause() const override { return !m_isCleared && !m_stageTimer.IsTimeUp(); }
@@ -192,6 +199,12 @@ namespace app
 		app::ui::TimerUI m_timerUI;
 		/** 反射鏡のインタラクト表示（LB / RB で回転 / B で移動） */
 		app::ui::MirrorPromptUI m_mirrorPromptUI;
+		/** ゴールの門の描画 */
+		app::stage::GoalGateRenderer m_goalGateRenderer;
+		/** クリアの演出の流れ */
+		app::stage::ClearSequence m_clearSequence;
+		/** 丸く閉じるフェード */
+		app::core::IrisWipe m_irisWipe;
 
 		/** プレイヤーの開始位置 */
 		app::math::Vec2 m_playerStartPosition;
@@ -227,8 +240,6 @@ namespace app
 		float m_deadTimer;
 		/** ゴールしたか */
 		bool m_isCleared;
-		/** ゴールしてからの時間（クリアの表示の演出用） */
-		float m_clearTimer;
 		/** ワープした回数（確認用） */
 		int m_warpCount;
 		/** デバッグ用：マウスでプレイヤーをつかんでいるか */

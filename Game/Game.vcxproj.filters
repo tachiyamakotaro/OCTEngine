@@ -64,6 +64,9 @@
     <Filter Include="Source\PlayLog">
       <UniqueIdentifier>{167f45d4-036e-48cc-8c44-711592798269}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Stage\Goal">
+      <UniqueIdentifier>{cd9430ee-2b54-4dec-98f5-80cbbed50aaf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -386,6 +389,18 @@
     </ClCompile>
     <ClCompile Include="Source\PlayLog\StageRecord.cpp">
       <Filter>Source\PlayLog</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\IrisWipe.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Goal\ClearSequence.cpp">
+      <Filter>Source\Stage\Goal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Goal\GoalEditor.cpp">
+      <Filter>Source\Stage\Goal</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Goal\GoalGateRenderer.cpp">
+      <Filter>Source\Stage\Goal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -753,6 +768,21 @@
     </ClInclude>
     <ClInclude Include="Source\PlayLog\StageRecord.h">
       <Filter>Source\PlayLog</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\IrisWipe.h">
+      <Filter>Source\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Goal\ClearSequence.h">
+      <Filter>Source\Stage\Goal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Goal\GoalEditor.h">
+      <Filter>Source\Stage\Goal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Goal\GoalGateRenderer.h">
+      <Filter>Source\Stage\Goal</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Goal\GoalParameter.h">
+      <Filter>Source\Stage\Goal</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

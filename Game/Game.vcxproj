@@ -286,6 +286,7 @@
     <ClCompile Include="Source\Camera\CameraStageBounds.cpp" />
     <ClCompile Include="Source\Camera\GameCamera.cpp" />
     <ClCompile Include="Source\Core\Fade.cpp" />
+    <ClCompile Include="Source\Core\IrisWipe.cpp" />
     <ClCompile Include="Source\Input\GamePadInputDevice.cpp" />
     <ClCompile Include="Source\Physics\MirroredCollisionWorld.cpp" />
     <ClCompile Include="Source\Physics\SimpleCollisionWorld.cpp" />
@@ -354,6 +355,9 @@
     <ClCompile Include="Source\Stage\Gimmick\StageBlock.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\SunLight.cpp" />
     <ClCompile Include="Source\Stage\Gimmick\WarpZone.cpp" />
+    <ClCompile Include="Source\Stage\Goal\ClearSequence.cpp" />
+    <ClCompile Include="Source\Stage\Goal\GoalEditor.cpp" />
+    <ClCompile Include="Source\Stage\Goal\GoalGateRenderer.cpp" />
     <ClCompile Include="Source\Stage\LightColor.cpp" />
     <ClCompile Include="Source\Stage\LightTracer.cpp" />
     <ClCompile Include="Source\Stage\MirrorInteractor.cpp" />
@@ -400,6 +404,7 @@
     <ClInclude Include="Source\Camera\GameCamera.h" />
     <ClInclude Include="Source\Core\DebugUI.h" />
     <ClInclude Include="Source\Core\Fade.h" />
+    <ClInclude Include="Source\Core\IrisWipe.h" />
     <ClInclude Include="Source\Core\Math\MathUtil.h" />
     <ClInclude Include="Source\Core\Math\Rect.h" />
     <ClInclude Include="Source\Core\Math\Vec2.h" />
@@ -480,6 +485,10 @@
     <ClInclude Include="Source\Stage\Gimmick\StageBlock.h" />
     <ClInclude Include="Source\Stage\Gimmick\SunLight.h" />
     <ClInclude Include="Source\Stage\Gimmick\WarpZone.h" />
+    <ClInclude Include="Source\Stage\Goal\ClearSequence.h" />
+    <ClInclude Include="Source\Stage\Goal\GoalEditor.h" />
+    <ClInclude Include="Source\Stage\Goal\GoalGateRenderer.h" />
+    <ClInclude Include="Source\Stage\Goal\GoalParameter.h" />
     <ClInclude Include="Source\Stage\LightColor.h" />
     <ClInclude Include="Source\Stage\LightTracer.h" />
     <ClInclude Include="Source\Stage\MirrorInteractor.h" />

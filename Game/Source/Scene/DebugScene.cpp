@@ -36,10 +36,11 @@ namespace
 	/** 氷が溶けきったときに出す湯気の大きさ（霧の煙に対する割合） */
 	constexpr float ICE_STEAM_PUFF_RATE = 0.6f;
 
-	/** ゴールしてからリザルトへ移り始めるまでの時間 */
-	constexpr float CLEAR_WAIT_TIME = 1.2f;
-	/** リザルトへ移るときのフェードの時間 */
-	constexpr float CLEAR_FADE_TIME = 1.0f;
+	/**
+	 * 次のステージ・リザルトへ移るときのフェードの時間
+	 * （丸く閉じるフェードで真っ暗になってから移るので、暗くなる間は真っ暗のまま。明るくなるのにこの時間をかける）
+	 */
+	constexpr float CLEAR_FADE_TIME = 0.5f;
 
 	/** マウスでプレイヤーをつかむとき、体の箱をどれだけ広げてつかめるようにするか */
 	constexpr float PLAYER_PICK_MARGIN = 20.0f;
@@ -66,7 +67,6 @@ namespace app
 		, m_mistPuffCount(0)
 		, m_deadTimer(0.0f)
 		, m_isCleared(false)
-		, m_clearTimer(0.0f)
 		, m_warpCount(0)
 		, m_isDraggingPlayer(false)
 		, m_dragGrabOffset()
@@ -108,6 +108,10 @@ namespace app
 		m_gimmickRenderer.Init(app::stage::GimmickRenderer::Config());
 		// ギミックの印（電球マーク・歯車・レール。Assets/shader/gimmickMark.fx）
 		m_gimmickMarkRenderer.Init();
+		// ゴールの門（Assets/modelData/object/ の goal_～.tkm）と、クリアの演出（扉が開く → 丸く閉じるフェード）
+		m_goalGateRenderer.Init();
+		m_clearSequence.Init();
+		m_irisWipe.Init();
 		// 色の光のギミック（色センサー・扉の色の印・色の付いた光源）
 		m_colorLightRenderer.Init(app::stage::ColorLightRenderer::Config());
 		m_colorGlassRenderer.Init(app::stage::ColorGlassRenderer::Config());
@@ -164,6 +168,9 @@ namespace app
 		editTargets.gimmickRenderer = &m_gimmickRenderer;
 		editTargets.gimmickMarkRenderer = &m_gimmickMarkRenderer;
 		editTargets.mistEffect = &m_mistEffect;
+		editTargets.clearSequence = &m_clearSequence;
+		editTargets.goalGateRenderer = &m_goalGateRenderer;
+		editTargets.irisWipe = &m_irisWipe;
 		m_inGameEditor.Init(editTargets);
 
 		return true;
@@ -242,15 +249,14 @@ namespace app
 		UpdateFireEffects(deltaTime);
 		// SE：ステージ・プレイヤー・鏡の操作が全部終わってから、変化を見て鳴らす
 		m_sePlayer.Update(deltaTime, m_stage, m_player, m_mirrorInteractor);
-		if (m_isCleared)
-		{
-			m_clearTimer += deltaTime;
-		}
+		// クリアの演出（扉が開く → 丸く閉じる）の時間を進める
+		m_clearSequence.Update(deltaTime);
 		UpdateTimer(deltaTime);
 		UpdateRestart(deltaTime);
 
 		m_stageRenderer.Update(m_stage);
 		m_gimmickRenderer.Update(m_stage);
+		m_goalGateRenderer.Update(m_stage, m_clearSequence, deltaTime);
 		m_gimmickMarkRenderer.Update(m_stage, deltaTime);
 		m_lightBeamRenderer.Update(m_stage);
 		m_colorLightRenderer.Update(m_stage, deltaTime);
@@ -280,6 +286,12 @@ namespace app
 			m_shadeInteractor.GetFocusedIndex() < 0,
 			!m_isCleared && !m_stageTimer.IsTimeUp() && !m_isDraggingPlayer,
 			deltaTime);
+		{
+			// 丸く閉じるフェード（プレイヤーの体の真ん中を中心にする。カメラを動かしたあとに更新する）
+			const app::math::Rect body = m_player.GetController().GetBounds();
+			const app::math::Vec2 center = (body.min + body.max) * 0.5f;
+			m_irisWipe.Update(m_clearSequence.GetIrisCloseRate(), Vector3(center.x, center.y, 0.0f));
+		}
 		SceneLight::GetInstance()->Update();
 
 		if (isDebugUI)
@@ -293,6 +305,7 @@ namespace app
 	{
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
+		m_goalGateRenderer.Draw(rc);
 		m_gimmickMarkRenderer.Draw(rc);
 		m_fireRenderer.DrawOpaque(rc);
 		m_colorLightRenderer.DrawOpaque(rc);
@@ -315,12 +328,15 @@ namespace app
 		m_mirrorPromptUI.Render(rc);
 		// 時間制限の表示（2D の画像は 3D のあとに描かれる。ポーズ画面はこの上に出る）
 		m_timerUI.Render(rc);
+		// 丸く閉じるフェード（全部の画像より手前に出す。SceneManager のフェードはさらにこの上）
+		m_irisWipe.Draw(rc);
 	}
 
 
 	bool DebugScene::RequestScene(uint32_t& id, float& fadeTime)
 	{
-		if (m_isCleared && m_clearTimer >= CLEAR_WAIT_TIME)
+		// クリアの演出（扉が開く → 丸く閉じる → 真っ暗で少し待つ）が終わったら移る
+		if (m_isCleared && m_clearSequence.IsFinished())
 		{
 			fadeTime = CLEAR_FADE_TIME;
 			const int nextStage = app::stage::GetCurrentStageIndex() + 1;
@@ -409,7 +425,8 @@ namespace app
 
 		m_deadTimer = 0.0f;
 		m_isCleared = false;
-		m_clearTimer = 0.0f;
+		// クリアの演出をやめる（扉を閉じ、丸く閉じるフェードも消す）
+		m_clearSequence.Reset();
 		UpdateCamera(0.0f, true);
 
 		// SE：仕掛けを戻したぶんの音（扉が閉じた・受光器が消えた）は鳴らさずに覚え直して、再開の音だけ鳴らす
@@ -435,11 +452,11 @@ namespace app
 			return;
 		}
 
-		// ゴール：触れたらクリア（操作を止めて表示を出す。F5 か Reload でやり直し）
-		if (m_stage.FindGoal(body) != nullptr)
+		// ゴール：触れたらクリア（操作を止めて、扉を開く → 丸く閉じるフェード → 次のステージへ）
+		if (const app::stage::Goal* goal = m_stage.FindGoal(body))
 		{
 			m_isCleared = true;
-			m_clearTimer = 0.0f;
+			m_clearSequence.Start(*goal);
 			m_player.GetPlayerController().SetEnabled(false);
 			// 時間を止める（残り時間はそのまま表示しておく）
 			m_stageTimer.SetRunning(false);
@@ -961,7 +978,8 @@ namespace app
 		if (request.isClearStage && !m_isCleared)
 		{
 			m_isCleared = true;
-			m_clearTimer = 0.0f;
+			// 触れたゴールがないので、扉は開かずに丸く閉じるところから
+			m_clearSequence.Start();
 			m_player.GetPlayerController().SetEnabled(false);
 			m_stageTimer.SetRunning(false);
 		}

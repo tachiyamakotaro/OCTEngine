@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/PlayerEditor.h"
 #include "Source/Camera/CameraEditor.h"
+#include "Source/Stage/Goal/GoalEditor.h"
 #include "Source/Core/Math/Vec2.h"
 #include "Source/Render/BloomEditor.h"
 #include "Source/Render/DarknessEditor.h"
@@ -29,6 +30,10 @@ namespace app
 	namespace camera
 	{
 		class GameCamera;
+	}
+	namespace core
+	{
+		class IrisWipe;
 	}
 	namespace render
 	{
@@ -74,6 +79,9 @@ namespace app
 		stage::GimmickRenderer* gimmickRenderer = nullptr;
 		stage::GimmickMarkRenderer* gimmickMarkRenderer = nullptr;
 		MistEffectParameter* mistEffect = nullptr;
+		stage::ClearSequence* clearSequence = nullptr;
+		stage::GoalGateRenderer* goalGateRenderer = nullptr;
+		core::IrisWipe* irisWipe = nullptr;
 	};
 
 
@@ -213,5 +221,6 @@ namespace app
 		render::DarknessEditor m_darknessEditor;
 		GameplaySEEditor m_seEditor;
 		stage::GimmickMarkEditor m_gimmickMarkEditor;
+		stage::GoalEditor m_goalEditor;
 	};
 }

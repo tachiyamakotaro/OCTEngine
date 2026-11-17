@@ -1,6 +1,6 @@
 ﻿/**
  * @file GimmickRenderer.h
- * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・ゴール・氷・日よけ板・日光の窓）をモデルで描く
+ * @brief ステージのギミック（扉・受光器・光の足場・光源・反射鏡・光・奥の鏡の枠・床スイッチ・霧の吹き出し口・鏡の足場・ランプ・ワープ・氷・日よけ板・日光の窓）をモデルで描く
  * @details ギミックの位置・大きさ・状態（扉の開き具合、受光器の点灯など）は毎フレーム Stage から読むので、
  *          エディタで動かしたり、遊んでいる最中に状態が変わったりしても、そのまま追従する。
  *          奥の鏡があるときは、鏡に映った像も一緒に描く。
@@ -13,6 +13,7 @@
  *            ・霧の吹き出し口 … 吹き出す面を -Y（下）に向ける
  *          鏡の足場は「見えるようになってから」だけ描く（見えないうちは風景を映しているので何も描かない）。
  *          霧と露のエフェクトはここでは描かない（Game::UpdateStageEvents で出す）。
+ *          ゴールの門は GoalGateRenderer（Source/Stage/Goal/）が描く（扉が開くので、ここでは描かない）。
  *          氷は、穴の縁をなめらかに描くため IceRenderer（専用のシェーダー ice.fx）に任せる（モデルのパスと奥行きはここの Config のもの）。
  */
 #pragma once
@@ -56,7 +57,6 @@ namespace app
 				IndicatorOff,	//!< 合図のランプ（消灯）
 				IndicatorOn,	//!< 合図のランプ（点灯）
 				WarpGate,		//!< ワープの暗がり（通路の奥。入ると暗がりに消えるように見せる）
-				Goal,			//!< ゴール
 				HiddenFloor,	//!< 暗がりの足場（プレイヤーが乗っているとき。明るい石）
 				HiddenFloorDim,	//!< 暗がりの足場（ふだん見えているとき。暗い石）
 				IceMelt,		//!< 溶かす氷（白っぽい水色・ひび）
@@ -91,7 +91,6 @@ namespace app
 					"Assets/modelData/gimmick/indicator_off.tkm",
 					"Assets/modelData/gimmick/indicator_on.tkm",
 					"Assets/modelData/gimmick/warp_gate.tkm",
-					"Assets/modelData/gimmick/goal.tkm",
 					"Assets/modelData/gimmick/hidden_floor.tkm",
 					"Assets/modelData/gimmick/hidden_floor_dim.tkm",
 					"Assets/modelData/gimmick/ice_melt.tkm",
@@ -118,7 +117,6 @@ namespace app
 				float indicatorDepth = 40.0f;
 				/** ワープの暗がりの奥行き（床の奥行き 300 と同じにすると、通路の奥がまるごと暗くなる） */
 				float warpGateDepth = 300.0f;
-				float goalDepth = 150.0f;
 				float hiddenFloorDepth = 200.0f;
 				float iceDepth = 200.0f;
 				float shadeBoardDepth = 150.0f;
