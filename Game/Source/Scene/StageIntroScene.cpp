@@ -6,6 +6,7 @@
 #include "StageIntroScene.h"
 #include "DebugScene.h"
 #include "Source/Stage/StageCatalog.h"
+#include "Source/Stage/StageLoader.h"
 
 
 namespace
@@ -43,6 +44,8 @@ namespace app
 		{
 			m_ui.InitNumber(stage::GetCurrentStageNumber());
 		}
+		// そのステージに置いてあるギミックのアイコン（JSON の "type" を見て選ぶ）
+		m_ui.InitGimmickIcons(stage::LoadStageGimmickTypes(stage::GetCurrentStageInfo()));
 		return true;
 	}
 

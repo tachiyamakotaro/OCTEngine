@@ -4,6 +4,7 @@
  */
 #include "stdafx.h"
 #include "StageIntroUI.h"
+#include "Source/Stage/StageGimmickTypes.h"
 
 
 namespace app
@@ -41,6 +42,29 @@ namespace app
 			constexpr float DIGIT_STEP_RATE = 0.78f;
 			/** 文字の中心の高さ（画面の真ん中が 0、上が +） */
 			constexpr float TEXT_Y = 150.0f;
+
+			// ---- ギミックのアイコン ----
+			/** アイコンの画像の大きさ（256 x 256） */
+			constexpr float ICON_PIXEL_SIZE = 256.0f;
+			/** 画面に出す大きさ */
+			constexpr float ICON_SIZE = 140.0f;
+			/** となりのアイコンとの間（中心から中心） */
+			constexpr float ICON_SPACING = 175.0f;
+			/** アイコンの中心の高さ（画面の真ん中が 0、上が +） */
+			constexpr float ICON_Y = -40.0f;
+
+			/** そのアイコンの "type" のどれかが、ステージに置いてあるか */
+			bool IsIconShown(const GimmickIcon& icon, const stage::StageGimmickTypes& types)
+			{
+				for (const char* type : icon.types)
+				{
+					if (types.Contains(type))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
 		}
 
 
@@ -51,6 +75,8 @@ namespace app
 			, m_digits()
 			, m_digitCount(0)
 			, m_isFinal(false)
+			, m_icons()
+			, m_iconCount(0)
 		{}
 
 
@@ -95,9 +121,34 @@ namespace app
 		}
 
 
+		void StageIntroUI::InitGimmickIcons(const stage::StageGimmickTypes& types)
+		{
+			// 表の上から順に、置いてあるギミックのアイコンだけ読み込む
+			m_iconCount = 0;
+			for (const GimmickIcon& icon : GIMMICK_ICON_TABLE)
+			{
+				if (IsIconShown(icon, types))
+				{
+					m_icons[m_iconCount].Init(icon.imagePath, ICON_PIXEL_SIZE, ICON_PIXEL_SIZE, ICON_SIZE);
+					++m_iconCount;
+				}
+			}
+			// 横に並べて、全体を画面の真ん中に
+			const float left = -ICON_SPACING * static_cast<float>(m_iconCount - 1) * 0.5f;
+			for (int i = 0; i < m_iconCount; ++i)
+			{
+				m_icons[i].Place(left + ICON_SPACING * static_cast<float>(i), ICON_Y, 1.0f, menu_color::White);
+			}
+		}
+
+
 		void StageIntroUI::Render(RenderContext& rc)
 		{
 			m_background.Draw(rc);
+			for (int i = 0; i < m_iconCount; ++i)
+			{
+				m_icons[i].Draw(rc);
+			}
 			m_label.Draw(rc);
 			if (m_isFinal)
 			{

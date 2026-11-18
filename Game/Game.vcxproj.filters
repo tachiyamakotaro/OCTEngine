@@ -796,5 +796,11 @@
     <ClInclude Include="Source\UI\StageIntroUI.h">
       <Filter>Source\UI</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Stage\StageGimmickTypes.h">
+      <Filter>Source\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\GimmickIconTable.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

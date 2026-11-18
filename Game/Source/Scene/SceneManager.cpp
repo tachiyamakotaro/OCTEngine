@@ -190,9 +190,10 @@ namespace app
 		{
 			return;
 		}
-		// インゲーム以外のシーン（タイトル・リザルトなど）に移ったら、1プレイぶんのプレイログをファイルにする
-		// （次のステージへ進むとき＝インゲームからインゲームのときは、記録を続ける）
-		if (id != DebugScene::ID())
+		// インゲームの流れの外（タイトル・リザルトなど）に移ったら、1プレイぶんのプレイログをファイルにする
+		// （次のステージへ進むとき＝インゲーム → ステージの番号の表示 → インゲームのときは、記録を続ける）
+		const bool isInGameFlow = id == DebugScene::ID() || id == StageIntroScene::ID();
+		if (!isInGameFlow)
 		{
 			playlog::PlayLog::Get().FinishPlay();
 		}

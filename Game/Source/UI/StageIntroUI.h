@@ -1,18 +1,25 @@
 ﻿/**
  * @file StageIntroUI.h
- * @brief ステージが始まる前の表示（暗い画面の真ん中に「STAGE 3」。最後のステージは「STAGE FINAL」）
+ * @brief ステージが始まる前の表示（暗い画面に「STAGE 3」（最後のステージは「STAGE FINAL」）と、置いてあるギミックのアイコン）
  * @details 見た目は全部画像（UISprite）。画像は Assets/sprite/stage_intro/（STAGE・FINAL の文字と数字 0〜9）。
  *          番号は数字の画像を組み合わせて出すので、ステージを足しても画像を作らなくてよい。
  *          背景は SceneManager のフェードと同じ暗い画像（Assets/sprite/fade.dds）なので、フェードとつながって見える。
+ *          ギミックのアイコンは、そのステージに置いてある物だけを GimmickIconTable.h の表の順に並べる。
  *          あとで制限時間などを足すときは、このクラスに画像を足す。
  */
 #pragma once
+#include "Source/UI/GimmickIconTable.h"
 #include "Source/UI/UISprite.h"
 #include <array>
 
 
 namespace app
 {
+	namespace stage
+	{
+		class StageGimmickTypes;
+	}
+
 	namespace ui
 	{
 		/**
@@ -35,6 +42,11 @@ namespace app
 			 * @brief 「STAGE FINAL」を用意する（最後のステージ。シーンの Start で1回）
 			 */
 			void InitFinal();
+			/**
+			 * @brief ギミックのアイコンを用意する（置いてある物だけ。シーンの Start で1回）
+			 * @param types そのステージに置いてあるギミックの種類
+			 */
+			void InitGimmickIcons(const stage::StageGimmickTypes& types);
 			/** 描く */
 			void Render(RenderContext& rc);
 
@@ -63,6 +75,10 @@ namespace app
 			int m_digitCount;
 			/** FINAL を出すか */
 			bool m_isFinal;
+			/** ギミックのアイコン（表の数だけ用意しておき、使う分だけ読み込む） */
+			std::array<UISprite, GIMMICK_ICON_COUNT> m_icons;
+			/** 出すアイコンの数 */
+			int m_iconCount;
 		};
 	}
 }

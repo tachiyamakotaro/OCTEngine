@@ -16,6 +16,7 @@
  *          ・読み込みに失敗したとき（ファイルがない・文法の間違い）は、今のステージを変えない。
  */
 #pragma once
+#include "StageGimmickTypes.h"
 #include <string>
 #include <vector>
 
@@ -45,5 +46,10 @@ namespace app
 		 * @brief ステージを JSON の文字列にする（エディタの「変更があったか」の判定に使う）
 		 */
 		std::string StageToJsonText(const Stage& stage);
+		/**
+		 * @brief ステージに置いてあるギミックの種類を、JSON の "type" だけ見て集める（ギミックは作らない）
+		 * @details 地形のファイルとギミックのファイルの両方を見る。読めなかったファイルは飛ばす
+		 */
+		StageGimmickTypes LoadStageGimmickTypes(const StageInfo& info);
 	}
 }

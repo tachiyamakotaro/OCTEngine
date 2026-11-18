@@ -265,6 +265,34 @@ namespace app
 		}
 
 
+		StageGimmickTypes LoadStageGimmickTypes(const StageInfo& info)
+		{
+			std::set<std::string> types;
+			for (const char* path : { info.objectJsonPath, info.gimmickJsonPath })
+			{
+				if (path == nullptr || path[0] == '\0')
+				{
+					continue;
+				}
+				// 表示に使うだけなので、読めなかったときの理由は捨てる（読めた分だけ集める）
+				std::vector<std::string> ignoredMessages;
+				Json root;
+				if (!ReadJsonFile(path, root, ignoredMessages) || !root.contains("gimmicks") || !root["gimmicks"].is_array())
+				{
+					continue;
+				}
+				for (const Json& item : root["gimmicks"])
+				{
+					if (item.is_object() && item.contains("type") && item["type"].is_string())
+					{
+						types.insert(item["type"].get<std::string>());
+					}
+				}
+			}
+			return StageGimmickTypes(std::move(types));
+		}
+
+
 		bool SaveStageToJson(const Stage& stage, const StageInfo& info, std::vector<std::string>& messages)
 		{
 			if (!HasGimmickFile(info))

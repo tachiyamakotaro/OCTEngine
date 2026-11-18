@@ -498,12 +498,14 @@
     <ClInclude Include="Source\Stage\ShadeInteractor.h" />
     <ClInclude Include="Source\Stage\Stage.h" />
     <ClInclude Include="Source\Stage\StageCatalog.h" />
+    <ClInclude Include="Source\Stage\StageGimmickTypes.h" />
     <ClInclude Include="Source\Stage\StageLoader.h" />
     <ClInclude Include="Source\Stage\StageObjects.h" />
     <ClInclude Include="Source\Stage\StageRenderer.h" />
     <ClInclude Include="Source\Stage\Stages\Stage01.h" />
     <ClInclude Include="Source\Timer\StageTimer.h" />
     <ClInclude Include="Source\Timer\TimerParameter.h" />
+    <ClInclude Include="Source\UI\GimmickIconTable.h" />
     <ClInclude Include="Source\UI\MenuInput.h" />
     <ClInclude Include="Source\UI\MirrorPromptUI.h" />
     <ClInclude Include="Source\UI\PauseMenu.h" />
