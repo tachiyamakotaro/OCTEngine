@@ -67,6 +67,9 @@
     <Filter Include="Source\Stage\Goal">
       <UniqueIdentifier>{cd9430ee-2b54-4dec-98f5-80cbbed50aaf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Save">
+      <UniqueIdentifier>{9cbd8418-3dfd-4555-99cb-9877e7f7929f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -407,6 +410,9 @@
     </ClCompile>
     <ClCompile Include="Source\UI\StageIntroUI.cpp">
       <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Save\SaveData.cpp">
+      <Filter>Source\Save</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -801,6 +807,9 @@
     </ClInclude>
     <ClInclude Include="Source\UI\GimmickIconTable.h">
       <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Save\SaveData.h">
+      <Filter>Source\Save</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

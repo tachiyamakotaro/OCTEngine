@@ -303,6 +303,7 @@
     <ClCompile Include="Source\Render\MirrorGlass.cpp" />
     <ClCompile Include="Source\Render\MirrorGlassEditor.cpp" />
     <ClCompile Include="Source\Render\OutlineEditor.cpp" />
+    <ClCompile Include="Source\Save\SaveData.cpp" />
     <ClCompile Include="Source\Scene\DebugScene.cpp" />
     <ClCompile Include="Source\Scene\InGameEditor.cpp" />
     <ClCompile Include="Source\Scene\InGameScene.cpp" />
@@ -429,6 +430,7 @@
     <ClInclude Include="Source\Render\MirrorGlassEditor.h" />
     <ClInclude Include="Source\Render\MirrorReflection.h" />
     <ClInclude Include="Source\Render\OutlineEditor.h" />
+    <ClInclude Include="Source\Save\SaveData.h" />
     <ClInclude Include="Source\Scene\DebugScene.h" />
     <ClInclude Include="Source\Scene\InGameEditor.h" />
     <ClInclude Include="Source\Scene\InGameScene.h" />

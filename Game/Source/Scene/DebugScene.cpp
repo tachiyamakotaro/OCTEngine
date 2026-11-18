@@ -14,6 +14,7 @@
 #include "Source/Core/DebugUI.h"
 #include "Source/PlayLog/PlayLog.h"
 #include "Source/Scene/SceneManager.h"
+#include "Source/Save/SaveData.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
 #include "Source/Stage/StageLoader.h"
@@ -84,6 +85,8 @@ namespace app
 		LoadStage();
 		// プレイログ：ここからの記録はこのステージのもの
 		app::playlog::PlayLog::Get().StartStage(app::stage::GetCurrentStageInfo().name);
+		// 続きの記録：途中でやめても、このステージから続けられる
+		app::save::SaveProgress(app::stage::GetCurrentStageIndex());
 
 		// BGM
 		SoundManager::Get().PlayBGM(enSoundKind_InGame);
@@ -348,6 +351,8 @@ namespace app
 				// 次のステージがある：「STAGE 〇」を出してから、インゲームを作り直す
 				// （新しい DebugScene の Start が次のステージの JSON を読む）
 				app::stage::SetCurrentStageIndex(nextStage);
+				// 続きの記録：「STAGE 〇」の間にやめても、次のステージから続けられる
+				app::save::SaveProgress(nextStage);
 				id = StageIntroScene::ID();
 			}
 			else
@@ -355,6 +360,8 @@ namespace app
 				// 最後のステージ：ゲームクリア（リザルトへ）
 				id = ResultScene::ID();
 				app::playlog::PlayLog::Get().RecordGameClear();
+				// 最後までクリアしたので、続きはない（タイトルの CONTINUE は押せなくなる）
+				app::save::EraseProgress();
 			}
 			return true;
 		}
@@ -403,6 +410,8 @@ namespace app
 		m_stageEditor.SetStageInfo(&app::stage::GetCurrentStageInfo());
 		// プレイログ：ここからの記録は切り替えたステージのもの
 		app::playlog::PlayLog::Get().StartStage(app::stage::GetCurrentStageInfo().name);
+		// 続きの記録も切り替えたステージにする
+		app::save::SaveProgress(index);
 		ReloadStage();
 	}
 

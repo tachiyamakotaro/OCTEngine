@@ -4,6 +4,8 @@
  */
 #include "stdafx.h"
 #include "StageIntroScene.h"
+#include "Source/PlayLog/PlayLog.h"
+#include "Source/Save/SaveData.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
 #include "TitleScene.h"
@@ -40,7 +42,8 @@ namespace app
 		m_titleSprite.Init(TITLE_SPRITE_PATH, static_cast<float>(FRAME_BUFFER_W), static_cast<float>(FRAME_BUFFER_H));
 		m_titleSprite.Update();
 		m_menu.Init();
-		m_menu.Open();
+		// 続きの記録があれば CONTINUE を選べる
+		m_menu.Open(save::HasProgress());
 		SoundManager::Get().PlayBGM(enSoundKind_Title);
 		return true;
 	}
@@ -50,8 +53,21 @@ namespace app
 	{
 		switch (m_menu.Update())
 		{
+		case ui::TitleMenu::Result::ContinueGame:
+		{
+			// 続きの記録のステージから遊ぶ。プレイログも前のプレイの続きにする（同じファイルに書き直す）
+			const std::optional<int> stageIndex = save::LoadProgress();
+			stage::SetCurrentStageIndex(stageIndex.value_or(stage::FIRST_STAGE_INDEX));
+			playlog::PlayLog::Get().ContinuePlay();
+			SoundManager::Get().FadeOutBGM(NEXT_SCENE_FADE_TIME);
+			m_isNextScene = true;
+			break;
+		}
+
 		case ui::TitleMenu::Result::StartGame:
-			// 最初のステージから遊ぶ（ゲームクリアやポーズからタイトルに戻ったあとも）
+			// 最初のステージから遊ぶ。続きの記録とプレイログの続きは消す（CONTINUE は押せなくなり、ログは新しいファイルになる）
+			save::EraseProgress();
+			playlog::PlayLog::Get().DiscardContinue();
 			stage::SetCurrentStageIndex(stage::FIRST_STAGE_INDEX);
 			SoundManager::Get().FadeOutBGM(NEXT_SCENE_FADE_TIME);
 			m_isNextScene = true;
@@ -86,7 +102,7 @@ namespace app
 	{
 		if (m_isNextScene)
 		{
-			// 「STAGE 1」を出してからインゲームへ
+			// 「STAGE 〇」を出してからインゲームへ
 			id = StageIntroScene::ID();
 			fadeTime = NEXT_SCENE_FADE_TIME;
 			return true;

@@ -5,7 +5,9 @@
  */
 #include "stdafx.h"
 #include "StageRecord.h"
+#include "nlohmann/json.hpp"
 #include <cmath>
+#include <type_traits>
 
 
 namespace app
@@ -23,6 +25,37 @@ namespace app
 				case DeathCause::Damage:	return u8"落下ダメージ";
 				}
 				return u8"不明";
+			}
+
+			/** 死んだ理由を、続きの記録に書く名前にする（ログの表示とは別。日本語にしない） */
+			const char* ToSaveName(const DeathCause cause)
+			{
+				return cause == DeathCause::Damage ? "Damage" : "Pit";
+			}
+
+			/** 続きの記録の名前から、死んだ理由に戻す */
+			DeathCause FromSaveName(const std::string& name)
+			{
+				return name == "Damage" ? DeathCause::Damage : DeathCause::Pit;
+			}
+
+			/** JSON から数を読む（なければ fallback） */
+			template <typename T>
+			T ReadValue(const nlohmann::ordered_json& node, const char* key, const T fallback)
+			{
+				if (!node.is_object() || !node.contains(key))
+				{
+					return fallback;
+				}
+				const nlohmann::ordered_json& value = node[key];
+				if constexpr (std::is_same_v<T, bool>)
+				{
+					return value.is_boolean() ? value.get<bool>() : fallback;
+				}
+				else
+				{
+					return value.is_number() ? value.get<T>() : fallback;
+				}
 			}
 		}
 
@@ -91,6 +124,47 @@ namespace app
 					<< u8" (x " << static_cast<int>(std::round(death.position.x))
 					<< u8", y " << static_cast<int>(std::round(death.position.y)) << u8")\n";
 			}
+		}
+
+
+		nlohmann::ordered_json StageRecord::ToJson() const
+		{
+			nlohmann::ordered_json node;
+			node["stageName"] = m_stageName;
+			node["isCleared"] = m_isCleared;
+			node["clearTime"] = m_clearTime.ToSeconds();
+			node["timeUpCount"] = m_timeUpCount;
+			node["timeUpTotal"] = m_timeUpTotal.ToSeconds();
+			nlohmann::ordered_json deaths = nlohmann::ordered_json::array();
+			for (const DeathRecord& death : m_deaths)
+			{
+				deaths.push_back({ { "cause", ToSaveName(death.cause) }, { "x", death.position.x }, { "y", death.position.y } });
+			}
+			node["deaths"] = std::move(deaths);
+			return node;
+		}
+
+
+		StageRecord StageRecord::FromJson(const nlohmann::ordered_json& node)
+		{
+			const std::string name = node.contains("stageName") && node["stageName"].is_string()
+				? node["stageName"].get<std::string>() : std::string();
+			StageRecord record(name);
+			record.m_isCleared = ReadValue(node, "isCleared", false);
+			record.m_clearTime = PlayTime(ReadValue(node, "clearTime", 0.0f));
+			record.m_timeUpCount = ReadValue(node, "timeUpCount", 0);
+			record.m_timeUpTotal = PlayTime(ReadValue(node, "timeUpTotal", 0.0f));
+			if (node.contains("deaths") && node["deaths"].is_array())
+			{
+				for (const nlohmann::ordered_json& death : node["deaths"])
+				{
+					const std::string cause = death.contains("cause") && death["cause"].is_string()
+						? death["cause"].get<std::string>() : std::string();
+					const math::Vec2 position(ReadValue(death, "x", 0.0f), ReadValue(death, "y", 0.0f));
+					record.m_deaths.push_back({ FromSaveName(cause), position });
+				}
+			}
+			return record;
 		}
 
 

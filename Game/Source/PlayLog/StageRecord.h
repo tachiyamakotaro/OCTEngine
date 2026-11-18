@@ -7,6 +7,7 @@
 #pragma once
 #include "Source/Core/Math/Vec2.h"
 #include "Source/PlayLog/PlayTime.h"
+#include "nlohmann/json_fwd.hpp"
 #include <ostream>
 #include <string>
 #include <vector>
@@ -64,6 +65,14 @@ namespace app
 
 			/** ログに書く（ステージ1つぶんの段落） */
 			void WriteTo(std::ostream& out) const;
+
+			/** 続きから遊ぶための記録にする（記録の中身を全部 JSON にする） */
+			nlohmann::ordered_json ToJson() const;
+			/**
+			 * @brief 続きから遊ぶための記録から戻す
+			 * @details 足りない項目は 0（死亡なし・未クリア）として読む
+			 */
+			static StageRecord FromJson(const nlohmann::ordered_json& node);
 
 
 		private:

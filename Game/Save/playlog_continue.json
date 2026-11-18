@@ -1,0 +1,77 @@
+{
+  "filePath": "PlayLog/PlayLog_20261118_113856.txt",
+  "startTime": 1794969536,
+  "resumeTimes": [
+    1794969564,
+    1794969619,
+    1794969731,
+    1794969786,
+    1794970665
+  ],
+  "stages": [
+    {
+      "stageName": "stage01",
+      "isCleared": true,
+      "clearTime": 14.005386352539063,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "stage02",
+      "isCleared": true,
+      "clearTime": 16.492462158203125,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "stage03",
+      "isCleared": true,
+      "clearTime": 11.4169921875,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "Stage04",
+      "isCleared": true,
+      "clearTime": 34.10520935058594,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "Stage05",
+      "isCleared": true,
+      "clearTime": 25.874908447265625,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "Stage06",
+      "isCleared": true,
+      "clearTime": 20.968093872070313,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "Stage07",
+      "isCleared": true,
+      "clearTime": 68.86894226074219,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    },
+    {
+      "stageName": "Stage08",
+      "isCleared": false,
+      "clearTime": 0.0,
+      "timeUpCount": 0,
+      "timeUpTotal": 0.0,
+      "deaths": []
+    }
+  ]
+}

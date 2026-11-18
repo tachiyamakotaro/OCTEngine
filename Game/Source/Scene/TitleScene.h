@@ -1,6 +1,6 @@
 ﻿/**
  * @file TitleScene.h
- * @brief タイトルシーン（タイトルの画像とメニュー。START でインゲームへ、QUIT でゲームを終わる）
+ * @brief タイトルシーン（タイトルの画像とメニュー。CONTINUE で続きから、START で始めから、QUIT でゲームを終わる）
  */
 #pragma once
 #include "Source/Scene/IScene.h"
@@ -31,7 +31,7 @@ namespace app
 	private:
 		/** タイトルの画像 */
 		SpriteRender m_titleSprite;
-		/** START / SOUND / QUIT のメニュー */
+		/** CONTINUE / START / SOUND / QUIT のメニュー */
 		ui::TitleMenu m_menu;
 		/** 次のシーンへ移るか */
 		bool m_isNextScene;

@@ -1,8 +1,9 @@
 ﻿/**
  * @file PlayLog.h
  * @brief プレイログ（どのステージで何回死んだか・クリアタイム・合計時間をファイルに残す）
- * @details 1プレイ＝インゲームに入ってから、インゲーム以外のシーン（タイトル・リザルトなど）に移るまで。
+ * @details 1プレイ＝インゲームに入ってから、インゲームの流れの外のシーン（タイトル・リザルトなど）に移るまで。
  *          1プレイにつき1ファイル作る（ファイルは何個でも増えていく）。
+ *          タイトルの CONTINUE で続きから遊んだときは、前のプレイの記録の続きにして、同じファイルに書き直す。
  *
  *          使い方（呼ぶ側は「〜した」と伝えるだけ。数え方・書き出し方は知らなくてよい）
  *          ・StartStage(名前)         … ステージを始めたとき（プレイ中でなければ、ここで新しいプレイを始める）
@@ -10,7 +11,9 @@
  *          ・RecordTimeUp(遊んだ時間) … 時間切れになったとき
  *          ・RecordClear(クリアタイム)… ゴールしたとき
  *          ・RecordGameClear()        … 最後のステージをクリアしたとき
- *          ・FinishPlay()             … インゲーム以外のシーンに移ったとき・ゲームを終えたとき（ここでファイルを作る）
+ *          ・FinishPlay()             … インゲームの流れの外のシーンに移ったとき・ゲームを終えたとき（ここでファイルを作る）
+ *          ・ContinuePlay()           … タイトルで CONTINUE を選んだとき（前のプレイの記録を読み込んで、その続きにする）
+ *          ・DiscardContinue()        … タイトルで START（始めから）を選んだとき（前のプレイの続きはしない）
  *
  *          インゲームのシーン（DebugScene）はステージごとに作り直されるので、記録はシーンではなくここに持つ。
  *          SoundManager と同じく Game::Start で作り、Game のデストラクタで消す。
@@ -56,6 +59,14 @@ namespace app
 			 * @details プレイ中でなければ何もしない（リザルト → タイトルのときなど）
 			 */
 			void FinishPlay();
+			/**
+			 * @brief 前のプレイの続きから始める（前のプレイの記録を読み込む。ファイルも前と同じ物に書き直す）
+			 * @details 前のプレイを途中で終えていたとき（ゲームクリアしていないとき）だけ続けられる
+			 * @return 続けられたら true（記録がないとき・プレイ中のときは false。そのときは StartStage で新しいプレイになる）
+			 */
+			bool ContinuePlay();
+			/** 前のプレイの続きをしない（続きの記録を消す。前のプレイのログのファイルは残る） */
+			void DiscardContinue();
 
 
 		public:
@@ -91,6 +102,10 @@ namespace app
 			StageRecord* GetCurrentStage();
 			/** ログ全体を書く（見出し・ステージごとの記録・合計） */
 			void WriteTo(std::ostream& out, const std::tm& endTime) const;
+			/** 続きから遊ぶための記録（今のプレイの中身を全部入れた JSON の文字列） */
+			std::string ToContinueText() const;
+			/** 続きから遊ぶための記録から、プレイの中身を戻す（読めなければ false） */
+			bool RestoreFromContinueText(const std::string& text);
 
 
 		private:
@@ -106,6 +121,10 @@ namespace app
 			bool m_isGameCleared;
 			/** 書き出すファイル */
 			PlayLogFile m_file;
+			/** 書き出すファイルの場所（最初に書くときに決める。続きから遊んだときは前と同じ場所） */
+			std::string m_filePath;
+			/** 続きから再開した日時（再開した順） */
+			std::vector<std::tm> m_resumeTimes;
 
 			/** シングルトンインスタンス */
 			static PlayLog* m_instance;
