@@ -72,6 +72,7 @@
 		{ "type": "StageBlock", "name": "Block46", "position": [2125.0, 1675.0], "size": [200.0, 47.0] },
 		{ "type": "StageBlock", "name": "Block47", "position": [2500.0, 1925.0], "size": [576.0, 50.0] },
 		{ "type": "StageBlock", "name": "Block48", "position": [3025.0, 1950.0], "size": [50.0, 334.0] },
-		{ "type": "StageBlock", "name": "Block49", "position": [3350.0, 1675.0], "size": [230.0, 47.0] }
+		{ "type": "StageBlock", "name": "Block49", "position": [3350.0, 1675.0], "size": [230.0, 47.0] },
+		{ "type": "StageBlock", "name": "Block50", "position": [1875.0, 1650.0], "size": [50.0, 200.0] }
 	]
 }
