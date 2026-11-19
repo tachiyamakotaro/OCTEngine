@@ -70,6 +70,9 @@
     <Filter Include="Source\Save">
       <UniqueIdentifier>{9cbd8418-3dfd-4555-99cb-9877e7f7929f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Stage\Background">
+      <UniqueIdentifier>{488e2675-85f5-4c6d-9c90-e746e38d56a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -413,6 +416,18 @@
     </ClCompile>
     <ClCompile Include="Source\Save\SaveData.cpp">
       <Filter>Source\Save</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Background\BackgroundEditor.cpp">
+      <Filter>Source\Stage\Background</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Background\BackgroundLayout.cpp">
+      <Filter>Source\Stage\Background</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Background\BackgroundModelPool.cpp">
+      <Filter>Source\Stage\Background</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Background\BackgroundRenderer.cpp">
+      <Filter>Source\Stage\Background</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -810,6 +825,21 @@
     </ClInclude>
     <ClInclude Include="Source\Save\SaveData.h">
       <Filter>Source\Save</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Background\BackgroundEditor.h">
+      <Filter>Source\Stage\Background</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Background\BackgroundLayout.h">
+      <Filter>Source\Stage\Background</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Background\BackgroundModelPool.h">
+      <Filter>Source\Stage\Background</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Background\BackgroundParameter.h">
+      <Filter>Source\Stage\Background</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Background\BackgroundRenderer.h">
+      <Filter>Source\Stage\Background</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

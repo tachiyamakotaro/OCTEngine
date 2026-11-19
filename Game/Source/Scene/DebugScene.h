@@ -3,6 +3,7 @@
 #include "Source/Camera/GameCamera.h"
 #include "Source/Core/IrisWipe.h"
 #include "Source/Stage/Goal/ClearSequence.h"
+#include "Source/Stage/Background/BackgroundRenderer.h"
 #include "Source/Stage/Goal/GoalGateRenderer.h"
 #include "Source/Input/GamePadInputDevice.h"
 #include "Source/Render/DarknessRenderer.h"
@@ -41,6 +42,7 @@
   *          ・Stage            … 地形・光・扉・光の足場・スイッチ・霧・鏡の足場・チェックポイント・奥の鏡
   *          ・Player           … プレイヤー（奥の鏡に映った姿も一緒に描く）
   *          ・MirrorInteractor … 反射鏡の回転・移動
+  *          ・BackgroundRenderer… ステージの奥の背景（遺跡の回廊・柱の松明）と、ステージの外の黒い塗りつぶし
   *          ・StageRenderer    … 地形をモデル（Box.tkm）で描く（鏡に映った床も）
   *          ・GimmickRenderer  … 扉・受光器・光の足場・光源・反射鏡・鏡の枠をモデルで描く
   *          ・LightBeamRenderer… 光源から出る光を半透明で描く（Assets/shader/lightBeam.fx）
@@ -169,6 +171,8 @@ namespace app
 		app::stage::MirrorInteractor m_mirrorInteractor;
 		/** 日よけ板の操作 */
 		app::stage::ShadeInteractor m_shadeInteractor;
+		/** ステージの奥の背景の描画 */
+		app::stage::BackgroundRenderer m_backgroundRenderer;
 		/** 地形の描画 */
 		app::stage::StageRenderer m_stageRenderer;
 		/** ギミックの描画 */

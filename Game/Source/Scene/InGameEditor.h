@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/PlayerEditor.h"
 #include "Source/Camera/CameraEditor.h"
+#include "Source/Stage/Background/BackgroundEditor.h"
 #include "Source/Stage/Goal/GoalEditor.h"
 #include "Source/Core/Math/Vec2.h"
 #include "Source/Render/BloomEditor.h"
@@ -45,6 +46,7 @@ namespace app
 		class Stage;
 		class StageDebugOverlay;
 		class StageRenderer;
+		class BackgroundRenderer;
 		class GimmickRenderer;
 		class GimmickMarkRenderer;
 	}
@@ -76,6 +78,7 @@ namespace app
 		render::MirrorGlass* mirrorGlass = nullptr;
 		render::DarknessRenderer* darknessRenderer = nullptr;
 		stage::StageRenderer* stageRenderer = nullptr;
+		stage::BackgroundRenderer* backgroundRenderer = nullptr;
 		stage::GimmickRenderer* gimmickRenderer = nullptr;
 		stage::GimmickMarkRenderer* gimmickMarkRenderer = nullptr;
 		MistEffectParameter* mistEffect = nullptr;
@@ -222,5 +225,6 @@ namespace app
 		GameplaySEEditor m_seEditor;
 		stage::GimmickMarkEditor m_gimmickMarkEditor;
 		stage::GoalEditor m_goalEditor;
+		stage::BackgroundEditor m_backgroundEditor;
 	};
 }

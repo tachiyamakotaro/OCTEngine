@@ -314,6 +314,10 @@
     <ClCompile Include="Source\Sound\GameplaySEEditor.cpp" />
     <ClCompile Include="Source\Sound\GameplaySEPlayer.cpp" />
     <ClCompile Include="Source\Sound\SoundManager.cpp" />
+    <ClCompile Include="Source\Stage\Background\BackgroundEditor.cpp" />
+    <ClCompile Include="Source\Stage\Background\BackgroundLayout.cpp" />
+    <ClCompile Include="Source\Stage\Background\BackgroundModelPool.cpp" />
+    <ClCompile Include="Source\Stage\Background\BackgroundRenderer.cpp" />
     <ClCompile Include="Source\Stage\ColorGlassRenderer.cpp" />
     <ClCompile Include="Source\Stage\ColorLightRenderer.cpp" />
     <ClCompile Include="Source\Stage\Editor\StageDebugOverlay.cpp" />
@@ -445,6 +449,11 @@
     <ClInclude Include="Source\Sound\SoundHandle.h" />
     <ClInclude Include="Source\Sound\SoundManager.h" />
     <ClInclude Include="Source\Sound\Types.h" />
+    <ClInclude Include="Source\Stage\Background\BackgroundEditor.h" />
+    <ClInclude Include="Source\Stage\Background\BackgroundLayout.h" />
+    <ClInclude Include="Source\Stage\Background\BackgroundModelPool.h" />
+    <ClInclude Include="Source\Stage\Background\BackgroundParameter.h" />
+    <ClInclude Include="Source\Stage\Background\BackgroundRenderer.h" />
     <ClInclude Include="Source\Stage\ColorGlassRenderer.h" />
     <ClInclude Include="Source\Stage\ColorLightRenderer.h" />
     <ClInclude Include="Source\Stage\Editor\StageDebugOverlay.h" />

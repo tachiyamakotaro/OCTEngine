@@ -195,6 +195,11 @@ namespace app
 		{
 			m_goalEditor.Draw(*m_targets.clearSequence, *m_targets.goalGateRenderer, *m_targets.irisWipe);
 		}
+		// ---- ステージの奥の背景（回廊・松明・ステージの外の色） ----
+		if (ImGui::CollapsingHeader("Background"))
+		{
+			m_backgroundEditor.Draw(*m_targets.backgroundRenderer);
+		}
 		// ---- 動きの調整 ----
 		if (ImGui::CollapsingHeader("Tuning"))
 		{
@@ -288,7 +293,8 @@ namespace app
 		const InGameEditTargets& t = m_targets;
 		return t.player != nullptr && t.stage != nullptr && t.stageTimer != nullptr && t.timerUI != nullptr
 			&& t.mirrorPromptUI != nullptr && t.camera != nullptr && t.sePlayer != nullptr && t.overlay != nullptr
-			&& t.mirrorGlass != nullptr && t.darknessRenderer != nullptr && t.stageRenderer != nullptr && t.gimmickRenderer != nullptr
+			&& t.mirrorGlass != nullptr && t.darknessRenderer != nullptr && t.stageRenderer != nullptr && t.backgroundRenderer != nullptr
+			&& t.gimmickRenderer != nullptr
 			&& t.gimmickMarkRenderer != nullptr && t.mistEffect != nullptr
 			&& t.clearSequence != nullptr && t.goalGateRenderer != nullptr && t.irisWipe != nullptr;
 	}

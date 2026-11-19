@@ -102,6 +102,8 @@ namespace app
 		rendererConfig.isPlane = false;
 		rendererConfig.isPivotAtBottom = true;
 		m_stageRenderer.Init(rendererConfig);
+		// ステージの奥の背景（遺跡の回廊と松明。Assets/modelData/background/ と Assets/shader/background.fx）
+		m_backgroundRenderer.Init();
 
 		// 光（半透明。Assets/shader/lightBeam.fx）
 		m_lightBeamRenderer.Init(app::render::LightBeamRenderer::Config());
@@ -169,6 +171,7 @@ namespace app
 		editTargets.mirrorGlass = &m_mirrorGlass;
 		editTargets.darknessRenderer = &m_darknessRenderer;
 		editTargets.stageRenderer = &m_stageRenderer;
+		editTargets.backgroundRenderer = &m_backgroundRenderer;
 		editTargets.gimmickRenderer = &m_gimmickRenderer;
 		editTargets.gimmickMarkRenderer = &m_gimmickMarkRenderer;
 		editTargets.mistEffect = &m_mistEffect;
@@ -278,6 +281,8 @@ namespace app
 		}
 		// ガラスはカメラの位置を使うので、カメラを動かしたあとに更新する
 		m_mirrorGlass.Update(m_stage.GetBackMirror(), deltaTime);
+		// 背景も見えている所だけ置くので、カメラを動かしたあとに更新する
+		m_backgroundRenderer.Update(m_stage, *g_camera3D, m_gameCamera.GetParameter().isOrtho, deltaTime);
 		{
 			// 暗がりもカメラの向きを使うので、カメラを動かしたあとに更新する（プレイヤーのまわりは少し明るくする）
 			const app::math::Rect body = m_player.GetController().GetBounds();
@@ -307,6 +312,7 @@ namespace app
 
 	void DebugScene::Render(RenderContext& rc)
 	{
+		m_backgroundRenderer.Draw(rc);
 		m_stageRenderer.Draw(rc);
 		m_gimmickRenderer.Draw(rc);
 		m_goalGateRenderer.Draw(rc);
