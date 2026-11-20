@@ -303,6 +303,10 @@
     <ClCompile Include="Source\Render\MirrorGlass.cpp" />
     <ClCompile Include="Source\Render\MirrorGlassEditor.cpp" />
     <ClCompile Include="Source\Render\OutlineEditor.cpp" />
+    <ClCompile Include="Source\Result\CelebrationTimeline.cpp" />
+    <ClCompile Include="Source\Result\ResultPlayerModel.cpp" />
+    <ClCompile Include="Source\Result\TreasureRenderer.cpp" />
+    <ClCompile Include="Source\Result\TreasureRoom.cpp" />
     <ClCompile Include="Source\Save\SaveData.cpp" />
     <ClCompile Include="Source\Scene\DebugScene.cpp" />
     <ClCompile Include="Source\Scene\InGameEditor.cpp" />
@@ -377,6 +381,7 @@
     <ClCompile Include="Source\UI\MenuInput.cpp" />
     <ClCompile Include="Source\UI\MirrorPromptUI.cpp" />
     <ClCompile Include="Source\UI\PauseMenu.cpp" />
+    <ClCompile Include="Source\UI\ResultUI.cpp" />
     <ClCompile Include="Source\UI\SoundOptionMenu.cpp" />
     <ClCompile Include="Source\UI\StageIntroUI.cpp" />
     <ClCompile Include="Source\UI\TimerUI.cpp" />
@@ -434,6 +439,11 @@
     <ClInclude Include="Source\Render\MirrorGlassEditor.h" />
     <ClInclude Include="Source\Render\MirrorReflection.h" />
     <ClInclude Include="Source\Render\OutlineEditor.h" />
+    <ClInclude Include="Source\Result\CelebrationTimeline.h" />
+    <ClInclude Include="Source\Result\ResultParameter.h" />
+    <ClInclude Include="Source\Result\ResultPlayerModel.h" />
+    <ClInclude Include="Source\Result\TreasureRenderer.h" />
+    <ClInclude Include="Source\Result\TreasureRoom.h" />
     <ClInclude Include="Source\Save\SaveData.h" />
     <ClInclude Include="Source\Scene\DebugScene.h" />
     <ClInclude Include="Source\Scene\InGameEditor.h" />
@@ -520,6 +530,7 @@
     <ClInclude Include="Source\UI\MenuInput.h" />
     <ClInclude Include="Source\UI\MirrorPromptUI.h" />
     <ClInclude Include="Source\UI\PauseMenu.h" />
+    <ClInclude Include="Source\UI\ResultUI.h" />
     <ClInclude Include="Source\UI\SoundOptionMenu.h" />
     <ClInclude Include="Source\UI\StageIntroUI.h" />
     <ClInclude Include="Source\UI\TimerUI.h" />

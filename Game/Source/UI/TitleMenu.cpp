@@ -18,13 +18,17 @@ namespace
 		float pixelWidth;
 		float pixelHeight;
 	};
-	/** app::ui::TitleMenu::Item の順 */
+	/**
+	 * app::ui::TitleMenu::Item の順
+	 * 大きさは画像そのものの大きさ（文字のまわりで切ってあり、縦は全部同じ）。
+	 * 画像と比がちがうと文字が伸び縮みするので、画像を作り直したら Tools/make_title_result_sprites.py が出す大きさに合わせる
+	 */
 	constexpr ButtonImage BUTTON_IMAGES[] =
 	{
-		{ "Assets/sprite/title/button_continue.dds", 1560.0f, 256.0f },
-		{ "Assets/sprite/title/button_start.dds", 1046.0f, 256.0f },
-		{ "Assets/sprite/title/button_sound.dds", 1052.0f, 256.0f },
-		{ "Assets/sprite/title/button_quit.dds",   698.0f, 256.0f },
+		{ "Assets/sprite/title/button_continue.dds", 1861.0f, 316.0f },
+		{ "Assets/sprite/title/button_start.dds",    1181.0f, 316.0f },
+		{ "Assets/sprite/title/button_sound.dds",    1187.0f, 316.0f },
+		{ "Assets/sprite/title/button_quit.dds",      799.0f, 316.0f },
 	};
 	const char* const CURSOR_PATH = "Assets/sprite/title/block.dds";
 
@@ -34,10 +38,10 @@ namespace
 	 * @details ボタンの幅がちがうので、ボタンどうしのすき間（BUTTON_GAP）がそろい、全体が画面の真ん中に来る位置を
 	 *          TitleMenu::LayoutItems で計算する（ボタンを増やしても、ここは直さなくてよい）
 	 */
-	constexpr float BUTTON_GAP = 100.0f;
+	constexpr float BUTTON_GAP = 120.0f;
 	constexpr float BUTTON_Y = -380.0f;
-	/** ボタンの高さ（文字の上下の余白も含む） */
-	constexpr float BUTTON_HEIGHT = 80.0f;
+	/** ボタンの高さ（文字の上下の余白も含む。文字の高さはこの約 8 割） */
+	constexpr float BUTTON_HEIGHT = 56.0f;
 	/** ひし形の印の大きさと、ボタンの左端からの距離 */
 	constexpr float CURSOR_SIZE = 26.0f;
 	constexpr float CURSOR_GAP = 34.0f;
@@ -51,14 +55,14 @@ namespace
 	/** 決定したあとに点滅する速さ（1秒に何回） */
 	constexpr float BLINK_SPEED = 8.0f;
 	/**
-	 * @brief タイトルの背景は白いので、ポーズ画面（暗い背景）とは別の色にしている
-	 *        選んでいる項目は濃い色、選んでいない項目は薄い灰色。ひし形の印はロゴと同じ黄色
+	 * @brief タイトルの背景（遺跡の絵）は暗いので、ボタンは白い文字（地は透明）にして、色をかけて出す
+	 *        選んでいる項目はロゴと同じ黄色、選んでいない項目は明るい灰色。ひし形の印もロゴと同じ黄色
 	 */
 	const Vector4 TITLE_COLOR_SELECTED(1.0f, 0.82f, 0.05f, 1.0f);
-	const Vector4 TITLE_COLOR_NORMAL(0.70f, 0.70f, 0.72f, 1.0f);
+	const Vector4 TITLE_COLOR_NORMAL(0.82f, 0.82f, 0.86f, 1.0f);
 	const Vector4 TITLE_COLOR_CURSOR(1.0f, 0.80f, 0.0f, 1.0f);
 	/** 選べない項目（続きの記録がないときの CONTINUE）は薄くする */
-	const Vector4 TITLE_COLOR_DISABLED(0.70f, 0.70f, 0.72f, 0.3f);
+	const Vector4 TITLE_COLOR_DISABLED(0.82f, 0.82f, 0.86f, 0.3f);
 }
 
 

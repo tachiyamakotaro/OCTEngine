@@ -73,6 +73,9 @@
     <Filter Include="Source\Stage\Background">
       <UniqueIdentifier>{488e2675-85f5-4c6d-9c90-e746e38d56a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Result">
+      <UniqueIdentifier>{ae0d90c6-fb5b-4cf8-99c9-892367eec492}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -428,6 +431,21 @@
     </ClCompile>
     <ClCompile Include="Source\Stage\Background\BackgroundRenderer.cpp">
       <Filter>Source\Stage\Background</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Result\CelebrationTimeline.cpp">
+      <Filter>Source\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Result\ResultPlayerModel.cpp">
+      <Filter>Source\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Result\TreasureRenderer.cpp">
+      <Filter>Source\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Result\TreasureRoom.cpp">
+      <Filter>Source\Result</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\ResultUI.cpp">
+      <Filter>Source\UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -840,6 +858,24 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\Background\BackgroundRenderer.h">
       <Filter>Source\Stage\Background</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Result\CelebrationTimeline.h">
+      <Filter>Source\Result</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Result\ResultParameter.h">
+      <Filter>Source\Result</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Result\ResultPlayerModel.h">
+      <Filter>Source\Result</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Result\TreasureRenderer.h">
+      <Filter>Source\Result</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Result\TreasureRoom.h">
+      <Filter>Source\Result</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\ResultUI.h">
+      <Filter>Source\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -21,15 +21,29 @@ namespace
 	const char* const LABEL_SE_PATH = "Assets/sprite/pause/label_se.dds";
 	const char* const LABEL_BACK_PATH = "Assets/sprite/pause/label_back.dds";
 	const char* const BUTTON_B_PATH = "Assets/sprite/pause/button_b.dds";
+	/**
+	 * 文字の画像は、文字の大きさと縦の範囲がそろえてあり、高さは全部 TEXT_PIXEL_H（Tools/make_menu_sprites.py が出す大きさ）。
+	 * 同じ高さで出せば、どの文字も同じ大きさになる（大文字の高さは、出す高さの約 8 割）
+	 */
+	constexpr float TEXT_PIXEL_H = 306.0f;
+	constexpr float TITLE_PIXEL_W = 1152.0f;
+	constexpr float LABEL_MASTER_PIXEL_W = 1149.0f;
+	constexpr float LABEL_BGM_PIXEL_W = 764.0f;
+	constexpr float LABEL_SE_PIXEL_W = 476.0f;
+	constexpr float LABEL_BACK_PIXEL_W = 925.0f;
+	/** B ボタンの絵（絵のまわりで切ってある） */
+	constexpr float BUTTON_PIXEL_W = 104.0f;
+	constexpr float BUTTON_PIXEL_H = 102.0f;
 
 	/** 背景の濃さ */
 	constexpr float BACKGROUND_ALPHA = 0.65f;
 
 	// ---- 配置（画面の真ん中が原点、上が +Y。画面は 1920x1080） ----
 	constexpr float TITLE_Y = 300.0f;
-	constexpr float TITLE_HEIGHT = 120.0f;
+	constexpr float TITLE_HEIGHT = 90.0f;
 	constexpr float ROW_Y[] = { 110.0f, -30.0f, -170.0f };
-	constexpr float LABEL_HEIGHT = 70.0f;
+	/** 文字の高さ（大文字の高さが、目盛りの大きさとだいたい同じになる） */
+	constexpr float LABEL_HEIGHT = 56.0f;
 	/** 文字の右端のX（右寄せにする） */
 	constexpr float LABEL_RIGHT_X = -230.0f;
 	/** 目盛りの1つ目の中心のX と間隔・大きさ */
@@ -41,8 +55,10 @@ namespace
 
 	constexpr float GUIDE_X = 640.0f;
 	constexpr float GUIDE_Y = -430.0f;
-	constexpr float GUIDE_ICON_SIZE = 80.0f;
-	constexpr float GUIDE_LABEL_HEIGHT = 50.0f;
+	constexpr float GUIDE_ICON_SIZE = 60.0f;
+	constexpr float GUIDE_LABEL_HEIGHT = 40.0f;
+	/** 案内のボタンの絵と文字のすき間 */
+	constexpr float GUIDE_LABEL_GAP = 10.0f;
 
 	/** 音量を1回で変える量 */
 	constexpr float VOLUME_STEP = 0.1f;
@@ -56,10 +72,10 @@ namespace app
 		void SoundOptionMenu::Init()
 		{
 			m_background.InitFullScreen(BACKGROUND_PATH);
-			m_title.Init(TITLE_PATH, 1155.0f, 268.0f, TITLE_HEIGHT);
-			m_labels[static_cast<int>(Item::Master)].Init(LABEL_MASTER_PATH, 442.0f, 96.0f, LABEL_HEIGHT);
-			m_labels[static_cast<int>(Item::BGM)].Init(LABEL_BGM_PATH, 252.0f, 96.0f, LABEL_HEIGHT);
-			m_labels[static_cast<int>(Item::SE)].Init(LABEL_SE_PATH, 147.0f, 96.0f, LABEL_HEIGHT);
+			m_title.Init(TITLE_PATH, TITLE_PIXEL_W, TEXT_PIXEL_H, TITLE_HEIGHT);
+			m_labels[static_cast<int>(Item::Master)].Init(LABEL_MASTER_PATH, LABEL_MASTER_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
+			m_labels[static_cast<int>(Item::BGM)].Init(LABEL_BGM_PATH, LABEL_BGM_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
+			m_labels[static_cast<int>(Item::SE)].Init(LABEL_SE_PATH, LABEL_SE_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
 			for (auto& row : m_volumeBlocks)
 			{
 				for (UISprite& block : row)
@@ -68,15 +84,15 @@ namespace app
 				}
 			}
 			m_cursor.Init(BLOCK_PATH, 64.0f, 64.0f, CURSOR_SIZE);
-			m_buttonB.Init(BUTTON_B_PATH, 128.0f, 128.0f, GUIDE_ICON_SIZE);
-			m_labelBack.Init(LABEL_BACK_PATH, 304.0f, 96.0f, GUIDE_LABEL_HEIGHT);
+			m_buttonB.Init(BUTTON_B_PATH, BUTTON_PIXEL_W, BUTTON_PIXEL_H, GUIDE_ICON_SIZE);
+			m_labelBack.Init(LABEL_BACK_PATH, LABEL_BACK_PIXEL_W, TEXT_PIXEL_H, GUIDE_LABEL_HEIGHT);
 
 			// 動かない画像はここで置いておく
 			m_background.Place(0.0f, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, BACKGROUND_ALPHA));
 			m_title.Place(0.0f, TITLE_Y, 1.0f, menu_color::Selected);
 			// 案内：B BACK（右下）
 			m_buttonB.Place(GUIDE_X, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelBack.Place(GUIDE_X + GUIDE_ICON_SIZE * 0.5f + 10.0f + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
+			m_labelBack.Place(GUIDE_X + m_buttonB.width * 0.5f + GUIDE_LABEL_GAP + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
 		}
 
 

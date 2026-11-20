@@ -21,13 +21,29 @@ namespace
 	const char* const BUTTON_B_PATH = "Assets/sprite/pause/button_b.dds";
 	const char* const ITEM_QUIT_PATH = "Assets/sprite/pause/item_quit.dds";
 
+	// ---- 画像の大きさ（縦横の比を出すために使う。Tools/make_menu_sprites.py が出す大きさ） ----
+	/**
+	 * 文字の画像は、文字の大きさと縦の範囲がそろえてあり、高さは全部 TEXT_PIXEL_H。
+	 * 同じ高さで出せば、どの文字も同じ大きさになる（大文字の高さは、出す高さの約 8 割）
+	 */
+	constexpr float TEXT_PIXEL_H = 306.0f;
+	constexpr float PAUSE_TITLE_PIXEL_W = 1136.0f;
+	constexpr float ITEM_SOUND_PIXEL_W = 1152.0f;
+	constexpr float ITEM_TITLE_PIXEL_W = 1050.0f;
+	constexpr float ITEM_QUIT_PIXEL_W = 774.0f;
+	constexpr float LABEL_OK_PIXEL_W = 540.0f;
+	constexpr float LABEL_BACK_PIXEL_W = 925.0f;
+	/** A・B ボタンの絵（絵のまわりで切ってある） */
+	constexpr float BUTTON_PIXEL_W = 104.0f;
+	constexpr float BUTTON_PIXEL_H = 102.0f;
+
 	/** 背景の濃さ */
 	constexpr float BACKGROUND_ALPHA = 0.65f;
 
 	// ---- 配置（画面の真ん中が原点、上が +Y。画面は 1920x1080） ----
 	constexpr float PAUSE_TITLE_Y = 260.0f;
-	constexpr float PAUSE_TITLE_HEIGHT = 170.0f;
-	constexpr float MAIN_ITEM_HEIGHT = 95.0f;
+	constexpr float PAUSE_TITLE_HEIGHT = 120.0f;
+	constexpr float MAIN_ITEM_HEIGHT = 68.0f;
 
 	constexpr float MAIN_ITEM_Y[] = { 40.0f, -100.0f ,-240.0f };
 	static_assert(sizeof(MAIN_ITEM_Y) / sizeof(MAIN_ITEM_Y[0]) ==
@@ -37,8 +53,10 @@ namespace
 	constexpr float CURSOR_GAP = 50.0f;
 
 	constexpr float GUIDE_Y = -430.0f;
-	constexpr float GUIDE_ICON_SIZE = 80.0f;
-	constexpr float GUIDE_LABEL_HEIGHT = 50.0f;
+	constexpr float GUIDE_ICON_SIZE = 60.0f;
+	constexpr float GUIDE_LABEL_HEIGHT = 40.0f;
+	/** 案内のボタンの絵と文字のすき間 */
+	constexpr float GUIDE_LABEL_GAP = 10.0f;
 
 	/** 選んでいる項目の大きさ */
 	constexpr float SELECTED_SCALE = 1.12f;
@@ -63,17 +81,17 @@ namespace app
 		{
 			// 画面いっぱいの背景（小さい黒い画像を引き伸ばす）
 			m_background.InitFullScreen(BACKGROUND_PATH);
-			m_pauseTitle.Init(PAUSE_TITLE_PATH, 973.0f, 235.0f, PAUSE_TITLE_HEIGHT);
+			m_pauseTitle.Init(PAUSE_TITLE_PATH, PAUSE_TITLE_PIXEL_W, TEXT_PIXEL_H, PAUSE_TITLE_HEIGHT);
 
-			m_mainItems[static_cast<int>(MainItem::Sound)].Init(ITEM_SOUND_PATH, 1155.0f, 268.0f, MAIN_ITEM_HEIGHT);
-			m_mainItems[static_cast<int>(MainItem::Title)].Init(ITEM_TITLE_PATH, 1025.0f, 265.0f, MAIN_ITEM_HEIGHT);
-			m_mainItems[static_cast<int>(MainItem::Quit)].Init(ITEM_QUIT_PATH, 698.0f, 256.0f, MAIN_ITEM_HEIGHT);
+			m_mainItems[static_cast<int>(MainItem::Sound)].Init(ITEM_SOUND_PATH, ITEM_SOUND_PIXEL_W, TEXT_PIXEL_H, MAIN_ITEM_HEIGHT);
+			m_mainItems[static_cast<int>(MainItem::Title)].Init(ITEM_TITLE_PATH, ITEM_TITLE_PIXEL_W, TEXT_PIXEL_H, MAIN_ITEM_HEIGHT);
+			m_mainItems[static_cast<int>(MainItem::Quit)].Init(ITEM_QUIT_PATH, ITEM_QUIT_PIXEL_W, TEXT_PIXEL_H, MAIN_ITEM_HEIGHT);
 
 			m_cursor.Init(BLOCK_PATH, 64.0f, 64.0f, CURSOR_SIZE);
-			m_buttonA.Init(BUTTON_A_PATH, 128.0f, 128.0f, GUIDE_ICON_SIZE);
-			m_buttonB.Init(BUTTON_B_PATH, 128.0f, 128.0f, GUIDE_ICON_SIZE);
-			m_labelOk.Init(LABEL_OK_PATH, 171.0f, 96.0f, GUIDE_LABEL_HEIGHT);
-			m_labelBack.Init(LABEL_BACK_PATH, 304.0f, 96.0f, GUIDE_LABEL_HEIGHT);
+			m_buttonA.Init(BUTTON_A_PATH, BUTTON_PIXEL_W, BUTTON_PIXEL_H, GUIDE_ICON_SIZE);
+			m_buttonB.Init(BUTTON_B_PATH, BUTTON_PIXEL_W, BUTTON_PIXEL_H, GUIDE_ICON_SIZE);
+			m_labelOk.Init(LABEL_OK_PATH, LABEL_OK_PIXEL_W, TEXT_PIXEL_H, GUIDE_LABEL_HEIGHT);
+			m_labelBack.Init(LABEL_BACK_PATH, LABEL_BACK_PIXEL_W, TEXT_PIXEL_H, GUIDE_LABEL_HEIGHT);
 
 			// サウンドオプション画面（タイトルメニューと共通）
 			m_soundOption.Init();
@@ -175,9 +193,9 @@ namespace app
 
 			// 案内：A OK / B BACK（右下）
 			m_buttonA.Place(430.0f, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelOk.Place(430.0f + GUIDE_ICON_SIZE * 0.5f + 10.0f + m_labelOk.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
+			m_labelOk.Place(430.0f + m_buttonA.width * 0.5f + GUIDE_LABEL_GAP + m_labelOk.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
 			m_buttonB.Place(640.0f, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelBack.Place(640.0f + GUIDE_ICON_SIZE * 0.5f + 10.0f + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
+			m_labelBack.Place(640.0f + m_buttonB.width * 0.5f + GUIDE_LABEL_GAP + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
 		}
 
 
