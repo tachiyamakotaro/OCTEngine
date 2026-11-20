@@ -378,6 +378,12 @@
     <ClCompile Include="Source\Stage\StageRenderer.cpp" />
     <ClCompile Include="Source\Stage\Stages\Stage01.cpp" />
     <ClCompile Include="Source\Timer\StageTimer.cpp" />
+    <ClCompile Include="Source\Title\EntranceTimeline.cpp" />
+    <ClCompile Include="Source\Title\RuinEntrance.cpp" />
+    <ClCompile Include="Source\Title\TitleCamera.cpp" />
+    <ClCompile Include="Source\Title\TitleDirector.cpp" />
+    <ClCompile Include="Source\Title\TitlePlayerModel.cpp" />
+    <ClCompile Include="Source\Title\TitleSkyRenderer.cpp" />
     <ClCompile Include="Source\UI\MenuInput.cpp" />
     <ClCompile Include="Source\UI\MirrorPromptUI.cpp" />
     <ClCompile Include="Source\UI\PauseMenu.cpp" />
@@ -526,6 +532,13 @@
     <ClInclude Include="Source\Stage\Stages\Stage01.h" />
     <ClInclude Include="Source\Timer\StageTimer.h" />
     <ClInclude Include="Source\Timer\TimerParameter.h" />
+    <ClInclude Include="Source\Title\EntranceTimeline.h" />
+    <ClInclude Include="Source\Title\RuinEntrance.h" />
+    <ClInclude Include="Source\Title\TitleCamera.h" />
+    <ClInclude Include="Source\Title\TitleDirector.h" />
+    <ClInclude Include="Source\Title\TitleParameter.h" />
+    <ClInclude Include="Source\Title\TitlePlayerModel.h" />
+    <ClInclude Include="Source\Title\TitleSkyRenderer.h" />
     <ClInclude Include="Source\UI\GimmickIconTable.h" />
     <ClInclude Include="Source\UI\MenuInput.h" />
     <ClInclude Include="Source\UI\MirrorPromptUI.h" />

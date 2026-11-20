@@ -76,6 +76,9 @@
     <Filter Include="Source\Result">
       <UniqueIdentifier>{ae0d90c6-fb5b-4cf8-99c9-892367eec492}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Title">
+      <UniqueIdentifier>{3e306633-2019-4f8e-b09c-c9203d1fa0b5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -446,6 +449,24 @@
     </ClCompile>
     <ClCompile Include="Source\UI\ResultUI.cpp">
       <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Title\EntranceTimeline.cpp">
+      <Filter>Source\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Title\RuinEntrance.cpp">
+      <Filter>Source\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Title\TitlePlayerModel.cpp">
+      <Filter>Source\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Title\TitleSkyRenderer.cpp">
+      <Filter>Source\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Title\TitleCamera.cpp">
+      <Filter>Source\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Title\TitleDirector.cpp">
+      <Filter>Source\Title</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -876,6 +897,27 @@
     </ClInclude>
     <ClInclude Include="Source\UI\ResultUI.h">
       <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\EntranceTimeline.h">
+      <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\RuinEntrance.h">
+      <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\TitleParameter.h">
+      <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\TitlePlayerModel.h">
+      <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\TitleSkyRenderer.h">
+      <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\TitleCamera.h">
+      <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Title\TitleDirector.h">
+      <Filter>Source\Title</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

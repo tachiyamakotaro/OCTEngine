@@ -15,36 +15,37 @@ namespace app
 			/** 門の光に使うシーンのポイントライトの番号（宝物の間の宝石の光と同じ 0 番。同時には使わない） */
 			constexpr int GATE_LIGHT_INDEX = 0;
 
-			/** 地面の奥行き（Z = -200〜200）と、建物の奥行き（Z = -50〜50） */
-			constexpr float GROUND_DEPTH = 400.0f;
-			constexpr float RUIN_DEPTH = 100.0f;
+			/** 地面の奥行き（Z = -300〜300）と、建物の奥行き（Z = -20〜20） */
+			constexpr float GROUND_DEPTH = 600.0f;
+			constexpr float RUIN_DEPTH = 40.0f;
+
+			/** 門のモデル（goal_gate.tkm）の奥行き（足元から奥の面まで。大きさ 1 のとき） */
+			constexpr float GATE_MODEL_DEPTH = 150.0f;
+			/** 門の奥の面と、壁の手前の面のすき間（ぴったりだとちらつくので少しあける） */
+			constexpr float GATE_WALL_GAP = 2.0f;
 
 			/**
 			 * @brief 遺跡の建物の形（門の真ん中 gateX からの距離。地面の上が y = 0）
-			 * @details 門のモデル（goal_gate.tkm）は幅 252・高さ 272。口は門より少し広く・高くして、門が建物にめり込まないようにする
+			 * @details 門は壁より手前に置くので、壁に口は空けない（門の後ろも壁でふさぐ）
+			 *          門（大きさ 1.4 で幅 353・高さ 381）より高い壁にして、右へ段々に高くする
 			 *
-			 *                      ┌──────────── 3段目
-			 *                ┌─────┘
+			 *                     ┌──────────── 3段目
+			 *                ┌────┘
 			 *            ┌───┘ 2段目
-			 *          ┌─┴─────────────────── まぐさ石（口の上）
-			 *          │左│  門の口  │右の壁 → 画面の右の外まで
-			 *     ─────┴──┴──────────┴──────────── 地面
+			 *            │   ┌──門──┐
+			 *            │壁 │      │        → 画面の右の外まで
+			 *     ───────┴───┴──────┴──────────── 地面
 			 */
 			namespace ruin_shape
 			{
-				/** 門の口の半分の幅と、口の高さ */
-				constexpr float OPENING_HALF_WIDTH = 130.0f;
-				constexpr float OPENING_HEIGHT = 285.0f;
-				/** 口の左の柱の幅 */
-				constexpr float LEFT_JAMB_WIDTH = 70.0f;
-				/** まぐさ石の高さと、左の柱からはみ出す長さ */
-				constexpr float LINTEL_HEIGHT = 80.0f;
-				constexpr float LINTEL_OVERHANG = 20.0f;
+				/** 壁の左端（門の真ん中から）と高さ */
+				constexpr float WALL_LEFT = -220.0f;
+				constexpr float WALL_HEIGHT = 450.0f;
 				/** 2段目・3段目の左端（門の真ん中から）と高さ */
-				constexpr float TIER2_LEFT = -150.0f;
+				constexpr float TIER2_LEFT = -130.0f;
 				constexpr float TIER2_HEIGHT = 90.0f;
-				constexpr float TIER3_LEFT = -60.0f;
-				constexpr float TIER3_HEIGHT = 400.0f;
+				constexpr float TIER3_LEFT = -20.0f;
+				constexpr float TIER3_HEIGHT = 500.0f;
 				/** 建物の右端（門の真ん中から。画面の右の外まで伸ばす） */
 				constexpr float RIGHT_END = 900.0f;
 			}
@@ -84,7 +85,11 @@ namespace app
 			BuildRuin();
 			m_groundRenderer.Init(MakeRendererConfig(GROUND_DEPTH));
 			m_ruinRenderer.Init(MakeRendererConfig(RUIN_DEPTH));
-			m_gateRenderer.Init();
+			// 門は大きくして、奥の面が壁の手前の面にくっつくように手前へ出す
+			stage::GateStyle gateStyle;
+			gateStyle.scale = m_layout.gateScale;
+			gateStyle.footZ = -RUIN_DEPTH * 0.5f - GATE_MODEL_DEPTH * m_layout.gateScale - GATE_WALL_GAP;
+			m_gateRenderer.Init(gateStyle);
 
 			stage::ClearTiming timing;
 			timing.doorOpenTime = doorOpenTime;
@@ -151,20 +156,13 @@ namespace app
 			m_ruin.SetName("TitleRuin");
 			const float g = m_layout.gateX;
 
-			// ---- 遺跡の建物（門の口を空けて、右へ段々に高くなる） ----
-			const float openingLeft = g - shape::OPENING_HALF_WIDTH;
-			const float openingRight = g + shape::OPENING_HALF_WIDTH;
-			const float jambLeft = openingLeft - shape::LEFT_JAMB_WIDTH;
+			// ---- 遺跡の建物（門の後ろも壁でふさぎ、右へ段々に高くなる） ----
 			const float right = g + shape::RIGHT_END;
-			const float lintelTop = shape::OPENING_HEIGHT + shape::LINTEL_HEIGHT;
-			const float tier2Top = lintelTop + shape::TIER2_HEIGHT;
-
-			m_ruin.Add<StageBlock>("JambLeft", jambLeft, 0.0f, shape::LEFT_JAMB_WIDTH, shape::OPENING_HEIGHT);
-			m_ruin.Add<StageBlock>("WallRight", openingRight, 0.0f, right - openingRight, shape::OPENING_HEIGHT);
-			m_ruin.Add<StageBlock>("Lintel", jambLeft - shape::LINTEL_OVERHANG, shape::OPENING_HEIGHT,
-				right - (jambLeft - shape::LINTEL_OVERHANG), shape::LINTEL_HEIGHT);
-			m_ruin.Add<StageBlock>("Tier2", g + shape::TIER2_LEFT, lintelTop, right - (g + shape::TIER2_LEFT), shape::TIER2_HEIGHT);
-			m_ruin.Add<StageBlock>("Tier3", g + shape::TIER3_LEFT, tier2Top, right - (g + shape::TIER3_LEFT), shape::TIER3_HEIGHT);
+			const float tier2Bottom = shape::WALL_HEIGHT;
+			const float tier3Bottom = tier2Bottom + shape::TIER2_HEIGHT;
+			m_ruin.Add<StageBlock>("Wall", g + shape::WALL_LEFT, 0.0f, right - (g + shape::WALL_LEFT), shape::WALL_HEIGHT);
+			m_ruin.Add<StageBlock>("Tier2", g + shape::TIER2_LEFT, tier2Bottom, right - (g + shape::TIER2_LEFT), shape::TIER2_HEIGHT);
+			m_ruin.Add<StageBlock>("Tier3", g + shape::TIER3_LEFT, tier3Bottom, right - (g + shape::TIER3_LEFT), shape::TIER3_HEIGHT);
 
 			// ---- 遺跡の外の崩れた柱と石（プレイヤーが走ってくる所の奥） ----
 			m_ruin.Add<StageBlock>("PillarA", -470.0f, 0.0f, 50.0f, 230.0f);
@@ -183,7 +181,9 @@ namespace app
 			const float openRate = (m_gate != nullptr) ? m_doorSequence.GetDoorOpenRate(*m_gate) : 0.0f;
 			auto& light = SceneLight::GetInstance()->GetSceneLight();
 			auto& point = light.ptLights[GATE_LIGHT_INDEX];
-			point.position = Vector3(m_layout.gateX, m_lightStyle.height, m_lightStyle.z);
+			// 門の足元（手前へ出している）からの位置
+			const float footZ = m_gateRenderer.GetStyle().footZ;
+			point.position = Vector3(m_layout.gateX, m_lightStyle.height, footZ + m_lightStyle.z);
 			point.range = m_lightStyle.range;
 			const float intensity = m_lightStyle.intensity * openRate;
 			point.color = Vector3(m_lightStyle.color[0] * intensity, m_lightStyle.color[1] * intensity, m_lightStyle.color[2] * intensity);

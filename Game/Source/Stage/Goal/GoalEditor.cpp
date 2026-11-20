@@ -78,6 +78,10 @@ namespace app
 			ImGui::SetItemTooltip("The doors open to the back. If they open to the front, make this negative.");
 			ImGui::SliderFloat("Preview Open", &style.previewOpenRate, 0.0f, 1.0f, "%.2f");
 			ImGui::SetItemTooltip("Open every door by this rate without clearing (for checking). Set 0 to play.");
+			ImGui::SliderFloat("Scale", &style.scale, 0.5f, 3.0f, "%.2f");
+			ImGui::SetItemTooltip("Size of the gate (doors, light and torches together). 1 = model size.");
+			ImGui::SliderFloat("Foot Z", &style.footZ, -400.0f, 200.0f, "%.0f");
+			ImGui::SetItemTooltip("Depth of the gate's foot. Minus brings it to the front.");
 			DrawGlowColor("Light Closed", style.lightClosed);
 			DrawGlowColor("Light Open", style.lightOpen);
 			DrawGlowColor("Light Core", style.lightCore);

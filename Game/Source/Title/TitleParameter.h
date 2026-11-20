@@ -47,25 +47,30 @@ namespace app
 		{
 			// ---- 門 ----
 			/** 門の真ん中の X */
-			float gateX = 420.0f;
+			float gateX = 450.0f;
+			/**
+			 * 門の大きさ（1 = ステージのゴールの門と同じ。幅 252・高さ 272 が、1.4 で 353・381 になる）
+			 * 門は遺跡の壁より手前に置く（奥行きは RuinEntrance.cpp で、壁の手前の面と門の奥行きから決める）
+			 */
+			float gateScale = 1.4f;
 
 			// ---- プレイヤー ----
 			/** 走り始める X（画面の左の外） */
 			float playerStartX = -800.0f;
 			/** 始まったときに止まって待つ X（門の少し手前。門の左の柱より左） */
-			float playerWaitX = 160.0f;
+			float playerWaitX = 150.0f;
 			/** START / CONTINUE を押したあとに止まる X（門の前。gateX とそろえる） */
-			float playerStopX = 420.0f;
-			/** 走る所の奥行き（遺跡の壁の手前の面 -50 より手前。地面の手前の面は -200） */
-			float playerZ = -120.0f;
+			float playerStopX = 450.0f;
+			/** 走る所の奥行き（門の手前の面 -225 より手前。地面の手前の面は -300） */
+			float playerZ = -280.0f;
 			/** 門のほうを向いたときの角度（0 = 奥を向いて背中が見える、90 = 右向き。少し横顔が見えるように） */
 			float faceGateDeg = 15.0f;
 
 			// ---- カメラ（平行投影。ゲームと同じく、注視点の手前から少し上から見る） ----
 			float cameraTargetX = 0.0f;
-			float cameraTargetY = 170.0f;
-			/** 縦に映る範囲（プレイヤーが画面の 1/5 くらいの高さに見える） */
-			float viewHeight = 700.0f;
+			float cameraTargetY = 200.0f;
+			/** 縦に映る範囲（門を大きくしたので少し広く。プレイヤーは画面の 1/6 くらいの高さに見える） */
+			float viewHeight = 760.0f;
 			/** 注視点からカメラまでの距離と高さ（GameCamera と同じ） */
 			float cameraDistance = 1100.0f;
 			float cameraHeight = 150.0f;
@@ -83,9 +88,9 @@ namespace app
 		 */
 		struct GateLightStyle
 		{
-			/** 門の足元からの高さと奥行き（門の手前に置くと、門の前に立つプレイヤーと地面が照らされる） */
-			float height = 120.0f;
-			float z = -100.0f;
+			/** 門の足元からの高さと奥行き（門の足元からの Z。手前に置くと、門の前に立つプレイヤーと地面が照らされる） */
+			float height = 160.0f;
+			float z = -60.0f;
 			/** 届く距離と強さ */
 			float range = 650.0f;
 			float intensity = 1.8f;

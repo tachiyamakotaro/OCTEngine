@@ -20,7 +20,8 @@ namespace app
 
 		/**
 		 * @brief ゴールの門を描く
-		 * @details ・ゴールの矩形の下端の真ん中に、門を実寸のまま置く（矩形の大きさを変えても門の大きさは変わらない）
+		 * @details ・ゴールの矩形の下端の真ん中に、門を置く（矩形の大きさを変えても門の大きさは変わらない）
+		 *            大きさは GateStyle::scale、奥行きは GateStyle::footZ（ゲームではどちらもそのまま＝1 と 0）
 		 *          ・モデルは Assets/modelData/object/ の goal_～.tkm（Tools/gen_goal_models.py で作った）
 		 *              goal_gate   … 門（段・柱・枠・まぐさ石・松明の金具）。ModelRender（model.fx）で描く
 		 *              goal_door_l / goal_door_r … 扉。ちょうつがいを原点にして、Y 軸まわりに回して奥へ開く
@@ -132,8 +133,10 @@ namespace app
 			 * @param phase ゆらめきをずらす角度
 			 */
 			Vector3 CalcFlameScale(float phase) const;
-			/** 門の足元（ゴールの矩形の下端の真ん中。奥行きは 0） */
-			static Vector3 GetFoot(const stage::Goal& goal);
+			/** 門の足元（ゴールの矩形の下端の真ん中。奥行きは GateStyle::footZ） */
+			Vector3 GetFoot(const stage::Goal& goal) const;
+			/** 門の大きさ（GateStyle::scale を3つの向きにそろえた物） */
+			Vector3 GetScale() const;
 
 		private:
 			/** 見た目 */

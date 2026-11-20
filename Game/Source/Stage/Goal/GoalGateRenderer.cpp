@@ -166,7 +166,10 @@ namespace app
 
 		void GoalGateRenderer::PlaceGate(Gate& gate, const Vector3& foot, const float openRate)
 		{
+			// 門の形の値（ちょうつがいの位置など）も、門の大きさに合わせる
+			const float s = m_style.scale;
 			gate.frame.SetPosition(foot);
+			gate.frame.SetScale(GetScale());
 			gate.frame.Update();
 
 			// 扉は奥（+Z）へ開く。Y 軸まわりの回転は、+ で +X が -Z 側へ回る（DirectXMath の左手系）ので、
@@ -177,11 +180,13 @@ namespace app
 			Quaternion rightRotation;
 			rightRotation.SetRotationDegY(angle);
 
-			gate.doorLeft.SetPosition(foot + Vector3(-shape::DOOR_HINGE_X, 0.0f, shape::DOOR_HINGE_Z));
+			gate.doorLeft.SetPosition(foot + Vector3(-shape::DOOR_HINGE_X * s, 0.0f, shape::DOOR_HINGE_Z * s));
 			gate.doorLeft.SetRotation(leftRotation);
+			gate.doorLeft.SetScale(GetScale());
 			gate.doorLeft.Update();
-			gate.doorRight.SetPosition(foot + Vector3(shape::DOOR_HINGE_X, 0.0f, shape::DOOR_HINGE_Z));
+			gate.doorRight.SetPosition(foot + Vector3(shape::DOOR_HINGE_X * s, 0.0f, shape::DOOR_HINGE_Z * s));
 			gate.doorRight.SetRotation(rightRotation);
+			gate.doorRight.SetScale(GetScale());
 			gate.doorRight.Update();
 		}
 
@@ -192,7 +197,7 @@ namespace app
 			const GlowColor color = GlowColor::Lerp(m_style.lightClosed, m_style.lightOpen, openRate);
 			const GlowColor core = GlowColor::Lerp(m_style.lightClosed, m_style.lightCore, openRate);
 			gate.light.SetColor(color, core);
-			gate.light.Place(foot, Vector3::One);
+			gate.light.Place(foot, GetScale());
 		}
 
 
@@ -200,8 +205,9 @@ namespace app
 		{
 			gate.flameLeft.SetColor(m_style.flameOuter, m_style.flameInner);
 			gate.flameRight.SetColor(m_style.flameOuter, m_style.flameInner);
-			gate.flameLeft.Place(foot + Vector3(-shape::TORCH_X, shape::TORCH_TOP_Y, shape::TORCH_Z), CalcFlameScale(seed));
-			gate.flameRight.Place(foot + Vector3(shape::TORCH_X, shape::TORCH_TOP_Y, shape::TORCH_Z), CalcFlameScale(seed + FLAME_PHASE_OFFSET));
+			const float s = m_style.scale;
+			gate.flameLeft.Place(foot + Vector3(-shape::TORCH_X * s, shape::TORCH_TOP_Y * s, shape::TORCH_Z * s), CalcFlameScale(seed));
+			gate.flameRight.Place(foot + Vector3(shape::TORCH_X * s, shape::TORCH_TOP_Y * s, shape::TORCH_Z * s), CalcFlameScale(seed + FLAME_PHASE_OFFSET));
 		}
 
 
@@ -213,15 +219,22 @@ namespace app
 			const float height = m_style.flameHeight * (1.0f + m_style.flickerAmount * wave);
 			// 高くなったときは少し細く（炎が伸び縮みしているように見せる）
 			const float width = m_style.flameWidth * (1.0f - m_style.flickerAmount * 0.5f * wave);
-			// 炎のモデルは高さ 1・幅 1
-			return Vector3(width, height, width);
+			// 炎のモデルは高さ 1・幅 1（門の大きさに合わせる）
+			const float s = m_style.scale;
+			return Vector3(width * s, height * s, width * s);
 		}
 
 
-		Vector3 GoalGateRenderer::GetFoot(const stage::Goal& goal)
+		Vector3 GoalGateRenderer::GetFoot(const stage::Goal& goal) const
 		{
 			const math::Rect& rect = goal.rect;
-			return Vector3((rect.min.x + rect.max.x) * 0.5f, rect.min.y, 0.0f);
+			return Vector3((rect.min.x + rect.max.x) * 0.5f, rect.min.y, m_style.footZ);
+		}
+
+
+		Vector3 GoalGateRenderer::GetScale() const
+		{
+			return Vector3(m_style.scale, m_style.scale, m_style.scale);
 		}
 	}
 }
