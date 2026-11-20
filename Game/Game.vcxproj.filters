@@ -468,6 +468,9 @@
     <ClCompile Include="Source\Title\TitleDirector.cpp">
       <Filter>Source\Title</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\LoadingUI.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -918,6 +921,9 @@
     </ClInclude>
     <ClInclude Include="Source\Title\TitleDirector.h">
       <Filter>Source\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\LoadingUI.h">
+      <Filter>Source\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

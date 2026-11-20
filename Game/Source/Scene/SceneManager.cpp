@@ -30,6 +30,8 @@ namespace app
 	{
 		// ポーズ画面の画像を読み込む
 		m_pauseMenu.Init();
+		// ロード中の表示の画像を読み込む
+		m_loadingUI.Init();
 
 		// ここでシーンを登録する
 		AddSceneMap<TitleScene>();
@@ -164,6 +166,8 @@ namespace app
 		}
 
 		core::Fade::Get().Update();
+		// ロード中の表示は、フェードの暗さと同じ濃さで出す（暗くなるのに合わせて出て、明るくなるのに合わせて消える）
+		m_loadingUI.Update(IsLoadingShown() ? core::Fade::Get().GetAlpha() : 0.0f);
 	}
 
 
@@ -179,6 +183,8 @@ namespace app
 			m_pauseMenu.Render(rc);
 		}
 		core::Fade::Get().Render(rc);
+		// ロード中の表示はフェードの黒い画像の上
+		m_loadingUI.Render(rc);
 	}
 
 
@@ -234,5 +240,13 @@ namespace app
 		m_fadeDuration = fadeDuration;
 		core::Fade::Get().FadeOut(fadeDuration);
 		m_transitionState = TransitionState::Quitting;
+	}
+
+
+	bool SceneManager::IsLoadingShown() const
+	{
+		return m_transitionState == TransitionState::FadingOut
+			|| m_transitionState == TransitionState::LoadingScene
+			|| m_transitionState == TransitionState::FadingIn;
 	}
 }

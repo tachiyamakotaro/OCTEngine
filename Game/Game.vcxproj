@@ -384,6 +384,7 @@
     <ClCompile Include="Source\Title\TitleDirector.cpp" />
     <ClCompile Include="Source\Title\TitlePlayerModel.cpp" />
     <ClCompile Include="Source\Title\TitleSkyRenderer.cpp" />
+    <ClCompile Include="Source\UI\LoadingUI.cpp" />
     <ClCompile Include="Source\UI\MenuInput.cpp" />
     <ClCompile Include="Source\UI\MirrorPromptUI.cpp" />
     <ClCompile Include="Source\UI\PauseMenu.cpp" />
@@ -540,6 +541,7 @@
     <ClInclude Include="Source\Title\TitlePlayerModel.h" />
     <ClInclude Include="Source\Title\TitleSkyRenderer.h" />
     <ClInclude Include="Source\UI\GimmickIconTable.h" />
+    <ClInclude Include="Source\UI\LoadingUI.h" />
     <ClInclude Include="Source\UI\MenuInput.h" />
     <ClInclude Include="Source\UI\MirrorPromptUI.h" />
     <ClInclude Include="Source\UI\PauseMenu.h" />

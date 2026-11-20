@@ -11,6 +11,9 @@
  *
  *          ゲームを終わる：シーンが RequestQuit で true を返すと、画面を暗くしてからゲームを終わる（StartQuit）。
  *          BGM のフェードアウトは、シーンを切り替えるときと同じく呼んだ側でする。
+ *
+ *          ロード中の表示：シーンを切り替えている間（暗くする → 次のシーンを作る → 明るくする）は、
+ *          画面の右下に「NOW LOADING...」（ui::LoadingUI）をフェードの暗さと同じ濃さで出す。ゲームを終わるときは出さない。
  */
 #pragma once
 #include <cstdint>
@@ -18,6 +21,7 @@
 #include <map>
 #include <memory>
 #include "Source/Scene/IScene.h"
+#include "Source/UI/LoadingUI.h"
 #include "Source/UI/PauseMenu.h"
 
 
@@ -99,6 +103,8 @@ namespace app
 		void StartTransition(uint32_t nextSceneId, float fadeDuration);
 		/** 画面を暗くしてからゲームを終わる（ポーズ画面に「ゲームを終わる」を足すときもこれを呼ぶ） */
 		void StartQuit(float fadeDuration);
+		/** ロード中の表示を出すか（シーンを切り替えている間だけ。ゲームを終わるときは出さない） */
+		bool IsLoadingShown() const;
 
 
 	private:
@@ -118,6 +124,8 @@ namespace app
 		bool m_isQuitPosted = false;
 		/** ポーズ画面 */
 		ui::PauseMenu m_pauseMenu;
+		/** ロード中の表示（画面の右下の「NOW LOADING...」） */
+		ui::LoadingUI m_loadingUI;
 
 		/** シングルトンインスタンス */
 		static SceneManager* m_instance;
