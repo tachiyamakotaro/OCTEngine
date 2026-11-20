@@ -10,6 +10,10 @@
  *              B … タイトルメニューに戻る
  *          ボタンの画像は Assets/sprite/title/。
  *          白い文字を SetMulColor で色付けしている。
+ *          ・タイトルのロゴ（logo.dds）とボタンの後ろの暗い帯（menu_shade.dds）もこのクラスで出す
+ *              ロゴ … 開いてから少しあとに、少し大きい所から縮みながら出てきて、そのあとゆっくり上下にゆれる
+ *              帯   … 下から上へ薄くなる黒。3D の地面の上でもボタンの文字を読めるようにする
+ *            （画像は Tools/title_image/make_title_scene_sprites.py で作った）
  */
 #pragma once
 #include <array>
@@ -88,6 +92,8 @@ namespace app
 			bool IsSelectable(int index) const;
 			/** ボタンを横に並べる（ボタンの幅から、すき間がそろって全体が画面の真ん中に来る位置を決める） */
 			void LayoutItems();
+			/** ロゴの見た目（出てくる・ゆれる）を更新する */
+			void UpdateLogoVisual();
 
 
 		private:
@@ -101,8 +107,10 @@ namespace app
 			bool m_isDecided = false;
 			/** 続きから遊べるか（CONTINUE を選べるか） */
 			bool m_canContinue = false;
-			/** 演出用のタイマー（秒） */
+			/** 演出用のタイマー（秒。カーソルを動かしたり決定したりすると 0 に戻る） */
 			float m_timer = 0.0f;
+			/** 開いてからの時間（秒。ロゴが出てくる・ゆれるのに使う。0 に戻さない） */
+			float m_openTime = 0.0f;
 			/** カーソル操作 */
 			MenuInput m_input;
 			/** サウンドオプション画面 */
@@ -115,6 +123,10 @@ namespace app
 			std::array<float, ITEM_COUNT> m_itemX = {};
 			/** 選んでいる項目の印（ひし形） */
 			UISprite m_cursor;
+			/** タイトルのロゴ */
+			UISprite m_logo;
+			/** ボタンの後ろの暗い帯 */
+			UISprite m_buttonShade;
 		};
 	}
 }

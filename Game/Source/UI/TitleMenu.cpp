@@ -63,6 +63,29 @@ namespace
 	const Vector4 TITLE_COLOR_CURSOR(1.0f, 0.80f, 0.0f, 1.0f);
 	/** 選べない項目（続きの記録がないときの CONTINUE）は薄くする */
 	const Vector4 TITLE_COLOR_DISABLED(0.82f, 0.82f, 0.86f, 0.3f);
+
+	// ---- タイトルのロゴ（大きさは画像そのものの大きさ。make_title_scene_sprites.py が出す大きさに合わせる） ----
+	const char* const LOGO_PATH = "Assets/sprite/title/logo.dds";
+	constexpr float LOGO_PIXEL_WIDTH = 1344.0f;
+	constexpr float LOGO_PIXEL_HEIGHT = 720.0f;
+	/** 画面に出す高さ（光の余白込み。文字の高さはこの約 7 割） */
+	constexpr float LOGO_HEIGHT = 350.0f;
+	/** 置く所 */
+	constexpr float LOGO_X = 0.0f;
+	constexpr float LOGO_Y = 300.0f;
+	/** 開いてから出始めるまでの時間と、出きるまでの時間（秒） */
+	constexpr float LOGO_APPEAR_DELAY = 0.2f;
+	constexpr float LOGO_APPEAR_TIME = 1.0f;
+	/** 出てくるときの大きさ（ここから 1 へ縮む） */
+	constexpr float LOGO_APPEAR_SCALE = 1.08f;
+	/** 出たあと、上下にゆれる幅と速さ（1秒に何回） */
+	constexpr float LOGO_BOB_HEIGHT = 5.0f;
+	constexpr float LOGO_BOB_SPEED = 0.35f;
+
+	// ---- ボタンの後ろの暗い帯（画面の下の端から、この高さまで） ----
+	const char* const BUTTON_SHADE_PATH = "Assets/sprite/title/menu_shade.dds";
+	constexpr float BUTTON_SHADE_HEIGHT = 380.0f;
+	constexpr float BUTTON_SHADE_Y = -static_cast<float>(FRAME_BUFFER_H) * 0.5f + BUTTON_SHADE_HEIGHT * 0.5f;
 }
 
 
@@ -80,6 +103,11 @@ namespace app
 			m_cursor.Init(CURSOR_PATH, 64.0f, 64.0f, CURSOR_SIZE);
 			LayoutItems();
 
+			// ロゴと、ボタンの後ろの帯（帯は縦のグラデーションだけなので、画面の幅いっぱいに伸ばしてよい）
+			m_logo.Init(LOGO_PATH, LOGO_PIXEL_WIDTH, LOGO_PIXEL_HEIGHT, LOGO_HEIGHT);
+			m_buttonShade.Init(BUTTON_SHADE_PATH, static_cast<float>(FRAME_BUFFER_W), BUTTON_SHADE_HEIGHT, BUTTON_SHADE_HEIGHT);
+			m_buttonShade.Place(0.0f, BUTTON_SHADE_Y, 1.0f, menu_color::White);
+
 			// サウンドオプション画面（ポーズ画面と共通）
 			m_soundOption.Init();
 		}
@@ -92,8 +120,10 @@ namespace app
 			m_index = static_cast<int>(canContinue ? Item::Continue : Item::Start);
 			m_isDecided = false;
 			m_timer = 0.0f;
+			m_openTime = 0.0f;
 			m_input.Reset();
 			UpdateMainVisual();
+			UpdateLogoVisual();
 		}
 
 
@@ -121,11 +151,15 @@ namespace app
 
 		void TitleMenu::Animate()
 		{
-			m_timer += g_gameTime->GetFrameDeltaTime();
+			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+			m_timer += deltaTime;
+			m_openTime += deltaTime;
 			if (m_page == Page::Main)
 			{
 				UpdateMainVisual();
 			}
+			// ロゴはサウンドオプションを開いている間も動かす（サウンドオプションの半透明の背景の後ろに見える）
+			UpdateLogoVisual();
 		}
 
 
@@ -255,8 +289,22 @@ namespace app
 		}
 
 
+		void TitleMenu::UpdateLogoVisual()
+		{
+			// 少し大きい所から縮みながら出てくる
+			const float rate = math::SmoothStep((m_openTime - LOGO_APPEAR_DELAY) / LOGO_APPEAR_TIME);
+			const float scale = math::Lerp(LOGO_APPEAR_SCALE, 1.0f, rate);
+			// 出きったあとは、ゆっくり上下にゆれる
+			const float bob = std::sin(m_openTime * LOGO_BOB_SPEED * 2.0f * math::PI) * LOGO_BOB_HEIGHT * rate;
+			m_logo.Place(LOGO_X, LOGO_Y + bob, scale, Vector4(1.0f, 1.0f, 1.0f, rate));
+		}
+
+
 		void TitleMenu::Render(RenderContext& rc)
 		{
+			// 帯 → ロゴ → ボタンの順（ボタンがいちばん手前）
+			m_buttonShade.Draw(rc);
+			m_logo.Draw(rc);
 			for (UISprite& item : m_items)
 			{
 				item.Draw(rc);

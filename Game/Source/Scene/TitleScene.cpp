@@ -13,8 +13,6 @@
 
 namespace
 {
-	/** タイトルの画像（1920x1080 の DDS） */
-	const char* const TITLE_SPRITE_PATH = "Assets/sprite/title.dds";
 	/** インゲームへ移るときのフェードの時間（秒） */
 	constexpr float NEXT_SCENE_FADE_TIME = 0.6f;
 	/** ゲームを終わるときのフェードの時間（秒） */
@@ -25,7 +23,7 @@ namespace
 namespace app
 {
 	TitleScene::TitleScene()
-		: m_titleSprite()
+		: m_director()
 		, m_menu()
 		, m_isNextScene(false)
 		, m_isQuit(false)
@@ -38,9 +36,7 @@ namespace app
 
 	bool TitleScene::Start()
 	{
-		// 画面いっぱいに出す（スプライトの原点は画面の真ん中）
-		m_titleSprite.Init(TITLE_SPRITE_PATH, static_cast<float>(FRAME_BUFFER_W), static_cast<float>(FRAME_BUFFER_H));
-		m_titleSprite.Update();
+		m_director.Init();
 		m_menu.Init();
 		// 続きの記録があれば CONTINUE を選べる
 		m_menu.Open(save::HasProgress());
@@ -51,6 +47,8 @@ namespace app
 
 	void TitleScene::Update()
 	{
+		m_director.Update(g_gameTime->GetFrameDeltaTime());
+
 		switch (m_menu.Update())
 		{
 		case ui::TitleMenu::Result::ContinueGame:
@@ -59,8 +57,7 @@ namespace app
 			const std::optional<int> stageIndex = save::LoadProgress();
 			stage::SetCurrentStageIndex(stageIndex.value_or(stage::FIRST_STAGE_INDEX));
 			playlog::PlayLog::Get().ContinuePlay();
-			SoundManager::Get().FadeOutBGM(NEXT_SCENE_FADE_TIME);
-			m_isNextScene = true;
+			m_director.BeginEnter();
 			break;
 		}
 
@@ -69,8 +66,7 @@ namespace app
 			save::EraseProgress();
 			playlog::PlayLog::Get().DiscardContinue();
 			stage::SetCurrentStageIndex(stage::FIRST_STAGE_INDEX);
-			SoundManager::Get().FadeOutBGM(NEXT_SCENE_FADE_TIME);
-			m_isNextScene = true;
+			m_director.BeginEnter();
 			break;
 
 		case ui::TitleMenu::Result::QuitGame:
@@ -81,19 +77,27 @@ namespace app
 		default:
 			break;
 		}
+
+		// 扉が開いて中の光が見えたら、次のシーンへ
+		if (!m_isNextScene && m_director.IsEnterFinished())
+		{
+			SoundManager::Get().FadeOutBGM(NEXT_SCENE_FADE_TIME);
+			m_isNextScene = true;
+		}
 	}
 
 
 	void TitleScene::PauseUpdate()
 	{
-		// フェード中も、決定した項目の点滅は続ける
+		// フェード中も、演出と、決定した項目の点滅は続ける
+		m_director.Update(g_gameTime->GetFrameDeltaTime());
 		m_menu.Animate();
 	}
 
 
 	void TitleScene::Render(RenderContext& rc)
 	{
-		m_titleSprite.Draw(rc);
+		m_director.Draw(rc);
 		m_menu.Render(rc);
 	}
 
