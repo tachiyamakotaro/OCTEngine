@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/PlayerEditor.h"
 #include "Source/Camera/CameraEditor.h"
+#include "Source/Camera/EventCameraEditor.h"
 #include "Source/Stage/Background/BackgroundEditor.h"
 #include "Source/Stage/Goal/GoalEditor.h"
 #include "Source/Core/Math/Vec2.h"
@@ -31,6 +32,7 @@ namespace app
 	namespace camera
 	{
 		class GameCamera;
+		class EventCamera;
 	}
 	namespace core
 	{
@@ -73,6 +75,7 @@ namespace app
 		ui::TimerUI* timerUI = nullptr;
 		ui::MirrorPromptUI* mirrorPromptUI = nullptr;
 		camera::GameCamera* camera = nullptr;
+		camera::EventCamera* eventCamera = nullptr;
 		GameplaySEPlayer* sePlayer = nullptr;
 		stage::StageDebugOverlay* overlay = nullptr;
 		render::MirrorGlass* mirrorGlass = nullptr;
@@ -218,6 +221,8 @@ namespace app
 		// ---- 機能ごとの調整 ----
 		actor::PlayerEditor m_playerEditor;
 		camera::CameraEditor m_cameraEditor;
+		/** 「Event Camera」の中身 */
+		camera::EventCameraEditor m_eventCameraEditor;
 		render::OutlineEditor m_outlineEditor;
 		render::BloomEditor m_bloomEditor;
 		render::MirrorGlassEditor m_mirrorGlassEditor;

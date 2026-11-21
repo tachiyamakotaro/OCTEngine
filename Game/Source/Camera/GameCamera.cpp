@@ -46,6 +46,7 @@ namespace app
 			, m_currentZoom(1.0f)
 			, m_stageBounds()
 			, m_hasStageBounds(false)
+			, m_eventShot()
 		{}
 
 
@@ -100,17 +101,14 @@ namespace app
 				return;
 			}
 
-			Vector3 desiredTarget;
-			float desiredZoom = 1.0f;
-			float desiredDistance = 0.0f;
-			CalcDesiredView(followPosition, desiredTarget, desiredZoom, desiredDistance);
+			const DesiredView desired = CalcDesiredView(followPosition);
 
-			m_currentTarget.x += (desiredTarget.x - m_currentTarget.x) * rate;
-			m_currentTarget.y += (desiredTarget.y - m_currentTarget.y) * rate;
-			m_currentTarget.z += (desiredTarget.z - m_currentTarget.z) * rate;
-			m_currentDistance += (desiredDistance - m_currentDistance) * rate;
-			// ズームも同じ速さで近づける（全体表示の ON / OFF で、すっと引いたり寄ったりする）
-			m_currentZoom += (desiredZoom - m_currentZoom) * rate;
+			m_currentTarget.x += (desired.target.x - m_currentTarget.x) * rate;
+			m_currentTarget.y += (desired.target.y - m_currentTarget.y) * rate;
+			m_currentTarget.z += (desired.target.z - m_currentTarget.z) * rate;
+			m_currentDistance += (desired.distance - m_currentDistance) * rate;
+			// ズームも同じ速さで近づける（全体表示の ON / OFF・演出で、すっと引いたり寄ったりする）
+			m_currentZoom += (desired.zoom - m_currentZoom) * rate;
 
 			// ImGui で変えた投影の値や、画面サイズの変化も反映されるよう毎回設定し直す
 			ApplyProjection();
@@ -118,40 +116,51 @@ namespace app
 		}
 
 
-		void GameCamera::CalcDesiredView(const Vector3& followPosition, Vector3& outTarget, float& outZoom, float& outDistance) const
+		GameCamera::DesiredView GameCamera::CalcDesiredView(const Vector3& followPosition) const
 		{
 			// ステージの範囲がないときは、全体表示にしていても、ふだんの見え方にする
-			if (!m_parameter.isOverview || !m_hasStageBounds)
+			if (m_parameter.isOverview && m_hasStageBounds)
 			{
-				// ふだん：見たい位置（足元）の少し上を、決めたズーム・距離で映す
-				outTarget = Vector3(followPosition.x, followPosition.y + m_parameter.targetOffsetY, followPosition.z);
-				outZoom = ClampFloat(m_parameter.zoom, limit::MIN_ZOOM, limit::MAX_ZOOM);
-				outDistance = ClampFloat(m_parameter.followDistance, limit::MIN_DISTANCE, limit::MAX_DISTANCE);
-				return;
+				// 全体表示のときは演出で寄らない（動画の撮影用なので、ステージ全体を映したままにする）
+				return CalcOverviewView(followPosition);
 			}
+			const DesiredView followView = CalcFollowView(followPosition);
+			if (!m_eventShot.IsActive())
+			{
+				return followView;
+			}
+			return BlendEventShot(followView);
+		}
 
-			// 全体表示：ステージの範囲 + 余白 が、縦にも横にも収まる広さにする
-			const float margin = m_parameter.overviewMargin > 0.0f ? m_parameter.overviewMargin : 0.0f;
-			const float needWidth = m_stageBounds.Width() + margin * 2.0f;
-			const float needHeight = m_stageBounds.Height() + margin * 2.0f;
-			// 横に長いステージは「横の長さ ÷ アスペクト比」の縦の長さが必要になる（大きいほうに合わせる）
-			const float aspect = GetAspect();
-			const float viewHeight = needHeight > needWidth / aspect ? needHeight : needWidth / aspect;
 
+		GameCamera::DesiredView GameCamera::CalcFollowView(const Vector3& followPosition) const
+		{
+			DesiredView view;
+			view.target = Vector3(followPosition.x, followPosition.y + m_parameter.targetOffsetY, followPosition.z);
+			view.zoom = ClampFloat(m_parameter.zoom, limit::MIN_ZOOM, limit::MAX_ZOOM);
+			view.distance = ClampFloat(m_parameter.followDistance, limit::MIN_DISTANCE, limit::MAX_DISTANCE);
+			return view;
+		}
+
+
+		GameCamera::DesiredView GameCamera::CalcOverviewView(const Vector3& followPosition) const
+		{
+			// ステージの範囲 + 余白 が、縦にも横にも収まる広さにする
+			const float viewHeight = CalcFitViewHeight(m_stageBounds.Expanded(m_parameter.overviewMargin));
+
+			DesiredView view;
 			// ステージの真ん中を見る（奥行き z だけは渡された値を使う）
-			outTarget = Vector3(
-				(m_stageBounds.min.x + m_stageBounds.max.x) * 0.5f,
-				(m_stageBounds.min.y + m_stageBounds.max.y) * 0.5f,
-				followPosition.z);
+			const math::Vec2 center = m_stageBounds.Center();
+			view.target = Vector3(center.x, center.y, followPosition.z);
 
 			// 平行投影：縦に映る長さ = baseViewHeight × ズーム
 			const float baseViewHeight = m_parameter.baseViewHeight > 0.0f ? m_parameter.baseViewHeight : CameraParameter().baseViewHeight;
-			outZoom = ClampFloat(viewHeight / baseViewHeight, limit::MIN_ZOOM, limit::MAX_OVERVIEW_ZOOM);
+			view.zoom = ClampFloat(viewHeight / baseViewHeight, limit::MIN_ZOOM, limit::MAX_OVERVIEW_ZOOM);
 
 			if (m_parameter.isOrtho)
 			{
 				// 平行投影では距離で見える範囲は変わらないので、ふだんの距離のまま
-				outDistance = ClampFloat(m_parameter.followDistance, limit::MIN_DISTANCE, limit::MAX_DISTANCE);
+				view.distance = ClampFloat(m_parameter.followDistance, limit::MIN_DISTANCE, limit::MAX_DISTANCE);
 			}
 			else
 			{
@@ -159,8 +168,70 @@ namespace app
 				const float viewAngle = ClampFloat(m_parameter.viewAngleDeg, limit::MIN_VIEW_ANGLE, limit::MAX_VIEW_ANGLE);
 				const float halfTan = std::tan(Math::DegToRad(viewAngle) * 0.5f);
 				const float distance = halfTan > 0.0f ? viewHeight * 0.5f / halfTan : limit::MAX_OVERVIEW_DISTANCE;
-				outDistance = ClampFloat(distance, limit::MIN_DISTANCE, limit::MAX_OVERVIEW_DISTANCE);
+				view.distance = ClampFloat(distance, limit::MIN_DISTANCE, limit::MAX_OVERVIEW_DISTANCE);
 			}
+			return view;
+		}
+
+
+		GameCamera::DesiredView GameCamera::BlendEventShot(const DesiredView& followView) const
+		{
+			const float weight = ClampFloat(m_eventShot.weight, 0.0f, 1.0f);
+			const math::Rect& area = m_eventShot.area;
+
+			// 演出のズーム：決めた寄り具合まで寄る。ただし範囲が入りきらないときは入るところまで引き、ふだんより引くことはない
+			const float baseViewHeight = m_parameter.baseViewHeight > 0.0f ? m_parameter.baseViewHeight : CameraParameter().baseViewHeight;
+			const float fitZoom = CalcFitViewHeight(area) / baseViewHeight;
+			const float wantZoom = m_eventShot.zoom > fitZoom ? m_eventShot.zoom : fitZoom;
+			const float eventZoom = ClampFloat(wantZoom, limit::MIN_ZOOM, followView.zoom);
+
+			// 演出の注視点：範囲の真ん中（奥行き z はふだんのまま）
+			// ギミックが遠くて範囲が入りきらないときも、プレイヤー（keepArea）は画面から出さない
+			const math::Vec2 center = KeepAreaInView(area.Center(), m_eventShot.keepArea, baseViewHeight * eventZoom);
+
+			DesiredView view;
+			view.target = Vector3(
+				followView.target.x + (center.x - followView.target.x) * weight,
+				followView.target.y + (center.y - followView.target.y) * weight,
+				followView.target.z);
+			view.zoom = followView.zoom + (eventZoom - followView.zoom) * weight;
+			// 透視投影はズームではなく距離で見える範囲が決まるので、ズームの比の分だけ近づける（平行投影では見え方は変わらない）
+			const float zoomRate = followView.zoom > 0.0f ? view.zoom / followView.zoom : 1.0f;
+			view.distance = ClampFloat(followView.distance * zoomRate, limit::MIN_DISTANCE, limit::MAX_DISTANCE);
+			return view;
+		}
+
+
+		float GameCamera::CalcFitViewHeight(const math::Rect& area) const
+		{
+			// 横に長い範囲は「横の長さ ÷ アスペクト比」の縦の長さが必要になる（大きいほうに合わせる）
+			const float aspect = GetAspect();
+			const float heightForWidth = area.Width() / aspect;
+			return area.Height() > heightForWidth ? area.Height() : heightForWidth;
+		}
+
+
+		math::Vec2 GameCamera::KeepAreaInView(const math::Vec2& center, const math::Rect& keepArea, const float viewHeight) const
+		{
+			const float halfHeight = viewHeight * 0.5f;
+			const float halfWidth = halfHeight * GetAspect();
+			const math::Vec2 keepCenter = keepArea.Center();
+
+			// 1つの軸ぶん：真ん中が [keepの右端 - 画面の半分, keepの左端 + 画面の半分] に入るようにする
+			// （keepArea のほうが画面より大きいときは、keepArea の真ん中を見る）
+			const auto clampAxis = [](const float value, const float keepMin, const float keepMax, const float half, const float keepMid)
+				{
+					const float low = keepMax - half;
+					const float high = keepMin + half;
+					if (low > high)
+					{
+						return keepMid;
+					}
+					return ClampFloat(value, low, high);
+				};
+			return math::Vec2(
+				clampAxis(center.x, keepArea.min.x, keepArea.max.x, halfWidth, keepCenter.x),
+				clampAxis(center.y, keepArea.min.y, keepArea.max.y, halfHeight, keepCenter.y));
 		}
 
 

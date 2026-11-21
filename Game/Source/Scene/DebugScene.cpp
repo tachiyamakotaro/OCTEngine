@@ -7,18 +7,18 @@
 
 #include "imgui.h"
 #include "ResultScene.h"
-#include "StageIntroScene.h"
 #include "Source/Actor/Character/CharacterStateMachine.h"
 #include "Source/Actor/Character/CharacterStatus.h"
 #include "Source/Camera/CameraStageBounds.h"
 #include "Source/Core/DebugUI.h"
 #include "Source/PlayLog/PlayLog.h"
-#include "Source/Scene/SceneManager.h"
 #include "Source/Save/SaveData.h"
+#include "Source/Scene/SceneManager.h"
 #include "Source/Sound/SoundManager.h"
 #include "Source/Stage/StageCatalog.h"
 #include "Source/Stage/StageLoader.h"
 #include "Source/Timer/TimerParameter.h"
+#include "StageIntroScene.h"
 #include <cmath>
 
 
@@ -148,6 +148,9 @@ namespace app
 
 		// カメラ（投影の設定。ズームなどの値は CameraParameter.h）
 		m_gameCamera.Init(g_camera3D);
+		// 特定の場面でだけ寄るカメラ（寄り方の値は EventCameraParameter.h）。今の状態を覚えておく（ここからの変化で寄る）
+		m_eventCamera.Init();
+		m_cameraEventDetector.Reset(m_stage);
 		// 最初のフレームからプレイヤーを映す（原点からすべってこないように）
 		UpdateCamera(0.0f, true);
 
@@ -166,6 +169,7 @@ namespace app
 		editTargets.timerUI = &m_timerUI;
 		editTargets.mirrorPromptUI = &m_mirrorPromptUI;
 		editTargets.camera = &m_gameCamera;
+		editTargets.eventCamera = &m_eventCamera;
 		editTargets.sePlayer = &m_sePlayer;
 		editTargets.overlay = &m_overlay;
 		editTargets.mirrorGlass = &m_mirrorGlass;
@@ -256,6 +260,8 @@ namespace app
 		UpdateFireEffects(deltaTime);
 		// SE：ステージ・プレイヤー・鏡の操作が全部終わってから、変化を見て鳴らす
 		m_sePlayer.Update(deltaTime, m_stage, m_player, m_mirrorInteractor);
+		// カメラの演出：ギミックを解いた場面を見つけたら寄る（SE と同じく、全部の更新が終わってから変化を見る）
+		//m_cameraEventDetector.Update(m_stage, m_eventCamera);
 		// クリアの演出（扉が開く → 丸く閉じる）の時間を進める
 		m_clearSequence.Update(deltaTime);
 		UpdateTimer(deltaTime);
@@ -445,6 +451,9 @@ namespace app
 		m_isCleared = false;
 		// クリアの演出をやめる（扉を閉じ、丸く閉じるフェードも消す）
 		m_clearSequence.Reset();
+		// カメラの演出もやめて、今の仕掛けの状態を覚え直す（開いたままの扉で寄らないように）
+		m_eventCamera.Reset();
+		m_cameraEventDetector.Reset(m_stage);
 		UpdateCamera(0.0f, true);
 
 		// SE：仕掛けを戻したぶんの音（扉が閉じた・受光器が消えた）は鳴らさずに覚え直して、再開の音だけ鳴らす
@@ -475,6 +484,8 @@ namespace app
 		{
 			m_isCleared = true;
 			m_clearSequence.Start(*goal);
+			// カメラの演出：プレイヤーとゴールの扉に寄る
+			m_eventCamera.Play(app::camera::CameraEvent::Goal(goal->rect));
 			m_player.GetPlayerController().SetEnabled(false);
 			// 時間を止める（残り時間はそのまま表示しておく）
 			m_stageTimer.SetRunning(false);
@@ -888,6 +899,10 @@ namespace app
 		{
 			m_gameCamera.ClearStageBounds();
 		}
+
+		// 演出で寄る見え方（演出していないときは効き具合 0 なので、ふだんの見え方のまま）
+		m_eventCamera.Update(deltaTime, m_player.GetController().GetBounds());
+		m_eventCamera.ApplyTo(m_gameCamera);
 
 		// プレイヤーの足元を「見たい位置」として渡す（注視点の高さ・なめらかさ・投影は GameCamera が決める）
 		const app::math::Vec2& playerPos = m_player.GetPosition();

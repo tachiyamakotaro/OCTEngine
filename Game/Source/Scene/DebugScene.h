@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "Source/Actor/Character/Player/Player.h"
+#include "Source/Camera/CameraEventDetector.h"
+#include "Source/Camera/EventCamera.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Core/IrisWipe.h"
 #include "Source/Stage/Goal/ClearSequence.h"
@@ -58,6 +60,7 @@
   *          ・GoalGateRenderer … ゴールの門（遺跡の扉・扉の奥の光・松明の炎）
   *          ・ClearSequence    … クリアの演出の流れ（扉が開く → 丸く閉じる → 次のステージへ）
   *          ・IrisWipe         … 丸く閉じるフェード（プレイヤーを中心に、黒い画面の丸い穴が小さくなる）
+  *          ・EventCamera      … ギミックを解いた・ゴールなど、特定の場面でだけカメラを寄せる（寄る場面は CameraEventDetector が見つける）
   *
   *          時間切れになると操作を止めて TIME UP を出し、少し待ってからステージを最初からやり直す。
   *
@@ -237,6 +240,10 @@ namespace app
 
 		/** カメラ（追従・全体表示・投影の設定） */
 		app::camera::GameCamera m_gameCamera;
+		/** 特定の場面でだけカメラを寄せる演出 */
+		app::camera::EventCamera m_eventCamera;
+		/** ステージのギミックの変化から、カメラが寄る場面を見つける */
+		app::camera::CameraEventDetector m_cameraEventDetector;
 		/** デバッグウィンドウ「Game (F2)」（カメラなどの調整の ImGui はここにまとめた） */
 		app::InGameEditor m_inGameEditor;
 

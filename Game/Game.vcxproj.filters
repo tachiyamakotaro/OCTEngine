@@ -471,6 +471,15 @@
     <ClCompile Include="Source\UI\LoadingUI.cpp">
       <Filter>Source\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Camera\CameraEventDetector.cpp">
+      <Filter>Source\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera\EventCamera.cpp">
+      <Filter>Source\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Camera\EventCameraEditor.cpp">
+      <Filter>Source\Camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -924,6 +933,24 @@
     </ClInclude>
     <ClInclude Include="Source\UI\LoadingUI.h">
       <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\CameraEvent.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\CameraEventDetector.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\CameraShot.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\EventCamera.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\EventCameraEditor.h">
+      <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Camera\EventCameraParameter.h">
+      <Filter>Source\Camera</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

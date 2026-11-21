@@ -52,6 +52,26 @@ namespace app
 
 			float Width() const { return max.x - min.x; }
 			float Height() const { return max.y - min.y; }
+			/** 真ん中 */
+			Vec2 Center() const { return (min + max) * 0.5f; }
+
+			/**
+			 * @brief まわりを margin だけ広げた矩形（上下左右それぞれ。マイナスなら広げない）
+			 */
+			Rect Expanded(const float margin) const
+			{
+				const float m = margin > 0.0f ? margin : 0.0f;
+				return { { min.x - m, min.y - m }, { max.x + m, max.y + m } };
+			}
+			/**
+			 * @brief この矩形と o の両方が入る矩形
+			 */
+			Rect Merged(const Rect& o) const
+			{
+				return {
+					{ min.x < o.min.x ? min.x : o.min.x, min.y < o.min.y ? min.y : o.min.y },
+					{ max.x > o.max.x ? max.x : o.max.x, max.y > o.max.y ? max.y : o.max.y } };
+			}
 
 			/**
 			 * @brief 重なっているか

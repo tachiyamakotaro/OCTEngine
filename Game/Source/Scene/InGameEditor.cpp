@@ -8,6 +8,7 @@
 #include "imgui.h"
 #include "MistEffectParameter.h"
 #include "Source/Actor/Character/Player/Player.h"
+#include "Source/Camera/EventCamera.h"
 #include "Source/Camera/GameCamera.h"
 #include "Source/Core/IrisWipe.h"
 #include "Source/Stage/Goal/ClearSequence.h"
@@ -220,6 +221,11 @@ namespace app
 		{
 			m_cameraEditor.Draw(*m_targets.camera);
 		}
+		// ---- 特定の場面でだけ寄るカメラ ----
+		if (ImGui::CollapsingHeader("Event Camera"))
+		{
+			m_eventCameraEditor.Draw(*m_targets.eventCamera);
+		}
 		// ---- SE ----
 		if (ImGui::CollapsingHeader("Sound"))
 		{
@@ -292,7 +298,7 @@ namespace app
 	{
 		const InGameEditTargets& t = m_targets;
 		return t.player != nullptr && t.stage != nullptr && t.stageTimer != nullptr && t.timerUI != nullptr
-			&& t.mirrorPromptUI != nullptr && t.camera != nullptr && t.sePlayer != nullptr && t.overlay != nullptr
+			&& t.mirrorPromptUI != nullptr && t.camera != nullptr && t.eventCamera != nullptr && t.sePlayer != nullptr && t.overlay != nullptr
 			&& t.mirrorGlass != nullptr && t.darknessRenderer != nullptr && t.stageRenderer != nullptr && t.backgroundRenderer != nullptr
 			&& t.gimmickRenderer != nullptr
 			&& t.gimmickMarkRenderer != nullptr && t.mistEffect != nullptr
