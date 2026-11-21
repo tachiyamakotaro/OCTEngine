@@ -7,6 +7,7 @@
 
 #include "GameCamera.h"
 #include "Source/Core/Math/MathUtil.h"
+#include <cfloat>
 
 
 namespace
@@ -24,6 +25,7 @@ namespace app
 			: m_parameter()
 			, m_event()
 			, m_elapsed(0.0f)
+			, m_outStartTime(0.0f)
 			, m_isPlaying(false)
 			, m_shot()
 		{}
@@ -38,7 +40,8 @@ namespace app
 
 		void EventCamera::Play(const CameraEvent& event)
 		{
-			if (!GetSetting(event.GetKind()).isEnabled)
+			const EventShotSetting& setting = GetSetting(event.GetKind());
+			if (!setting.isEnabled)
 			{
 				return;
 			}
@@ -50,9 +53,26 @@ namespace app
 
 			// 寄っている途中・寄ったままの途中で入れ替えたときは、今の効き具合から寄り始める（カメラが一度戻らないように）
 			const float currentWeight = m_isPlaying ? m_shot.weight : 0.0f;
+			const float blendIn = math::Max(setting.blendInTime, 0.0f);
 			m_event = event;
-			m_elapsed = math::Max(m_parameter.blendInTime, MIN_BLEND_TIME) * currentWeight;
+			m_elapsed = blendIn * currentWeight;
+			// Release を待つ場面は、呼ばれるまで戻り始めない
+			m_outStartTime = event.IsHeldUntilRelease() ? FLT_MAX : blendIn + math::Max(setting.holdTime, 0.0f);
 			m_isPlaying = true;
+			// blendIn が 0 の場面（ステージ開始）は、この時点で寄った見え方にしておく（すぐ SnapTo しても寄っているように）
+			m_shot.weight = CalcWeight(setting);
+		}
+
+
+		void EventCamera::Release()
+		{
+			if (!m_isPlaying || m_elapsed >= m_outStartTime)
+			{
+				return;
+			}
+			// 今の効き具合から戻り始める（寄りきる前に呼ばれても、カメラが跳ねないように）
+			const float blendOut = math::Max(GetSetting(m_event.GetKind()).blendOutTime, MIN_BLEND_TIME);
+			m_outStartTime = m_elapsed - blendOut * (1.0f - m_shot.weight);
 		}
 
 
@@ -60,6 +80,7 @@ namespace app
 		{
 			m_isPlaying = false;
 			m_elapsed = 0.0f;
+			m_outStartTime = 0.0f;
 			m_shot.weight = 0.0f;
 		}
 
@@ -75,7 +96,7 @@ namespace app
 			const EventShotSetting& setting = GetSetting(m_event.GetKind());
 			m_elapsed += deltaTime;
 			// 戻りきったら終わり（ImGui でこの場面を OFF にしたときもすぐ終わる）
-			if (!setting.isEnabled || m_elapsed >= CalcTotalTime(setting))
+			if (!setting.isEnabled || m_elapsed >= m_outStartTime + math::Max(setting.blendOutTime, 0.0f))
 			{
 				Reset();
 				return;
@@ -100,6 +121,8 @@ namespace app
 			{
 			case CameraEventKind::Goal:
 				return m_parameter.goal;
+			case CameraEventKind::StageStart:
+				return m_parameter.stageStart;
 			case CameraEventKind::GimmickSolved:
 			default:
 				return m_parameter.gimmickSolved;
@@ -107,31 +130,22 @@ namespace app
 		}
 
 
-		float EventCamera::CalcTotalTime(const EventShotSetting& setting) const
-		{
-			return math::Max(m_parameter.blendInTime, 0.0f) + math::Max(setting.holdTime, 0.0f) + math::Max(m_parameter.blendOutTime, 0.0f);
-		}
-
-
 		float EventCamera::CalcWeight(const EventShotSetting& setting) const
 		{
-			const float blendIn = math::Max(m_parameter.blendInTime, MIN_BLEND_TIME);
-			const float blendOut = math::Max(m_parameter.blendOutTime, MIN_BLEND_TIME);
-			const float hold = math::Max(setting.holdTime, 0.0f);
-
-			// 寄る（0 → 1）
-			if (m_elapsed < blendIn)
+			// ふだんに戻る（1 → 0）
+			if (m_elapsed >= m_outStartTime)
+			{
+				const float blendOut = math::Max(setting.blendOutTime, MIN_BLEND_TIME);
+				return math::SmoothStep(1.0f - (m_elapsed - m_outStartTime) / blendOut);
+			}
+			// 寄る（0 → 1。blendIn が 0 なら最初から 1）
+			const float blendIn = setting.blendInTime;
+			if (blendIn > 0.0f && m_elapsed < blendIn)
 			{
 				return math::SmoothStep(m_elapsed / blendIn);
 			}
 			// 寄ったまま（1）
-			const float outStart = blendIn + hold;
-			if (m_elapsed < outStart)
-			{
-				return 1.0f;
-			}
-			// ふだんに戻る（1 → 0）
-			return math::SmoothStep(1.0f - (m_elapsed - outStart) / blendOut);
+			return 1.0f;
 		}
 	}
 }

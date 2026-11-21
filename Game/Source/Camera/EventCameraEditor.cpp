@@ -20,10 +20,10 @@ namespace app
 			ImGui::PushID("EventCameraEditor");
 
 			DrawStatus(eventCamera);
-			DrawBlend(eventCamera);
 			EventCameraParameter& param = eventCamera.GetParameterForEdit();
 			DrawShotSetting(eventCamera, CameraEventKind::GimmickSolved, param.gimmickSolved);
 			DrawShotSetting(eventCamera, CameraEventKind::Goal, param.goal);
+			DrawShotSetting(eventCamera, CameraEventKind::StageStart, param.stageStart);
 
 			ImGui::PopID();
 		}
@@ -46,18 +46,6 @@ namespace app
 		}
 
 
-		void EventCameraEditor::DrawBlend(EventCamera& eventCamera)
-		{
-			EventCameraParameter& param = eventCamera.GetParameterForEdit();
-
-			ImGui::SeparatorText("Blend");
-			ImGui::DragFloat("Blend In", &param.blendInTime, 0.01f, 0.0f, 5.0f, "%.2f s");
-			ImGui::SetItemTooltip("Time to zoom in.");
-			ImGui::DragFloat("Blend Out", &param.blendOutTime, 0.01f, 0.0f, 5.0f, "%.2f s");
-			ImGui::SetItemTooltip("Time to go back to the normal view.");
-		}
-
-
 		void EventCameraEditor::DrawShotSetting(EventCamera& eventCamera, const CameraEventKind kind, EventShotSetting& setting)
 		{
 			ImGui::SeparatorText(CameraEventKindToString(kind));
@@ -75,6 +63,11 @@ namespace app
 			ImGui::DragFloat("Zoom", &setting.zoom, 0.01f, limit::MIN_ZOOM, limit::MAX_ZOOM, "%.2f");
 			ImGui::SetItemTooltip("Smaller = closer. Normal view is Camera > Zoom.\nNever zooms out more than the normal view.");
 			ImGui::DragFloat("Hold", &setting.holdTime, 0.05f, 0.0f, 30.0f, "%.2f s");
+			ImGui::SetItemTooltip("Stay zoomed for this time.\n(Stage Start: only for Test. In the game, it zooms out when the circle starts to open.)");
+			ImGui::DragFloat("Blend In", &setting.blendInTime, 0.01f, 0.0f, 5.0f, "%.2f s");
+			ImGui::SetItemTooltip("Time to zoom in. 0 = already zoomed in at the start.");
+			ImGui::DragFloat("Blend Out", &setting.blendOutTime, 0.01f, 0.0f, 5.0f, "%.2f s");
+			ImGui::SetItemTooltip("Time to go back to the normal view.\n(Stage Start: same as Stage Start > Circle Open = zoom out with the circle.)");
 			ImGui::DragFloat("Margin", &setting.margin, 5.0f, 0.0f, 2000.0f, "%.0f");
 			ImGui::SetItemTooltip("Space around the player (and the gimmick).");
 			ImGui::Checkbox("Include Target", &setting.isIncludeTarget);

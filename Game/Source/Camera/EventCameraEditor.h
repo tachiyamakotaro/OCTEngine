@@ -35,8 +35,6 @@ namespace app
 		private:
 			/** 今の状態（演出中の場面・効き具合）と、止めるボタン */
 			void DrawStatus(EventCamera& eventCamera);
-			/** 寄る・戻る時間 */
-			void DrawBlend(EventCamera& eventCamera);
 			/**
 			 * @brief 場面1つぶんの寄り方
 			 * @param eventCamera 試し再生する相手

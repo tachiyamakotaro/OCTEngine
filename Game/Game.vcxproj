@@ -380,6 +380,8 @@
     <ClCompile Include="Source\Stage\StageLoader.cpp" />
     <ClCompile Include="Source\Stage\StageRenderer.cpp" />
     <ClCompile Include="Source\Stage\Stages\Stage01.cpp" />
+    <ClCompile Include="Source\Stage\Start\StartEditor.cpp" />
+    <ClCompile Include="Source\Stage\Start\StartSequence.cpp" />
     <ClCompile Include="Source\Timer\StageTimer.cpp" />
     <ClCompile Include="Source\Title\EntranceTimeline.cpp" />
     <ClCompile Include="Source\Title\RuinEntrance.cpp" />
@@ -540,6 +542,9 @@
     <ClInclude Include="Source\Stage\StageObjects.h" />
     <ClInclude Include="Source\Stage\StageRenderer.h" />
     <ClInclude Include="Source\Stage\Stages\Stage01.h" />
+    <ClInclude Include="Source\Stage\Start\StartEditor.h" />
+    <ClInclude Include="Source\Stage\Start\StartParameter.h" />
+    <ClInclude Include="Source\Stage\Start\StartSequence.h" />
     <ClInclude Include="Source\Timer\StageTimer.h" />
     <ClInclude Include="Source\Timer\TimerParameter.h" />
     <ClInclude Include="Source\Title\EntranceTimeline.h" />

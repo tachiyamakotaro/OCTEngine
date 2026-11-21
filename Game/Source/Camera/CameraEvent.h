@@ -23,6 +23,7 @@ namespace app
 		{
 			GimmickSolved,	//!< ギミックを解いた（扉が初めて開いた・溶かす氷に通れる穴が開いた）
 			Goal,			//!< ゴールに触れた（クリアの演出の間）
+			StageStart,		//!< ステージが始まった（寄った所から、丸が開くのに合わせて引いていく）
 		};
 
 
@@ -33,6 +34,7 @@ namespace app
 			{
 			case CameraEventKind::GimmickSolved: return "Gimmick Solved";
 			case CameraEventKind::Goal:          return "Goal";
+			case CameraEventKind::StageStart:    return "Stage Start";
 			}
 			return "Unknown";
 		}
@@ -46,13 +48,18 @@ namespace app
 		{
 		public:
 			/** ギミックを解いた（area = 解けたギミックの範囲。プレイヤーと一緒に映す） */
-			static CameraEvent GimmickSolved(const math::Rect& area) { return CameraEvent(CameraEventKind::GimmickSolved, area, true); }
+			static CameraEvent GimmickSolved(const math::Rect& area) { return CameraEvent(CameraEventKind::GimmickSolved, area, true, false); }
 			/** ゴールに触れた（area = ゴールの範囲。プレイヤーと一緒に映す） */
-			static CameraEvent Goal(const math::Rect& area) { return CameraEvent(CameraEventKind::Goal, area, true); }
-			/** プレイヤーだけを映す（ImGui の試し再生など） */
-			static CameraEvent PlayerOnly(const CameraEventKind kind) { return CameraEvent(kind, math::Rect(), false); }
+			static CameraEvent Goal(const math::Rect& area) { return CameraEvent(CameraEventKind::Goal, area, true, false); }
+			/**
+			 * @brief ステージが始まった（プレイヤーだけを映す）
+			 * @details EventCamera::Release を呼ぶまで寄ったままにする（丸が開き始めたら、シーンが Release を呼ぶ）
+			 */
+			static CameraEvent StageStart() { return CameraEvent(CameraEventKind::StageStart, math::Rect(), false, true); }
+			/** プレイヤーだけを映す（ImGui の試し再生など。Hold の時間がたったら戻る） */
+			static CameraEvent PlayerOnly(const CameraEventKind kind) { return CameraEvent(kind, math::Rect(), false, false); }
 
-			CameraEvent() : CameraEvent(CameraEventKind::GimmickSolved, math::Rect(), false) {}
+			CameraEvent() : CameraEvent(CameraEventKind::GimmickSolved, math::Rect(), false, false) {}
 
 			/** 場面の種類 */
 			CameraEventKind GetKind() const { return m_kind; }
@@ -65,12 +72,22 @@ namespace app
 			{
 				return (m_hasTarget && isIncludeTarget) ? body.Merged(m_targetArea) : body;
 			}
-			/** 優先度（大きいほど大事。演出中に来た場面は、今より大事なときだけ入れ替える） */
-			int GetPriority() const { return m_kind == CameraEventKind::Goal ? 1 : 0; }
+			/** 優先度（大きいほど大事。演出中に来た場面は、今と同じか今より大事なときだけ入れ替える） */
+			int GetPriority() const
+			{
+				switch (m_kind)
+				{
+				case CameraEventKind::Goal:       return 2;
+				case CameraEventKind::StageStart: return 1;
+				default:                          return 0;
+				}
+			}
+			/** EventCamera::Release を呼ぶまで寄ったままにするか（false なら Hold の時間で戻る） */
+			bool IsHeldUntilRelease() const { return m_isHeldUntilRelease; }
 
 		private:
-			CameraEvent(const CameraEventKind kind, const math::Rect& targetArea, const bool hasTarget)
-				: m_kind(kind), m_targetArea(targetArea), m_hasTarget(hasTarget) {}
+			CameraEvent(const CameraEventKind kind, const math::Rect& targetArea, const bool hasTarget, const bool isHeldUntilRelease)
+				: m_kind(kind), m_targetArea(targetArea), m_hasTarget(hasTarget), m_isHeldUntilRelease(isHeldUntilRelease) {}
 
 		private:
 			/** 場面の種類 */
@@ -79,6 +96,8 @@ namespace app
 			math::Rect m_targetArea;
 			/** 一緒に映したい範囲があるか */
 			bool m_hasTarget;
+			/** Release を呼ぶまで寄ったままにするか */
+			bool m_isHeldUntilRelease;
 		};
 	}
 }

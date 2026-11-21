@@ -23,6 +23,7 @@ namespace app
 		 *            （GameCamera はふだんの見え方とこれを混ぜるだけ。全体表示のときは使わない）
 		 *          ・映す範囲は毎フレーム、プレイヤーの今の体の範囲から作り直す（寄っている間にプレイヤーが動いても画面から出ない）
 		 *          ・演出中に別の場面が来たら、今より大事な場面（GetPriority が大きい）か同じくらいの場面のときだけ入れ替える
+		 *          ・場面によっては Release を呼ぶまで寄ったままにする（ステージ開始：丸が開き始めたら Release）
 		 *          ・調整用の ImGui は EventCameraEditor にある（このクラスは ImGui を使わない）
 		 */
 		class EventCamera
@@ -41,6 +42,12 @@ namespace app
 			 * @details その場面で寄らない設定（isEnabled = false）のときと、今の演出のほうが大事なときは何もしない
 			 */
 			void Play(const CameraEvent& event);
+			/**
+			 * @brief 寄ったままの所を終わりにして、ふだんの見え方へ戻り始める
+			 * @details Release を待つ場面（CameraEvent::StageStart）は、これを呼ぶまで寄ったまま。
+			 *          ほかの場面で呼んだときは、Hold の残りを飛ばして戻り始める
+			 */
+			void Release();
 			/** 演出をやめて、すぐにふだんの見え方に戻す（リスタート・ステージの読み直し） */
 			void Reset();
 			/**
@@ -67,8 +74,6 @@ namespace app
 		private:
 			/** 場面の種類ごとの寄り方 */
 			const EventShotSetting& GetSetting(CameraEventKind kind) const;
-			/** 寄る時間・寄ったままの時間・戻る時間を全部足した長さ */
-			float CalcTotalTime(const EventShotSetting& setting) const;
 			/** 経過時間から効き具合（0〜1）を求める */
 			float CalcWeight(const EventShotSetting& setting) const;
 
@@ -79,6 +84,8 @@ namespace app
 			CameraEvent m_event;
 			/** 演出を始めてからの時間 */
 			float m_elapsed;
+			/** ふだんの見え方へ戻り始める時間（演出を始めてから。Release を待つ間は FLT_MAX） */
+			float m_outStartTime;
 			/** 演出中か */
 			bool m_isPlaying;
 			/** 今、映してほしい見え方 */

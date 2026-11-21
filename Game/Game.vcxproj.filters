@@ -79,6 +79,9 @@
     <Filter Include="Source\Title">
       <UniqueIdentifier>{3e306633-2019-4f8e-b09c-c9203d1fa0b5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Stage\Start">
+      <UniqueIdentifier>{bd49c42e-e6a4-45ae-b0ca-b109e1654195}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -479,6 +482,12 @@
     </ClCompile>
     <ClCompile Include="Source\Camera\EventCameraEditor.cpp">
       <Filter>Source\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Start\StartEditor.cpp">
+      <Filter>Source\Stage\Start</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Stage\Start\StartSequence.cpp">
+      <Filter>Source\Stage\Start</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -951,6 +960,15 @@
     </ClInclude>
     <ClInclude Include="Source\Camera\EventCameraParameter.h">
       <Filter>Source\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Start\StartEditor.h">
+      <Filter>Source\Stage\Start</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Start\StartParameter.h">
+      <Filter>Source\Stage\Start</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Stage\Start\StartSequence.h">
+      <Filter>Source\Stage\Start</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

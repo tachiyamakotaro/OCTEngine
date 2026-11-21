@@ -4,6 +4,7 @@
 #include "Source/Camera/EventCameraEditor.h"
 #include "Source/Stage/Background/BackgroundEditor.h"
 #include "Source/Stage/Goal/GoalEditor.h"
+#include "Source/Stage/Start/StartEditor.h"
 #include "Source/Core/Math/Vec2.h"
 #include "Source/Render/BloomEditor.h"
 #include "Source/Render/DarknessEditor.h"
@@ -86,6 +87,7 @@ namespace app
 		stage::GimmickMarkRenderer* gimmickMarkRenderer = nullptr;
 		MistEffectParameter* mistEffect = nullptr;
 		stage::ClearSequence* clearSequence = nullptr;
+		stage::StartSequence* startSequence = nullptr;
 		stage::GoalGateRenderer* goalGateRenderer = nullptr;
 		core::IrisWipe* irisWipe = nullptr;
 	};
@@ -139,6 +141,8 @@ namespace app
 		bool isClearStage = false;
 		/** JSON からステージを読み直す（Reload JSON ボタン） */
 		bool isReloadStage = false;
+		/** ステージ開始の演出をもう一度見る（Replay Start ボタン） */
+		bool isReplayStart = false;
 		/** 切り替えるステージの番号（NO_STAGE_CHANGE なら切り替えない） */
 		int changeStageIndex = NO_STAGE_CHANGE;
 		/** 再開する場所を変えてリスタートする（Warp のボタン） */
@@ -230,6 +234,8 @@ namespace app
 		GameplaySEEditor m_seEditor;
 		stage::GimmickMarkEditor m_gimmickMarkEditor;
 		stage::GoalEditor m_goalEditor;
+		/** 「Stage Start」の中身 */
+		stage::StartEditor m_startEditor;
 		stage::BackgroundEditor m_backgroundEditor;
 	};
 }

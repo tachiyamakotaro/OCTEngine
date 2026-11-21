@@ -7,6 +7,7 @@
 #include "Source/Stage/Goal/ClearSequence.h"
 #include "Source/Stage/Background/BackgroundRenderer.h"
 #include "Source/Stage/Goal/GoalGateRenderer.h"
+#include "Source/Stage/Start/StartSequence.h"
 #include "Source/Input/GamePadInputDevice.h"
 #include "Source/Render/DarknessRenderer.h"
 #include "Source/Render/LightBeamRenderer.h"
@@ -61,6 +62,7 @@
   *          ・ClearSequence    … クリアの演出の流れ（扉が開く → 丸く閉じる → 次のステージへ）
   *          ・IrisWipe         … 丸く閉じるフェード（プレイヤーを中心に、黒い画面の丸い穴が小さくなる）
   *          ・EventCamera      … ギミックを解いた・ゴールなど、特定の場面でだけカメラを寄せる（寄る場面は CameraEventDetector が見つける）
+  *          ・StartSequence    … ステージ開始の演出の流れ（小さい丸のまま待つ → 丸が開く。カメラもそれに合わせて引く）
   *
   *          時間切れになると操作を止めて TIME UP を出し、少し待ってからステージを最初からやり直す。
   *
@@ -151,6 +153,10 @@ namespace app
 		void StartTimer();
 		/** カメラを動かす */
 		void UpdateCamera(float deltaTime, bool isImmediate);
+		/** ステージ開始の演出を始める（小さい丸・寄ったカメラ・操作できない状態にする） */
+		void BeginStartSequence();
+		/** ステージ開始の演出の時間を進める（丸が開き始めたら、カメラを引き始めて操作できるようにする） */
+		void UpdateStartSequence(float deltaTime);
 		/** ImGui で調整したパラメーターをプレイヤーに反映する */
 		void ApplyTuning();
 		/** F1 / F2 などのキー操作 */
@@ -210,6 +216,8 @@ namespace app
 		app::stage::GoalGateRenderer m_goalGateRenderer;
 		/** クリアの演出の流れ */
 		app::stage::ClearSequence m_clearSequence;
+		/** ステージ開始の演出の流れ */
+		app::stage::StartSequence m_startSequence;
 		/** 丸く閉じるフェード */
 		app::core::IrisWipe m_irisWipe;
 

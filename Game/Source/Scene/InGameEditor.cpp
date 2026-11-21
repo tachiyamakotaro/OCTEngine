@@ -117,6 +117,12 @@ namespace app
 		ImGui::EndDisabled();
 		ImGui::SetItemTooltip("Same as touching the goal: next stage, or the result screen after the last stage.");
 
+		// ステージ開始の演出をもう一度見る（今の場所で。丸が開く・カメラが引く速さの調整用）
+		ImGui::BeginDisabled(status.isCleared);
+		request.isReplayStart = ImGui::Button("Replay Start");
+		ImGui::EndDisabled();
+		ImGui::SetItemTooltip("Play the stage start again (small circle + zoom in -> open + zoom out) at the current position.");
+
 		request.isReloadStage = ImGui::Button("Reload JSON");
 		ImGui::SetItemTooltip("Rebuild the stage from the JSON files (%s). Unsaved editor changes are lost.", stage::GetCurrentStageInfo().name);
 
@@ -195,6 +201,11 @@ namespace app
 		if (ImGui::CollapsingHeader("Goal"))
 		{
 			m_goalEditor.Draw(*m_targets.clearSequence, *m_targets.goalGateRenderer, *m_targets.irisWipe);
+		}
+		// ---- ステージ開始の演出（小さい丸 → 丸が開く） ----
+		if (ImGui::CollapsingHeader("Stage Start"))
+		{
+			m_startEditor.Draw(*m_targets.startSequence);
 		}
 		// ---- ステージの奥の背景（回廊・松明・ステージの外の色） ----
 		if (ImGui::CollapsingHeader("Background"))
@@ -302,6 +313,6 @@ namespace app
 			&& t.mirrorGlass != nullptr && t.darknessRenderer != nullptr && t.stageRenderer != nullptr && t.backgroundRenderer != nullptr
 			&& t.gimmickRenderer != nullptr
 			&& t.gimmickMarkRenderer != nullptr && t.mistEffect != nullptr
-			&& t.clearSequence != nullptr && t.goalGateRenderer != nullptr && t.irisWipe != nullptr;
+			&& t.clearSequence != nullptr && t.startSequence != nullptr && t.goalGateRenderer != nullptr && t.irisWipe != nullptr;
 	}
 }

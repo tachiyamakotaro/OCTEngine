@@ -10,6 +10,7 @@
 #include "Source/Actor/Character/CharacterStateMachine.h"
 #include "Source/Actor/Character/CharacterStatus.h"
 #include "Source/Camera/CameraStageBounds.h"
+#include "Source/Core/Math/MathUtil.h"
 #include "Source/Core/DebugUI.h"
 #include "Source/PlayLog/PlayLog.h"
 #include "Source/Save/SaveData.h"
@@ -118,6 +119,8 @@ namespace app
 		m_goalGateRenderer.Init();
 		m_clearSequence.Init();
 		m_irisWipe.Init();
+		// ステージ開始の演出（小さい丸から開いていく。時間は StartParameter.h）
+		m_startSequence.Init();
 		// 色の光のギミック（色センサー・扉の色の印・色の付いた光源）
 		m_colorLightRenderer.Init(app::stage::ColorLightRenderer::Config());
 		m_colorGlassRenderer.Init(app::stage::ColorGlassRenderer::Config());
@@ -151,7 +154,9 @@ namespace app
 		// 特定の場面でだけ寄るカメラ（寄り方の値は EventCameraParameter.h）。今の状態を覚えておく（ここからの変化で寄る）
 		m_eventCamera.Init();
 		m_cameraEventDetector.Reset(m_stage);
-		// 最初のフレームからプレイヤーを映す（原点からすべってこないように）
+		// ステージ開始の演出：寄ったカメラと小さい丸から始める
+		BeginStartSequence();
+		// 最初のフレームからプレイヤーを映す（原点からすべってこないように。寄った見え方ですぐ映す）
 		UpdateCamera(0.0f, true);
 
 		// 時間制限（制限時間は StageCatalog.h の表）と、その表示
@@ -180,6 +185,7 @@ namespace app
 		editTargets.gimmickMarkRenderer = &m_gimmickMarkRenderer;
 		editTargets.mistEffect = &m_mistEffect;
 		editTargets.clearSequence = &m_clearSequence;
+		editTargets.startSequence = &m_startSequence;
 		editTargets.goalGateRenderer = &m_goalGateRenderer;
 		editTargets.irisWipe = &m_irisWipe;
 		m_inGameEditor.Init(editTargets);
@@ -264,6 +270,8 @@ namespace app
 		//m_cameraEventDetector.Update(m_stage, m_eventCamera);
 		// クリアの演出（扉が開く → 丸く閉じる）の時間を進める
 		m_clearSequence.Update(deltaTime);
+		// ステージ開始の演出（小さい丸 → 丸が開く）の時間を進める
+		UpdateStartSequence(deltaTime);
 		UpdateTimer(deltaTime);
 		UpdateRestart(deltaTime);
 
@@ -303,9 +311,11 @@ namespace app
 			deltaTime);
 		{
 			// 丸く閉じるフェード（プレイヤーの体の真ん中を中心にする。カメラを動かしたあとに更新する）
+			// ステージ開始（丸が開いていく）とクリア（丸が閉じていく）の、閉じているほうを使う
 			const app::math::Rect body = m_player.GetController().GetBounds();
 			const app::math::Vec2 center = (body.min + body.max) * 0.5f;
-			m_irisWipe.Update(m_clearSequence.GetIrisCloseRate(), Vector3(center.x, center.y, 0.0f));
+			const float closeRate = app::math::Max(m_clearSequence.GetIrisCloseRate(), m_startSequence.GetIrisCloseRate());
+			m_irisWipe.Update(closeRate, Vector3(center.x, center.y, 0.0f));
 		}
 		SceneLight::GetInstance()->Update();
 
@@ -451,6 +461,8 @@ namespace app
 		m_isCleared = false;
 		// クリアの演出をやめる（扉を閉じ、丸く閉じるフェードも消す）
 		m_clearSequence.Reset();
+		// ステージ開始の演出もやめる（丸を消す。操作は上で戻している）
+		m_startSequence.Reset();
 		// カメラの演出もやめて、今の仕掛けの状態を覚え直す（開いたままの扉で寄らないように）
 		m_eventCamera.Reset();
 		m_cameraEventDetector.Reset(m_stage);
@@ -835,7 +847,8 @@ namespace app
 		// フェードで画面が切り替わっている間（ステージに入った直後など）は数えない
 		// ゴールしたあとは止めたまま（RestartPlayers で m_isCleared が戻ったら、また数える）
 		const bool isTransitioning = SceneManager::GetInstance() != nullptr && SceneManager::GetInstance()->IsTransitioning();
-		m_stageTimer.SetRunning(!m_isCleared && !isTransitioning);
+		// ステージ開始の演出で、丸が開き始める前（操作できない間）も数えない
+		m_stageTimer.SetRunning(!m_isCleared && !isTransitioning && !m_startSequence.IsHolding());
 		// デバッグの Stop Timer で止めたら、デバッグ表示を OFF にしても止めたままにする（動かすときは Resume Timer を押す）
 		m_stageTimer.Update(deltaTime);
 
@@ -884,6 +897,36 @@ namespace app
 	{
 		m_stageTimer.Start(app::stage::GetCurrentStageTimeLimit());
 		m_timeUpTimer = 0.0f;
+	}
+
+
+	void DebugScene::BeginStartSequence()
+	{
+		// 小さい丸から始める（丸の閉じ具合は StartSequence、寄り方は EventCamera が決める）
+		m_startSequence.Start();
+		// 丸が開き始めるまで寄ったまま（Release で引き始める）
+		m_eventCamera.Play(app::camera::CameraEvent::StageStart());
+		// 丸が開き始めるまで操作できない
+		m_player.GetPlayerController().SetEnabled(false);
+	}
+
+
+	void DebugScene::UpdateStartSequence(const float deltaTime)
+	{
+		// 画面の切り替え（SceneManager のフェード）の間は進めない（真っ暗な間に丸が開いてしまわないように）
+		const bool isTransitioning = SceneManager::GetInstance() != nullptr && SceneManager::GetInstance()->IsTransitioning();
+		m_startSequence.Update(isTransitioning ? 0.0f : deltaTime);
+
+		// 丸が開き始めた：カメラも引き始めて、操作できるようにする
+		if (m_startSequence.IsOpenStartedThisFrame())
+		{
+			m_eventCamera.Release();
+			// デバッグで先にクリアした・時間切れになったときは、操作を戻さない
+			if (!m_isCleared && !m_stageTimer.IsTimeUp())
+			{
+				m_player.GetPlayerController().SetEnabled(true);
+			}
+		}
 	}
 
 
@@ -1015,6 +1058,12 @@ namespace app
 			m_clearSequence.Start();
 			m_player.GetPlayerController().SetEnabled(false);
 			m_stageTimer.SetRunning(false);
+		}
+		// ステージ開始の演出をもう一度見る（その場所で。調整用）
+		if (request.isReplayStart && !m_isCleared)
+		{
+			BeginStartSequence();
+			UpdateCamera(0.0f, true);
 		}
 		// チェックポイント（または開始位置）へワープ：再開する場所を変えてリスタート
 		if (request.isWarp)
