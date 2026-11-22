@@ -23,6 +23,8 @@ namespace app
 			float openSpeed = 2.0f;
 			/** 一度開いたら開いたままにするか */
 			bool isLatch = false;
+			/** 初めて開いたときにカメラが寄るか（ステージエディタで扉ごとに決める。JSON の "isCameraFocus"） */
+			bool isCameraFocus = false;
 
 			/** 【実行時】開き具合（0=閉 〜 1=開） */
 			float openAmount = 0.0f;

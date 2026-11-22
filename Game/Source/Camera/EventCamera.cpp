@@ -109,6 +109,12 @@ namespace app
 		}
 
 
+		bool EventCamera::IsLockingPlayer() const
+		{
+			return m_isPlaying && GetSetting(m_event.GetKind()).isLockPlayer && m_elapsed < m_outStartTime;
+		}
+
+
 		void EventCamera::ApplyTo(GameCamera& camera) const
 		{
 			camera.SetEventShot(m_shot);
@@ -123,6 +129,8 @@ namespace app
 				return m_parameter.goal;
 			case CameraEventKind::StageStart:
 				return m_parameter.stageStart;
+			case CameraEventKind::Death:
+				return m_parameter.death;
 			case CameraEventKind::GimmickSolved:
 			default:
 				return m_parameter.gimmickSolved;

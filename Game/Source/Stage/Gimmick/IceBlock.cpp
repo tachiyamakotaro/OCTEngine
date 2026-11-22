@@ -905,6 +905,8 @@ namespace app
 				kind = kindIndex == 1 ? IceKind::Keep : IceKind::Melt;
 			}
 			ImGui::SetItemTooltip("Melt: melt it with light to open the way.\nKeep: a foothold. Protect it with shade.\n(Both melt in light. Only the look is different.)");
+			ImGui::Checkbox("Camera Focus", &isCameraFocus);
+			ImGui::SetItemTooltip("Zoom the camera in when the player can pass through (Melt only).");
 			ImGui::DragFloat("Melt Time", &meltTime, 0.05f, MIN_TIME, 60.0f, "%.2f s");
 			ImGui::SetItemTooltip("About how many seconds a beam takes to dig through 100 of ice.");
 			if (ImGui::DragFloat("Cell Size", &cellSize, 0.5f, MIN_CELL_SIZE, 100.0f, "%.1f"))
@@ -949,6 +951,7 @@ namespace app
 				// 知らない文字なら今の種類のまま
 				IceKindFromString(kindText, kind);
 			}
+			archive.Field("isCameraFocus", isCameraFocus);
 			archive.Field("meltTime", meltTime);
 			archive.Field("cellSize", cellSize);
 			archive.Field("heatRadius", heatRadius);

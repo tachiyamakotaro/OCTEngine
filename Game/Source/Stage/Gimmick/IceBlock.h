@@ -60,6 +60,8 @@ namespace app
 
 			/** 種類（見た目と役割） */
 			IceKind kind = IceKind::Melt;
+			/** 通れる穴が開いたときにカメラが寄るか（ステージエディタで氷ごとに決める。JSON の "isCameraFocus"。溶かす氷だけ） */
+			bool isCameraFocus = false;
 			/** 溶ける速さ：光をまっすぐ当てたとき、厚さ 100 を掘り抜くまでのおよその秒数 */
 			float meltTime = 0.5f;
 			/** マスの大きさ（小さいほど穴の形が細かくなるが、重くなる） */

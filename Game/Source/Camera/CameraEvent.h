@@ -24,6 +24,7 @@ namespace app
 			GimmickSolved,	//!< ギミックを解いた（扉が初めて開いた・溶かす氷に通れる穴が開いた）
 			Goal,			//!< ゴールに触れた（クリアの演出の間）
 			StageStart,		//!< ステージが始まった（寄った所から、丸が開くのに合わせて引いていく）
+			Death,			//!< プレイヤーが死んだ（リスタートまで寄ったまま）
 		};
 
 
@@ -35,6 +36,7 @@ namespace app
 			case CameraEventKind::GimmickSolved: return "Gimmick Solved";
 			case CameraEventKind::Goal:          return "Goal";
 			case CameraEventKind::StageStart:    return "Stage Start";
+			case CameraEventKind::Death:         return "Death";
 			}
 			return "Unknown";
 		}
@@ -56,6 +58,8 @@ namespace app
 			 * @details EventCamera::Release を呼ぶまで寄ったままにする（丸が開き始めたら、シーンが Release を呼ぶ）
 			 */
 			static CameraEvent StageStart() { return CameraEvent(CameraEventKind::StageStart, math::Rect(), false, true); }
+			/** プレイヤーが死んだ（プレイヤーだけを映す。リスタートで Reset されるまで寄ったまま） */
+			static CameraEvent Death() { return CameraEvent(CameraEventKind::Death, math::Rect(), false, true); }
 			/** プレイヤーだけを映す（ImGui の試し再生など。Hold の時間がたったら戻る） */
 			static CameraEvent PlayerOnly(const CameraEventKind kind) { return CameraEvent(kind, math::Rect(), false, false); }
 
@@ -77,7 +81,8 @@ namespace app
 			{
 				switch (m_kind)
 				{
-				case CameraEventKind::Goal:       return 2;
+				case CameraEventKind::Goal:       return 3;
+				case CameraEventKind::Death:      return 2;
 				case CameraEventKind::StageStart: return 1;
 				default:                          return 0;
 				}

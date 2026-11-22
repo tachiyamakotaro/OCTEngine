@@ -157,6 +157,8 @@ namespace app
 		void BeginStartSequence();
 		/** ステージ開始の演出の時間を進める（丸が開き始めたら、カメラを引き始めて操作できるようにする） */
 		void UpdateStartSequence(float deltaTime);
+		/** カメラの演出で寄っている間はプレイヤーを動けなくし、引き始めたら動けるように戻す */
+		void UpdateCameraLock();
 		/** ImGui で調整したパラメーターをプレイヤーに反映する */
 		void ApplyTuning();
 		/** F1 / F2 などのキー操作 */
@@ -271,5 +273,7 @@ namespace app
 		float m_timeUpTimer;
 		/** 今の死亡をプレイログに記録したか（1回の死亡で1回だけ記録するため） */
 		bool m_isDeathLogged;
+		/** カメラの演出でプレイヤーを動けなくしているか（前のフレームの状態。変わったときだけ操作を切り替える） */
+		bool m_isCameraLocking;
 	};
 }

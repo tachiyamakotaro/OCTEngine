@@ -58,8 +58,11 @@ namespace app
 			{
 				if (!m_hasDoorOpened[i] && door.openAmount > DOOR_OPENED_AMOUNT)
 				{
-					// 閉じているときの範囲を映す（開いていく扉が画面に入るように）
-					eventCamera.Play(CameraEvent::GimmickSolved(door.rect));
+					// ステージエディタで「Camera Focus」にした扉だけ寄る（閉じているときの範囲を映す）
+					if (door.isCameraFocus)
+					{
+						eventCamera.Play(CameraEvent::GimmickSolved(door.rect));
+					}
 					m_hasDoorOpened[i] = true;
 				}
 				++i;
@@ -71,8 +74,8 @@ namespace app
 		{
 			for (const stage::IceBlock& ice : stage.GetGimmicks().View<stage::IceBlock>())
 			{
-				// 守る氷（足場の氷）が溶けたのは失敗なので寄らない
-				if (ice.isPassableThisFrame && ice.kind == stage::IceKind::Melt)
+				// ステージエディタで「Camera Focus」にした氷だけ寄る。守る氷（足場の氷）が溶けたのは失敗なので寄らない
+				if (ice.isCameraFocus && ice.isPassableThisFrame && ice.kind == stage::IceKind::Melt)
 				{
 					eventCamera.Play(CameraEvent::GimmickSolved(ice.rect));
 				}

@@ -24,6 +24,7 @@ namespace app
 			DrawShotSetting(eventCamera, CameraEventKind::GimmickSolved, param.gimmickSolved);
 			DrawShotSetting(eventCamera, CameraEventKind::Goal, param.goal);
 			DrawShotSetting(eventCamera, CameraEventKind::StageStart, param.stageStart);
+			DrawShotSetting(eventCamera, CameraEventKind::Death, param.death);
 
 			ImGui::PopID();
 		}
@@ -72,6 +73,8 @@ namespace app
 			ImGui::SetItemTooltip("Space around the player (and the gimmick).");
 			ImGui::Checkbox("Include Target", &setting.isIncludeTarget);
 			ImGui::SetItemTooltip("Also keep the gimmick / goal on screen.\nIf it is far away, the camera zooms in less.");
+			ImGui::Checkbox("Lock Player", &setting.isLockPlayer);
+			ImGui::SetItemTooltip("The player cannot move (and the timer stops) while zoomed in.\nThe player can move again when the camera starts to zoom out.");
 
 			ImGui::PopID();
 		}

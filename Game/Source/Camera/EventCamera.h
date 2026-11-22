@@ -70,6 +70,11 @@ namespace app
 			const CameraEvent& GetPlayingEvent() const { return m_event; }
 			/** 今の効き具合（0〜1） */
 			float GetWeight() const { return m_shot.weight; }
+			/**
+			 * @brief プレイヤーを動けなくしている間か
+			 * @details 演出中の場面が isLockPlayer で、まだ引き始めていない（寄る〜寄ったまま）間は true
+			 */
+			bool IsLockingPlayer() const;
 
 		private:
 			/** 場面の種類ごとの寄り方 */

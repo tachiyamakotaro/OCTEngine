@@ -112,6 +112,8 @@ namespace app
 			RectGimmick::DrawInspector(inspector);
 			ImGui::DragFloat("Open Speed", &openSpeed, 0.05f, 0.05f, 20.0f, "%.2f");
 			ImGui::Checkbox("Latch (stay open)", &isLatch);
+			ImGui::Checkbox("Camera Focus", &isCameraFocus);
+			ImGui::SetItemTooltip("Zoom the camera in when this door opens for the first time.");
 			ImGui::Text("Open: %.0f%%", openAmount * 100.0f);
 			ImGui::TextUnformatted("Required signals (receivers / switches):");
 			inspector.SignalCheckboxes(requiredReceivers);
@@ -124,6 +126,7 @@ namespace app
 			archive.Field("requiredReceivers", requiredReceivers);
 			archive.Field("openSpeed", openSpeed);
 			archive.Field("isLatch", isLatch);
+			archive.Field("isCameraFocus", isCameraFocus);
 		}
 	}
 }

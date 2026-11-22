@@ -76,6 +76,7 @@ namespace app
 		, m_dragCameraTarget()
 		, m_timeUpTimer(0.0f)
 		, m_isDeathLogged(false)
+		, m_isCameraLocking(false)
 	{}
 
 
@@ -267,7 +268,10 @@ namespace app
 		// SE：ステージ・プレイヤー・鏡の操作が全部終わってから、変化を見て鳴らす
 		m_sePlayer.Update(deltaTime, m_stage, m_player, m_mirrorInteractor);
 		// カメラの演出：ギミックを解いた場面を見つけたら寄る（SE と同じく、全部の更新が終わってから変化を見る）
-		//m_cameraEventDetector.Update(m_stage, m_eventCamera);
+		// 寄るのはステージエディタで「Camera Focus」にしたギミックだけ
+		m_cameraEventDetector.Update(m_stage, m_eventCamera);
+		// 寄っている間はプレイヤーを動けなくする（引き始めたら動ける）
+		UpdateCameraLock();
 		// クリアの演出（扉が開く → 丸く閉じる）の時間を進める
 		m_clearSequence.Update(deltaTime);
 		// ステージ開始の演出（小さい丸 → 丸が開く）の時間を進める
@@ -466,6 +470,8 @@ namespace app
 		// カメラの演出もやめて、今の仕掛けの状態を覚え直す（開いたままの扉で寄らないように）
 		m_eventCamera.Reset();
 		m_cameraEventDetector.Reset(m_stage);
+		// 演出をやめたので、動けなくしていた印も消す（操作は上で戻している）
+		m_isCameraLocking = false;
 		UpdateCamera(0.0f, true);
 
 		// SE：仕掛けを戻したぶんの音（扉が閉じた・受光器が消えた）は鳴らさずに覚え直して、再開の音だけ鳴らす
@@ -831,6 +837,8 @@ namespace app
 				: app::playlog::DeathCause::Damage;
 			app::playlog::PlayLog::Get().RecordDeath(cause, position);
 			m_isDeathLogged = true;
+			// カメラの演出：死んだプレイヤーに寄る（リスタートの Reset でふだんの見え方に戻る）
+			m_eventCamera.Play(app::camera::CameraEvent::Death());
 		}
 
 		m_deadTimer += deltaTime;
@@ -848,7 +856,8 @@ namespace app
 		// ゴールしたあとは止めたまま（RestartPlayers で m_isCleared が戻ったら、また数える）
 		const bool isTransitioning = SceneManager::GetInstance() != nullptr && SceneManager::GetInstance()->IsTransitioning();
 		// ステージ開始の演出で、丸が開き始める前（操作できない間）も数えない
-		m_stageTimer.SetRunning(!m_isCleared && !isTransitioning && !m_startSequence.IsHolding());
+		// カメラの演出で寄っていて動けない間も数えない
+		m_stageTimer.SetRunning(!m_isCleared && !isTransitioning && !m_startSequence.IsHolding() && !m_eventCamera.IsLockingPlayer());
 		// デバッグの Stop Timer で止めたら、デバッグ表示を OFF にしても止めたままにする（動かすときは Resume Timer を押す）
 		m_stageTimer.Update(deltaTime);
 
@@ -921,11 +930,36 @@ namespace app
 		if (m_startSequence.IsOpenStartedThisFrame())
 		{
 			m_eventCamera.Release();
-			// デバッグで先にクリアした・時間切れになったときは、操作を戻さない
-			if (!m_isCleared && !m_stageTimer.IsTimeUp())
+			// デバッグで先にクリアした・時間切れになった・カメラの演出で止めているときは、操作を戻さない
+			if (!m_isCleared && !m_stageTimer.IsTimeUp() && !m_eventCamera.IsLockingPlayer())
 			{
 				m_player.GetPlayerController().SetEnabled(true);
 			}
+		}
+	}
+
+
+	void DebugScene::UpdateCameraLock()
+	{
+		// 変わったときだけ切り替える（ほかの所で操作を止めた・戻したのを、毎フレーム上書きしないように）
+		const bool isLocking = m_eventCamera.IsLockingPlayer();
+		if (isLocking == m_isCameraLocking)
+		{
+			return;
+		}
+		m_isCameraLocking = isLocking;
+
+		// 寄り始めた：動けなくする（コントローラーを止めると、鏡や日よけ板もつかめなくなる）
+		if (isLocking)
+		{
+			m_player.GetPlayerController().SetEnabled(false);
+			return;
+		}
+		// 引き始めた：ほかの理由で止めている間（ゴール・死亡・時間切れ・ステージ開始の演出）でなければ、動けるように戻す
+		const bool isStoppedByOther = m_isCleared || m_player.GetStatus()->IsDead() || m_stageTimer.IsTimeUp() || m_startSequence.IsHolding();
+		if (!isStoppedByOther)
+		{
+			m_player.GetPlayerController().SetEnabled(true);
 		}
 	}
 

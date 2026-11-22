@@ -31,6 +31,11 @@ namespace app
 			float blendInTime = 0.5f;
 			/** ふだんの見え方に戻るまでの時間（秒） */
 			float blendOutTime = 0.7f;
+			/**
+			 * 寄っている間（寄る〜寄ったまま）はプレイヤーを動けなくするか（時間制限も止まる）
+			 * 引き始めたら動けるようになる
+			 */
+			bool isLockPlayer = false;
 		};
 
 
@@ -40,18 +45,27 @@ namespace app
 		 */
 		struct EventCameraParameter
 		{
-			// 並び：isEnabled, zoom, holdTime, margin, isIncludeTarget, blendInTime, blendOutTime
+			// 並び：isEnabled, zoom, holdTime, margin, isIncludeTarget, blendInTime, blendOutTime, isLockPlayer
+			// （ステージ開始・ゴール・死んだときは、それぞれの処理で操作を止めているので isLockPlayer は false）
 
-			/** ギミックを解いたとき（扉が初めて開いた・溶かす氷に通れる穴が開いた） */
-			EventShotSetting gimmickSolved = { true, 1.3f, 1.5f, 120.0f, true, 0.5f, 0.7f };
+			/**
+			 * ギミックを解いたとき（ステージエディタで Camera Focus にした扉が初めて開いた・溶かす氷に通れる穴が開いた）
+			 * 寄っている間はプレイヤーが動けない（ギミックが動く様子を見せる）。引き始めたら動ける
+			 */
+			EventShotSetting gimmickSolved = { true, 1.0f, 1.5f, 100.0f, true, 0.5f, 0.7f, true };
 			/** ゴールに触れたとき（クリアの演出が終わるまで寄ったまま） */
-			EventShotSetting goal = { true, 1.1f, 10.0f, 150.0f, true, 0.5f, 0.7f };
+			EventShotSetting goal = { true, 0.8f, 10.0f, 80.0f, true, 0.5f, 0.7f };
 			/**
 			 * ステージが始まったとき（最初から寄った見え方で、丸が開き始めたら引いていく）
 			 * ・寄ったままの時間は StartSequence が決める（holdTime は ImGui の Test のときだけ使う）
 			 * ・blendOutTime を StartTiming::irisOpenTime と同じにすると、丸が開ききるのと同時に引ききる
 			 */
-			EventShotSetting stageStart = { true, 1.1f, 0.6f, 120.0f, false, 0.0f, 1.2f };
+			EventShotSetting stageStart = { true, 0.7f, 0.6f, 80.0f, false, 0.0f, 1.2f };
+			/**
+			 * プレイヤーが死んだとき（リスタートまで寄ったまま。リスタートでふだんの見え方に戻る）
+			 * ・holdTime は ImGui の Test のときだけ使う
+			 */
+			EventShotSetting death = { true, 0.8f, 1.5f, 80.0f, false, 0.4f, 0.5f };
 		};
 	}
 }
