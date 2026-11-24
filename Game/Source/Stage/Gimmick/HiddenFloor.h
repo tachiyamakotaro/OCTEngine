@@ -55,6 +55,8 @@ namespace app
 			/** 光の計算の結果を見る */
 			UpdatePhase GetUpdatePhase() const override { return UpdatePhase::Light; }
 			void Update(const GimmickUpdateContext& context) override;
+			/** 見え方は光で決まるだけなので、カメラが寄っている間も止めない（照らされた足場が見えるように） */
+			bool IsUpdatedWhileFocusing() const override { return true; }
 			void ResetRuntimeState() override;
 			CollisionKind GetCollision(math::Rect& outRect) const override;
 

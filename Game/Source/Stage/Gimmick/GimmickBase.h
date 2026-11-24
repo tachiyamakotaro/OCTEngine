@@ -165,6 +165,12 @@ namespace app
 			virtual UpdatePhase GetUpdatePhase() const { return UpdatePhase::Signal; }
 			/** @brief 毎フレームの更新 */
 			virtual void Update(const GimmickUpdateContext& context) {}
+			/**
+			 * @brief カメラがギミックに寄っている間も更新するか（ふだんは false = 止める）
+			 * @details 光の当たり方で見え方が決まるだけの物（暗がりの足場）は true にする。
+			 *          止めると、寄った先で光が照らしているのに見えないままになるため
+			 */
+			virtual bool IsUpdatedWhileFocusing() const { return false; }
 			/** @brief 実行時の状態（扉の開き具合・点灯など）を最初に戻す */
 			virtual void ResetRuntimeState() {}
 			/**

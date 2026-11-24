@@ -79,12 +79,12 @@ namespace app
 		void GimmickManager::UpdateOnly(const GimmickBase* target, const GimmickUpdateContext& context)
 		{
 			// target の中身は見ずに、同じものを探すだけ（エディタで消されていても安全なように）
+			// 寄っている間も止めない物（光で見え方が決まるだけの物）も一緒に更新する
 			for (std::unique_ptr<GimmickBase>& gimmick : m_gimmicks)
 			{
-				if (gimmick.get() == target)
+				if (gimmick.get() == target || gimmick->IsUpdatedWhileFocusing())
 				{
 					gimmick->Update(context);
-					return;
 				}
 			}
 		}

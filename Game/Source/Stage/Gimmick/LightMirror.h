@@ -10,6 +10,10 @@ namespace app
 {
 	namespace stage
 	{
+		struct LightSegment;
+		struct LightTraceResult;
+
+
 		/**
 		 * @brief 光を反射する鏡（線分）
 		 * @details 表側（法線の向き）だけが光を反射する。裏側に当たった光は止まる。
@@ -40,6 +44,10 @@ namespace app
 			float railMinX = 0.0f;
 			/** 動かせる範囲の右端（中心のX） */
 			float railMaxX = 0.0f;
+			/** 正しい向きにして光を反射したときに、カメラが寄るか（ステージエディタで鏡ごとに決める。JSON の "isCameraFocus"） */
+			bool isCameraFocus = false;
+			/** 正しい向き（度。isCameraFocus のときだけ使う） */
+			float focusAngleDeg = 0.0f;
 
 
 		public:
@@ -87,6 +95,16 @@ namespace app
 			{
 				angleDeg = math::NormalizeDeg(angleDeg + rotationStepDeg * static_cast<float>(steps));
 			}
+			/**
+			 * @brief 正しい向き（focusAngleDeg）で光を反射しているか（カメラが寄るきっかけ）
+			 * @param light 今フレームの光の計算結果
+			 */
+			bool IsReflectingAtFocusAngle(const LightTraceResult& light) const;
+			/**
+			 * @brief カメラが寄るときに映す範囲（鏡と、反射した光の行き先まで）
+			 * @param light 今フレームの光の計算結果
+			 */
+			math::Rect GetFocusArea(const LightTraceResult& light) const;
 			/** レールの範囲に収めた中心X */
 			float ClampToRail(const float x) const
 			{
@@ -130,6 +148,13 @@ namespace app
 				range.y = center.y;
 				return range;
 			}
+
+
+		private:
+			/** 正しい向き（focusAngleDeg）になっているか */
+			bool IsFocusAngle() const;
+			/** この鏡で反射して出ていく光の線分（いちばん先に計算された1本。反射していなければ nullptr） */
+			const LightSegment* FindReflectedSegment(const LightTraceResult& light) const;
 
 
 		public:

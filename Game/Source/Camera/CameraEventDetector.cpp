@@ -14,6 +14,8 @@ namespace
 {
 	/** これより開いたら「開いた」とみなす（開き具合 0〜1） */
 	constexpr float DOOR_OPENED_AMOUNT = 0.01f;
+	/** 暗がりの中の鏡をそろえたときに映す、暗がりの真ん中の範囲の大きさ */
+	constexpr app::math::Vec2 DARK_ZONE_FOCUS_SIZE(400.0f, 300.0f);
 }
 
 
@@ -24,6 +26,7 @@ namespace app
 		CameraEventDetector::CameraEventDetector()
 			: m_hasDoorOpened()
 			, m_hasBlockStarted()
+			, m_hasMirrorAligned()
 			, m_focusedGimmick(nullptr)
 		{}
 
@@ -43,6 +46,12 @@ namespace app
 			{
 				m_hasBlockStarted.push_back(block.isRunning);
 			}
+			// 今もう正しい向きで光を反射している鏡も「そろえたことがある」にしておく
+			m_hasMirrorAligned.clear();
+			for (const stage::LightMirror& mirror : stage.GetGimmicks().View<stage::LightMirror>())
+			{
+				m_hasMirrorAligned.push_back(mirror.isCameraFocus && mirror.IsReflectingAtFocusAngle(stage.GetLightResult()));
+			}
 		}
 
 
@@ -58,6 +67,7 @@ namespace app
 			DetectDoorOpened(stage, eventCamera);
 			DetectIcePassable(stage, eventCamera);
 			DetectBlockStarted(stage, eventCamera);
+			DetectMirrorAligned(stage, eventCamera);
 		}
 
 
@@ -112,6 +122,38 @@ namespace app
 		}
 
 
+		void CameraEventDetector::DetectMirrorAligned(const stage::Stage& stage, EventCamera& eventCamera)
+		{
+			const stage::LightTraceResult& light = stage.GetLightResult();
+			size_t i = 0;
+			for (const stage::LightMirror& mirror : stage.GetGimmicks().View<stage::LightMirror>())
+			{
+				// ステージエディタで「Camera Focus」にした鏡だけ、正しい向きで初めて光を反射したときに寄る（光の行き先まで映す）
+				if (!m_hasMirrorAligned[i] && mirror.isCameraFocus && mirror.IsReflectingAtFocusAngle(light))
+				{
+					Focus(mirror, GetMirrorFocusArea(stage, mirror), eventCamera);
+					m_hasMirrorAligned[i] = true;
+				}
+				++i;
+			}
+		}
+
+
+		math::Rect CameraEventDetector::GetMirrorFocusArea(const stage::Stage& stage, const stage::LightMirror& mirror) const
+		{
+			// 暗がりの中の鏡は、暗がりの真ん中あたりを映す（鏡のまわりは暗くて、寄っても見えにくいため）
+			for (const stage::DarkZone& zone : stage.GetGimmicks().View<stage::DarkZone>())
+			{
+				if (!zone.isWholeStage && zone.Contains(mirror.center))
+				{
+					return math::Rect::FromCenter(zone.rect.Center(), DARK_ZONE_FOCUS_SIZE);
+				}
+			}
+			// 暗がりの外の鏡は、鏡と反射した光の行き先を映す
+			return mirror.GetFocusArea(stage.GetLightResult());
+		}
+
+
 		void CameraEventDetector::Focus(const stage::GimmickBase& gimmick, const math::Rect& area, EventCamera& eventCamera)
 		{
 			eventCamera.Play(CameraEvent::GimmickSolved(area));
@@ -123,7 +165,8 @@ namespace app
 		{
 			const bool isSameDoors = m_hasDoorOpened.size() == stage.GetGimmicks().View<stage::Door>().size();
 			const bool isSameBlocks = m_hasBlockStarted.size() == stage.GetGimmicks().View<stage::MovingBlock>().size();
-			return isSameDoors && isSameBlocks;
+			const bool isSameMirrors = m_hasMirrorAligned.size() == stage.GetGimmicks().View<stage::LightMirror>().size();
+			return isSameDoors && isSameBlocks && isSameMirrors;
 		}
 	}
 }

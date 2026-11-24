@@ -192,6 +192,75 @@ namespace app
 					}
 				}
 			}
+			ImGui::Separator();
+			ImGui::Checkbox("Camera Focus", &isCameraFocus);
+			ImGui::SetItemTooltip("Zoom the camera in the first time this mirror reflects light at the focus angle.");
+			if (isCameraFocus)
+			{
+				inspector.EditAngle("Focus Angle", focusAngleDeg, rotationStepDeg);
+				// 鏡を正しい向きに回してから押すと、その向きを正しい向きにできる
+				if (ImGui::SmallButton("Use Current Angle"))
+				{
+					focusAngleDeg = angleDeg;
+				}
+			}
+		}
+
+
+		bool LightMirror::IsReflectingAtFocusAngle(const LightTraceResult& light) const
+		{
+			return IsFocusAngle() && FindReflectedSegment(light) != nullptr;
+		}
+
+
+		math::Rect LightMirror::GetFocusArea(const LightTraceResult& light) const
+		{
+			const math::Rect mirrorArea = GetBounds();
+			const LightSegment* segment = FindReflectedSegment(light);
+			if (segment == nullptr)
+			{
+				return mirrorArea;
+			}
+			// 反射した光の行き先（線分の終点）まで入れる
+			const math::Rect beamArea = {
+				{ math::Min(segment->start.x, segment->end.x), math::Min(segment->start.y, segment->end.y) },
+				{ math::Max(segment->start.x, segment->end.x), math::Max(segment->start.y, segment->end.y) } };
+			return mirrorArea.Merged(beamArea);
+		}
+
+
+		bool LightMirror::IsFocusAngle() const
+		{
+			// 回すと 45 度ずつぴったり変わるので、少しの誤差だけ許す（0 度と 360 度は同じ向き）
+			constexpr float ANGLE_TOLERANCE = 0.5f;
+			const float difference = math::NormalizeDeg(angleDeg - focusAngleDeg);
+			return difference < ANGLE_TOLERANCE || difference > 360.0f - ANGLE_TOLERANCE;
+		}
+
+
+		const LightSegment* LightMirror::FindReflectedSegment(const LightTraceResult& light) const
+		{
+			// 反射した線分は、鏡に当たった点から少しだけ進んだ所から始まる（LightTracer の RAY_EPSILON）
+			constexpr float ON_MIRROR_DISTANCE = 1.0f;
+			const math::Vec2 start = GetStart();
+			const math::Vec2 mirrorVector = GetEnd() - start;
+			const float mirrorLengthSq = mirrorVector.LengthSq();
+			for (const LightSegment& segment : light.segments)
+			{
+				// 反射して始まった線分だけ（光源から出た線分・通り抜けた線分は startNormal が 0）
+				if (segment.startNormal.LengthSq() <= 0.0f)
+				{
+					continue;
+				}
+				// 線分の始点が、鏡の上にあるか
+				const float t = mirrorLengthSq > 0.0f ? math::Clamp01(math::Dot(segment.start - start, mirrorVector) / mirrorLengthSq) : 0.0f;
+				const math::Vec2 closest = start + mirrorVector * t;
+				if ((segment.start - closest).Length() <= ON_MIRROR_DISTANCE)
+				{
+					return &segment;
+				}
+			}
+			return nullptr;
 		}
 
 
@@ -207,6 +276,8 @@ namespace app
 			archive.Field("hasRail", hasRail);
 			archive.Field("railMinX", railMinX);
 			archive.Field("railMaxX", railMaxX);
+			archive.Field("isCameraFocus", isCameraFocus);
+			archive.Field("focusAngleDeg", focusAngleDeg);
 		}
 	}
 }
