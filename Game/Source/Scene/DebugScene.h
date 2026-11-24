@@ -159,6 +159,11 @@ namespace app
 		void UpdateStartSequence(float deltaTime);
 		/** カメラの演出で寄っている間はプレイヤーを動けなくし、引き始めたら動けるように戻す */
 		void UpdateCameraLock();
+		/**
+		 * @brief プレイヤーと、プレイヤーが動かす物（反射鏡・日よけ板）を更新する
+		 * @details カメラがギミックに寄っている間は呼ばない（プレイヤーはその場で止まる）
+		 */
+		void UpdatePlayerActions(bool isDebugUI);
 		/** ImGui で調整したパラメーターをプレイヤーに反映する */
 		void ApplyTuning();
 		/** F1 / F2 などのキー操作 */

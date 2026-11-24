@@ -23,16 +23,25 @@ namespace app
 	{
 		CameraEventDetector::CameraEventDetector()
 			: m_hasDoorOpened()
+			, m_hasBlockStarted()
+			, m_focusedGimmick(nullptr)
 		{}
 
 
 		void CameraEventDetector::Reset(const stage::Stage& stage)
 		{
+			m_focusedGimmick = nullptr;
 			// 今もう開いている扉は「開いたことがある」にしておく（リスタートの直後に寄らないように）
 			m_hasDoorOpened.clear();
 			for (const stage::Door& door : stage.GetGimmicks().View<stage::Door>())
 			{
 				m_hasDoorOpened.push_back(door.openAmount > DOOR_OPENED_AMOUNT);
+			}
+			// 今もう動いている床も「動いたことがある」にしておく
+			m_hasBlockStarted.clear();
+			for (const stage::MovingBlock& block : stage.GetGimmicks().View<stage::MovingBlock>())
+			{
+				m_hasBlockStarted.push_back(block.isRunning);
 			}
 		}
 
@@ -48,6 +57,7 @@ namespace app
 
 			DetectDoorOpened(stage, eventCamera);
 			DetectIcePassable(stage, eventCamera);
+			DetectBlockStarted(stage, eventCamera);
 		}
 
 
@@ -61,7 +71,7 @@ namespace app
 					// ステージエディタで「Camera Focus」にした扉だけ寄る（閉じているときの範囲を映す）
 					if (door.isCameraFocus)
 					{
-						eventCamera.Play(CameraEvent::GimmickSolved(door.rect));
+						Focus(door, door.rect, eventCamera);
 					}
 					m_hasDoorOpened[i] = true;
 				}
@@ -70,22 +80,50 @@ namespace app
 		}
 
 
-		void CameraEventDetector::DetectIcePassable(const stage::Stage& stage, EventCamera& eventCamera) const
+		void CameraEventDetector::DetectIcePassable(const stage::Stage& stage, EventCamera& eventCamera)
 		{
 			for (const stage::IceBlock& ice : stage.GetGimmicks().View<stage::IceBlock>())
 			{
 				// ステージエディタで「Camera Focus」にした氷だけ寄る。守る氷（足場の氷）が溶けたのは失敗なので寄らない
 				if (ice.isCameraFocus && ice.isPassableThisFrame && ice.kind == stage::IceKind::Melt)
 				{
-					eventCamera.Play(CameraEvent::GimmickSolved(ice.rect));
+					Focus(ice, ice.rect, eventCamera);
 				}
 			}
 		}
 
 
+		void CameraEventDetector::DetectBlockStarted(const stage::Stage& stage, EventCamera& eventCamera)
+		{
+			size_t i = 0;
+			for (const stage::MovingBlock& block : stage.GetGimmicks().View<stage::MovingBlock>())
+			{
+				if (!m_hasBlockStarted[i] && block.isRunning)
+				{
+					// ステージエディタで「Camera Focus」にした床だけ寄る（動く道のり全体を映す）
+					if (block.isCameraFocus)
+					{
+						Focus(block, block.GetPathArea(), eventCamera);
+					}
+					m_hasBlockStarted[i] = true;
+				}
+				++i;
+			}
+		}
+
+
+		void CameraEventDetector::Focus(const stage::GimmickBase& gimmick, const math::Rect& area, EventCamera& eventCamera)
+		{
+			eventCamera.Play(CameraEvent::GimmickSolved(area));
+			m_focusedGimmick = &gimmick;
+		}
+
+
 		bool CameraEventDetector::IsSameLayout(const stage::Stage& stage) const
 		{
-			return m_hasDoorOpened.size() == stage.GetGimmicks().View<stage::Door>().size();
+			const bool isSameDoors = m_hasDoorOpened.size() == stage.GetGimmicks().View<stage::Door>().size();
+			const bool isSameBlocks = m_hasBlockStarted.size() == stage.GetGimmicks().View<stage::MovingBlock>().size();
+			return isSameDoors && isSameBlocks;
 		}
 	}
 }

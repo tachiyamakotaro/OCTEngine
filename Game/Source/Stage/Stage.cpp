@@ -63,6 +63,17 @@ namespace app
 		}
 
 
+		void Stage::UpdateOnly(const float deltaTime, const std::vector<math::Rect>& bodies, const GimmickBase* target)
+		{
+			const GimmickUpdateContext context = { deltaTime, bodies, m_gimmicks, m_lightResult };
+
+			// 光の経路は今の扉・鏡の位置で計算し直す（寄っているギミックが光を使うため）
+			m_lightTracer.Trace(m_gimmicks, m_lightResult);
+			// 寄っているギミックだけ動かす
+			m_gimmicks.UpdateOnly(target, context);
+		}
+
+
 		void Stage::GetMistVentPositions(const MistEmitter& emitter, std::vector<math::Vec2>& out) const
 		{
 			// 多すぎるとモデルや粒が増えすぎるので上限を決めておく

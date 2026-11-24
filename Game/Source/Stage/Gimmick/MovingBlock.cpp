@@ -214,6 +214,8 @@ namespace app
 			ImGui::SetItemTooltip("Seconds of light to fill the panel.");
 			ImGui::DragFloat("Run Time", &runTime, 0.05f, 0.05f, 60.0f, "%.2f s");
 			ImGui::SetItemTooltip("Seconds it keeps running on a full charge.");
+			ImGui::Checkbox("Camera Focus", &isCameraFocus);
+			ImGui::SetItemTooltip("Zoom the camera in when this block starts moving for the first time.");
 			ImGui::ProgressBar(charge, ImVec2(-1.0f, 0.0f));
 			ImGui::Text("Lit: %s   Running: %s", isLit ? "YES" : "no", isRunning ? "YES" : "no");
 		}
@@ -255,6 +257,7 @@ namespace app
 			archive.Field("chargeTime", chargeTime);
 			archive.Field("runTime", runTime);
 			archive.Field("hasFrontPanel", hasFrontPanel);
+			archive.Field("isCameraFocus", isCameraFocus);
 		}
 
 

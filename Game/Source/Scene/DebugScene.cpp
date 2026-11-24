@@ -211,50 +211,17 @@ namespace app
 		// スイッチは前のフレームのプレイヤーの位置で踏んだか調べる
 		m_stageBodies.clear();
 		m_stageBodies.push_back(m_player.GetController().GetBounds());
-		m_stage.Update(deltaTime, m_stageBodies);
+		// カメラがギミックに寄っている間は、寄っているギミックだけ動かし、ほかのギミックとプレイヤーは止める（引き始めたら全部動く）
+		// デバッグでプレイヤーをつかんでいる間は止めない（つかんでいる間はイベントカメラの時間も止まるので、止めると寄ったままになる）
+		const bool isFocusingGimmick = m_eventCamera.IsLockingPlayer() && !m_isDraggingPlayer;
+		if (isFocusingGimmick)
 		{
-			// 奥の鏡に映る姿（エディタで鏡を動かしても追従するよう毎フレーム渡す）
-			const app::stage::BackMirror& backMirror = m_stage.GetBackMirror();
-			m_player.SetReflectionPlane(backMirror.isEnabled, backMirror.planeZ);
-		}
-		m_player.Update();
-		// デバッグ用：マウスでプレイヤーを動かす（プレイヤーの更新のあとに位置を上書きする）
-		if (isDebugUI)
-		{
-			UpdatePlayerDrag();
+			m_stage.UpdateOnly(deltaTime, m_stageBodies, m_cameraEventDetector.GetFocusedGimmick());
 		}
 		else
 		{
-			m_isDraggingPlayer = false;
-		}
-		// 日よけ板と反射鏡は同じボタン（B）でつかむので、同時につかまないようにする
-		// ・反射鏡を引きずっている間は、日よけ板をつかまない
-		// ・日よけ板を引きずっている間は、反射鏡を操作しない（Reset で「回した」などの印も消しておく）
-		m_shadeInteractor.Update(m_stage, m_player, !m_mirrorInteractor.IsDragging());
-		if (m_shadeInteractor.IsDragging())
-		{
-			m_mirrorInteractor.Reset();
-		}
-		else
-		{
-			m_mirrorInteractor.Update(m_stage, m_player);
-		}
-		// プレイヤーのアニメーション用：物をつかんでいるか・鏡を回したか（次のフレームのステートで使う）
-		if (m_shadeInteractor.IsDragging())
-		{
-			m_player.SetGrabbing(true, m_shadeInteractor.GetDragOffsetX());
-		}
-		else if (m_mirrorInteractor.IsDragging())
-		{
-			m_player.SetGrabbing(true, m_mirrorInteractor.GetDragOffsetX());
-		}
-		else
-		{
-			m_player.SetGrabbing(false, 0.0f);
-		}
-		if (m_mirrorInteractor.IsRotatedThisFrame())
-		{
-			m_player.NotifyObjectRotated();
+			m_stage.Update(deltaTime, m_stageBodies);
+			UpdatePlayerActions(isDebugUI);
 		}
 
 		// つかんで動かしている間は、ワープ・ゴール・チェックポイントに触れても反応しない（離したあとで反応する）
@@ -935,6 +902,55 @@ namespace app
 			{
 				m_player.GetPlayerController().SetEnabled(true);
 			}
+		}
+	}
+
+
+	void DebugScene::UpdatePlayerActions(const bool isDebugUI)
+	{
+		{
+			// 奥の鏡に映る姿（エディタで鏡を動かしても追従するよう毎フレーム渡す）
+			const app::stage::BackMirror& backMirror = m_stage.GetBackMirror();
+			m_player.SetReflectionPlane(backMirror.isEnabled, backMirror.planeZ);
+		}
+		m_player.Update();
+		// デバッグ用：マウスでプレイヤーを動かす（プレイヤーの更新のあとに位置を上書きする）
+		if (isDebugUI)
+		{
+			UpdatePlayerDrag();
+		}
+		else
+		{
+			m_isDraggingPlayer = false;
+		}
+		// 日よけ板と反射鏡は同じボタン（B）でつかむので、同時につかまないようにする
+		// ・反射鏡を引きずっている間は、日よけ板をつかまない
+		// ・日よけ板を引きずっている間は、反射鏡を操作しない（Reset で「回した」などの印も消しておく）
+		m_shadeInteractor.Update(m_stage, m_player, !m_mirrorInteractor.IsDragging());
+		if (m_shadeInteractor.IsDragging())
+		{
+			m_mirrorInteractor.Reset();
+		}
+		else
+		{
+			m_mirrorInteractor.Update(m_stage, m_player);
+		}
+		// プレイヤーのアニメーション用：物をつかんでいるか・鏡を回したか（次のフレームのステートで使う）
+		if (m_shadeInteractor.IsDragging())
+		{
+			m_player.SetGrabbing(true, m_shadeInteractor.GetDragOffsetX());
+		}
+		else if (m_mirrorInteractor.IsDragging())
+		{
+			m_player.SetGrabbing(true, m_mirrorInteractor.GetDragOffsetX());
+		}
+		else
+		{
+			m_player.SetGrabbing(false, 0.0f);
+		}
+		if (m_mirrorInteractor.IsRotatedThisFrame())
+		{
+			m_player.NotifyObjectRotated();
 		}
 	}
 

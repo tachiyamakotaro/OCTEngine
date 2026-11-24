@@ -69,6 +69,13 @@ namespace app
 			void Update(float deltaTime, const std::vector<math::Rect>& bodies);
 			/** @brief スイッチを踏む体なしで更新する */
 			void Update(float deltaTime);
+			/**
+			 * @brief target のギミックだけ更新する（カメラがギミックに寄っている間。ほかのギミックは止める）
+			 * @details 光の経路は計算し直す（扉が開いて光が通る・氷が溶ける・床が光をためる様子を見せるため）。
+			 *          ほかのギミック（受光器・スイッチ・ほかの扉や床）は更新しないので、今の状態のまま止まる。
+			 * @param target 動かすギミック（nullptr なら全部止める）
+			 */
+			void UpdateOnly(float deltaTime, const std::vector<math::Rect>& bodies, const GimmickBase* target);
 
 
 		public:

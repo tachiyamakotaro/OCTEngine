@@ -79,6 +79,11 @@ namespace app
 			// ---- 更新 ----
 			/** @brief phase の順番のギミックだけ更新する */
 			void Update(UpdatePhase phase, const GimmickUpdateContext& context);
+			/**
+			 * @brief target だけ更新する（ほかのギミックは止めたまま）
+			 * @details カメラがギミックに寄っている間に使う。target がもう無い（エディタで消した）・nullptr なら何もしない
+			 */
+			void UpdateOnly(const GimmickBase* target, const GimmickUpdateContext& context);
 			/** @brief 実行時の状態を最初に戻す */
 			void ResetRuntimeState();
 

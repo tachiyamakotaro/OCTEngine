@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <vector>
+#include "Source/Core/Math/Rect.h"
 
 
 /**
@@ -11,6 +12,7 @@ namespace app
 	namespace stage
 	{
 		class Stage;
+		class GimmickBase;
 	}
 
 
@@ -25,12 +27,14 @@ namespace app
 		 *            今の場面
 		 *            ・扉が初めて開き始めた（受光器・スイッチ・色センサーなど、扉につながったギミックを解いた）
 		 *            ・溶かす氷（IceKind::Melt）に、プレイヤーが通れる穴が開いた
-		 *            どちらも、ステージエディタで「Camera Focus」にしたギミックだけ（毎回寄ると酔いやすいので、寄る所を選ぶ）
+		 *            ・ソーラーパネルの動く床・壁（MovingBlock）が初めて動き出した
+		 *            どれも、ステージエディタで「Camera Focus」にしたギミックだけ（毎回寄ると酔いやすいので、寄る所を選ぶ）
 		 *            ゴールはシーンが決める出来事なので、ゴールに触れた所（DebugScene）から EventCamera::Play を呼ぶ
 		 *          ・GameplaySEPlayer と同じく「前のフレームから何が変わったか」を見る。
 		 *            ギミックのクラスにはカメラのことを書かない（Stage・ギミックはカメラを知らないまま）
-		 *          ・同じ扉で何度も寄らないように、一度開いた扉は覚えておく（リセットするまで寄らない）
+		 *          ・同じ扉・動く床で何度も寄らないように、一度開いた扉・一度動いた床は覚えておく（リセットするまで寄らない）
 		 *          ・寄り方（どれだけ寄るか・何秒か）は決めない。見つけた場面を EventCamera に渡すだけ
+		 *          ・最後に寄ったギミックを覚えておく（寄っている間、そのギミックだけ動かすのに使う）
 		 *
 		 *          使い方（DebugScene）
 		 *          ・Start とリスタートのあとに Reset（今の状態を覚えるだけで、寄らない）
@@ -53,18 +57,32 @@ namespace app
 			 * @param eventCamera 寄る場面を渡す相手
 			 */
 			void Update(const stage::Stage& stage, EventCamera& eventCamera);
+			/**
+			 * @brief 最後に寄ったギミック（まだ寄っていない・リセットしたあとは nullptr）
+			 * @details EventCamera::IsLockingPlayer の間（寄っている間）だけ使う。
+			 *          エディタで消されたギミックを指していることもあるので、中身は見ずに「同じものか」を比べるだけにする
+			 */
+			const stage::GimmickBase* GetFocusedGimmick() const { return m_focusedGimmick; }
 
 		private:
 			/** 扉が初めて開き始めたか（見つけたら寄る） */
 			void DetectDoorOpened(const stage::Stage& stage, EventCamera& eventCamera);
 			/** 溶かす氷に通れる穴が開いたか（見つけたら寄る） */
-			void DetectIcePassable(const stage::Stage& stage, EventCamera& eventCamera) const;
-			/** 覚えている扉の数が今のステージと同じか（エディタで足したり消したりしたら違う） */
+			void DetectIcePassable(const stage::Stage& stage, EventCamera& eventCamera);
+			/** 動く床・壁が初めて動き出したか（見つけたら寄る） */
+			void DetectBlockStarted(const stage::Stage& stage, EventCamera& eventCamera);
+			/** 覚えている扉・動く床の数が今のステージと同じか（エディタで足したり消したりしたら違う） */
 			bool IsSameLayout(const stage::Stage& stage) const;
+			/** gimmick に寄る（EventCamera に渡して、寄ったギミックとして覚える） */
+			void Focus(const stage::GimmickBase& gimmick, const math::Rect& area, EventCamera& eventCamera);
 
 		private:
 			/** 扉ごとの、もう開いたことがあるか（並びはステージの扉の並びと同じ） */
 			std::vector<bool> m_hasDoorOpened;
+			/** 動く床・壁ごとの、もう動いたことがあるか（並びはステージの動く床の並びと同じ） */
+			std::vector<bool> m_hasBlockStarted;
+			/** 最後に寄ったギミック（中身は見ない。同じものか比べるだけ） */
+			const stage::GimmickBase* m_focusedGimmick;
 		};
 	}
 }

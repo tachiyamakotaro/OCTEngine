@@ -13,7 +13,7 @@
 		{ "type": "HiddenFloor", "name": "R2_Stone1", "position": [2600.0, 1975.0], "size": [110.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
 		{ "type": "HiddenFloor", "name": "R2_Stone2", "position": [3125.0, 2000.0], "size": [222.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
 		{ "type": "HiddenFloor", "name": "R2_Stone3", "position": [3125.0, 1700.0], "size": [126.0, 25.0], "isSolidWhenHidden": true, "revealDistance": 120.0, "revealSoftWidth": 140.0 },
-		{ "type": "IceBlock", "name": "R2_IceWall", "position": [3625.0, 1575.0], "size": [80.0, 675.0], "kind": "Melt", "meltTime": 1.0, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
+		{ "type": "IceBlock", "name": "R2_IceWall", "position": [3625.0, 1575.0], "size": [80.0, 675.0], "kind": "Melt", "isCameraFocus": true, "meltTime": 1.0, "cellSize": 10.0, "heatRadius": 40.0, "heatGrowSpeed": 30.0, "maxHeatRadius": 150.0, "vanishTime": 3.0, "afterglowTime": 0.8, "coolTime": 1.5, "passWidth": 60.0, "passHeight": 130.0 },
 		{ "type": "MovingBlock", "name": "R2_Ferry", "position": [4175.0, 2050.0], "size": [200.0, 60.0], "moveOffset": [0.0, -367.0], "moveSpeed": 200.0, "panelSide": 2, "panelLength": 0.0, "chargeTime": 3.5, "runTime": 4.5, "hasFrontPanel": true },
 		{ "type": "Checkpoint", "name": "Checkpoint2", "position": [4375.0, 2100.0], "size": [80.0, 200.0] },
 		{ "type": "Goal", "name": "Goal", "position": [7500.0, 2100.0], "size": [150.0, 250.0] },

@@ -56,6 +56,8 @@ namespace app
 			float chargeTime = 2.0f;
 			/** 満タンから空まで、動いていられる時間（秒） */
 			float runTime = 4.0f;
+			/** 初めて動き出したときにカメラが寄るか（ステージエディタでブロックごとに決める。JSON の "isCameraFocus"） */
+			bool isCameraFocus = false;
 
 			/** 【実行時】たまった電気（0=空 〜 1=満タン） */
 			float charge = 0.0f;
@@ -91,6 +93,8 @@ namespace app
 			math::Rect GetCurrentRect() const { return Translate(rect, movePath.GetOffset()); }
 			/** 終点に着いたときの範囲（エディタで道のりを見せるのに使う） */
 			math::Rect GetEndRect() const { return Translate(rect, movePath.offset); }
+			/** 始点から終点までの道のり全体の範囲（カメラが寄るときに、動く様子が全部入るように使う） */
+			math::Rect GetPathArea() const { return rect.Merged(GetEndRect()); }
 			/** 今のソーラーパネルの範囲（ブロックの面の内側の薄い帯） */
 			math::Rect GetPanelRect() const { return CalcPanelRect(GetCurrentRect()); }
 			/**
