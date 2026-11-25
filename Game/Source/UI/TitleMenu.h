@@ -1,11 +1,14 @@
 ﻿/**
  * @file TitleMenu.h
- * @brief タイトルメニュー（CONTINUE / START / SOUND / QUIT を選ぶ）
+ * @brief タイトルメニュー（CONTINUE / START / SELECT / SOUND / QUIT を選ぶ）
  * @details 操作
  *          ・タイトルメニュー
- *              左右（上下でも可。十字キー・左スティック）… CONTINUE / START / SOUND / QUIT を選ぶ
- *              A … 決定（CONTINUE → 続きから、START → 始めから、SOUND → サウンドオプション、QUIT → ゲームを終わる）
+ *              左右（上下でも可。十字キー・左スティック）… CONTINUE / START / SELECT / SOUND / QUIT を選ぶ
+ *              A … 決定（CONTINUE → 続きから、START → 始めから、SELECT → ステージセレクト、SOUND → サウンドオプション、QUIT → ゲームを終わる）
  *          ・CONTINUE は続きの記録がないときは灰色で、選べない（カーソルが飛ばす）
+ *          ・ステージセレクト画面（ui::StageSelectMenu。クリアしたかに関係なく、どのステージでも選べる）
+ *              A … そのステージから遊ぶ（タイトルメニューに戻って SELECT が点滅する）
+ *              B … タイトルメニューに戻る
  *          ・サウンドオプション画面（ui::SoundOptionMenu。ポーズ画面と共通）
  *              B … タイトルメニューに戻る
  *          ボタンの画像は Assets/sprite/title/。
@@ -19,6 +22,7 @@
 #include <array>
 #include "Source/UI/MenuInput.h"
 #include "Source/UI/SoundOptionMenu.h"
+#include "Source/UI/StageSelect/StageSelectMenu.h"
 #include "Source/UI/UISprite.h"
 
 
@@ -38,6 +42,7 @@ namespace app
 				None,		//!< 何もない
 				ContinueGame,	//!< 続きから遊ぶ
 				StartGame,	//!< ゲームを始める（始めから）
+				SelectStage,	//!< ステージセレクトで選んだステージから遊ぶ（GetSelectedStage で選んだステージがわかる）
 				QuitGame,	//!< ゲームを終わる
 			};
 
@@ -46,6 +51,7 @@ namespace app
 			{
 				Continue,
 				Start,
+				StageSelect,
 				Sound,
 				Quit,
 				Num
@@ -55,6 +61,7 @@ namespace app
 			enum class Page
 			{
 				Main,
+				StageSelect,
 				Sound,
 			};
 
@@ -71,7 +78,7 @@ namespace app
 			 * @param canContinue 続きから遊べるか（false なら CONTINUE は灰色で選べない）
 			 */
 			void Open(bool canContinue);
-			/** 入力を見て操作する（毎フレーム呼ぶ。StartGame / QuitGame を返したあとは入力を受け付けない） */
+			/** 入力を見て操作する（毎フレーム呼ぶ。ContinueGame / StartGame / SelectStage / QuitGame を返したあとは入力を受け付けない） */
 			Result Update();
 			/** 演出だけ動かす（シーンの PauseUpdate から呼ぶ。フェード中も点滅させるため） */
 			void Animate();
@@ -80,10 +87,14 @@ namespace app
 
 			inline Page GetPage() const { return m_page; }
 			inline Item GetSelectedItem() const { return static_cast<Item>(m_index); }
+			/** ステージセレクトで選んだステージ（StageCatalog の表の番号。Update が SelectStage を返したときに使う） */
+			inline int GetSelectedStage() const { return m_stageSelect.GetSelectedStage(); }
 
 
 		private:
 			Result UpdateMain();
+			/** ステージセレクト画面の操作（決めたらタイトルメニューに戻して SelectStage を返す） */
+			Result UpdateStageSelect();
 			/** 項目の見た目（選んでいる項目は色を変えて、少し大きくして、ゆっくり脈打たせる）を更新する */
 			void UpdateMainVisual();
 			/** カーソルを動かす（選べない項目は飛ばす。step は +1 で右、-1 で左） */
@@ -115,9 +126,11 @@ namespace app
 			MenuInput m_input;
 			/** サウンドオプション画面 */
 			SoundOptionMenu m_soundOption;
+			/** ステージセレクト画面 */
+			StageSelectMenu m_stageSelect;
 
 			// ---- 画像 ----
-			/** CONTINUE / START / SOUND / QUIT のボタン */
+			/** CONTINUE / START / SELECT / SOUND / QUIT のボタン */
 			std::array<UISprite, ITEM_COUNT> m_items;
 			/** ボタンの中心の X（LayoutItems で決める） */
 			std::array<float, ITEM_COUNT> m_itemX = {};

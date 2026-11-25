@@ -46,6 +46,7 @@ namespace app
 			{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",270.0f },
 			{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",270.0f },
 			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 300.0f },
+
 		};
 
 		/** ステージの数 */
@@ -79,5 +80,21 @@ namespace app
 		 * @return 表に書いた値（0 なら timer::DEFAULT_TIME_LIMIT）。0 以下なら時間制限なし
 		 */
 		float GetCurrentStageTimeLimit();
+
+		/**
+		 * @brief その番号のステージの情報（ステージセレクトなど、今遊ぶステージ以外を見たいとき）
+		 * @param index STAGE_INFO_TABLE の番号（範囲外なら一番近いステージ）
+		 */
+		const StageInfo& GetStageInfo(int index);
+		/**
+		 * @brief その番号のステージの、画面に出す番号（1 から数える）
+		 * @param index STAGE_INFO_TABLE の番号
+		 */
+		int GetStageNumber(int index);
+		/**
+		 * @brief その番号のステージが最後のステージか（STAGE_INFO_TABLE の一番下）
+		 * @param index STAGE_INFO_TABLE の番号
+		 */
+		bool IsFinalStage(int index);
 	}
 }

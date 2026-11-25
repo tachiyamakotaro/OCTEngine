@@ -10,6 +10,7 @@
  *          （どれか1つでも置いてあれば出す）。
  */
 #pragma once
+#include "Source/Stage/StageGimmickTypes.h"
 #include <array>
 #include <iterator>
 
@@ -30,6 +31,22 @@ namespace app
 			const char* imagePath;
 			/** このアイコンを出すギミックの種類（JSON の "type"。使わない所は nullptr） */
 			std::array<const char*, MAX_TYPES_PER_ICON> types;
+
+			/**
+			 * @brief このアイコンを出すか（types のどれか1つでも、そのステージに置いてあるか）
+			 * @param stageTypes そのステージに置いてあるギミックの種類
+			 */
+			bool IsShownIn(const stage::StageGimmickTypes& stageTypes) const
+			{
+				for (const char* type : types)
+				{
+					if (stageTypes.Contains(type))
+					{
+						return true;
+					}
+				}
+				return false;
+			}
 		};
 
 		/**

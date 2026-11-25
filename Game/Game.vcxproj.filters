@@ -82,6 +82,9 @@
     <Filter Include="Source\Stage\Start">
       <UniqueIdentifier>{bd49c42e-e6a4-45ae-b0ca-b109e1654195}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\StageSelect">
+      <UniqueIdentifier>{5df5b958-8ce3-4be0-a9b2-97e8701dad0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -488,6 +491,15 @@
     </ClCompile>
     <ClCompile Include="Source\Stage\Start\StartSequence.cpp">
       <Filter>Source\Stage\Start</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\StageSelect\StageCard.cpp">
+      <Filter>Source\UI\StageSelect</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\StageSelect\StageSelectCursor.cpp">
+      <Filter>Source\UI\StageSelect</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\StageSelect\StageSelectMenu.cpp">
+      <Filter>Source\UI\StageSelect</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -969,6 +981,15 @@
     </ClInclude>
     <ClInclude Include="Source\Stage\Start\StartSequence.h">
       <Filter>Source\Stage\Start</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\StageSelect\StageCard.h">
+      <Filter>Source\UI\StageSelect</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\StageSelect\StageSelectCursor.h">
+      <Filter>Source\UI\StageSelect</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\StageSelect\StageSelectMenu.h">
+      <Filter>Source\UI\StageSelect</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

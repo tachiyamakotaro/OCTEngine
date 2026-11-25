@@ -30,6 +30,10 @@ namespace app
 			bool IsDecide() const;
 			/** 戻る（B） */
 			bool IsCancel() const;
+			/** 前のページ（LB） */
+			bool IsPrevPage() const;
+			/** 次のページ（RB） */
+			bool IsNextPage() const;
 
 
 		private:

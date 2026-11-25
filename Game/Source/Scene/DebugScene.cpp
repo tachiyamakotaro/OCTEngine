@@ -217,6 +217,8 @@ namespace app
 		if (isFocusingGimmick)
 		{
 			m_stage.UpdateOnly(deltaTime, m_stageBodies, m_cameraEventDetector.GetFocusedGimmick());
+			// 鏡の操作は止めるが、止まる前のフレームに「回した」印は消す（残ると回す音が鳴り続ける）
+			m_mirrorInteractor.ClearFrameEvents();
 		}
 		else
 		{

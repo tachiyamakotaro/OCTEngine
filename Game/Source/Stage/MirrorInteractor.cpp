@@ -26,9 +26,7 @@ namespace app
 			GimmickManager& gimmicks = stage.GetGimmicks();
 			const actor::CharacterCommand& command = character.GetCommand();
 			const math::Vec2& position = character.GetPosition();
-			m_rotatedDirection = RotateDirection::None;
-			m_isGrabbedThisFrame = false;
-			m_movedDistanceThisFrame = 0.0f;
+			ClearFrameEvents();
 
 			// つかむ（B）を離したら、またつかめるようにする
 			if (!command.grabHold)
@@ -93,6 +91,14 @@ namespace app
 					m_isWaitingGrabRelease = true;
 				}
 			}
+		}
+
+
+		void MirrorInteractor::ClearFrameEvents()
+		{
+			m_rotatedDirection = RotateDirection::None;
+			m_isGrabbedThisFrame = false;
+			m_movedDistanceThisFrame = 0.0f;
 		}
 
 

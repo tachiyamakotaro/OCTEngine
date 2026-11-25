@@ -54,5 +54,25 @@ namespace app
 			// 0（書いていない）なら初期値。マイナスはそのまま返す（時間制限なし）
 			return limit == 0.0f ? timer::DEFAULT_TIME_LIMIT : limit;
 		}
+
+
+		const StageInfo& GetStageInfo(const int index)
+		{
+			// 範囲外なら一番近いステージ（SetCurrentStageIndex と同じ）
+			const int clamped = index < 0 ? 0 : (index >= STAGE_COUNT ? STAGE_COUNT - 1 : index);
+			return STAGE_INFO_TABLE[clamped];
+		}
+
+
+		int GetStageNumber(const int index)
+		{
+			return index + 1;
+		}
+
+
+		bool IsFinalStage(const int index)
+		{
+			return index == STAGE_COUNT - 1;
+		}
 	}
 }

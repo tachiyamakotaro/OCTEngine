@@ -27,6 +27,7 @@ namespace
 	{
 		{ "Assets/sprite/title/button_continue.dds", 1861.0f, 316.0f },
 		{ "Assets/sprite/title/button_start.dds",    1181.0f, 316.0f },
+		{ "Assets/sprite/title/button_select.dds",   1483.0f, 316.0f },
 		{ "Assets/sprite/title/button_sound.dds",    1187.0f, 316.0f },
 		{ "Assets/sprite/title/button_quit.dds",      799.0f, 316.0f },
 	};
@@ -110,6 +111,8 @@ namespace app
 
 			// サウンドオプション画面（ポーズ画面と共通）
 			m_soundOption.Init();
+			// ステージセレクト画面（全部のステージの札を作る）
+			m_stageSelect.Init();
 		}
 
 
@@ -138,6 +141,10 @@ namespace app
 				{
 					result = UpdateMain();
 				}
+				else if (m_page == Page::StageSelect)
+				{
+					result = UpdateStageSelect();
+				}
 				else if (m_soundOption.Update(m_input))
 				{
 					// サウンドオプション：B で閉じたらタイトルメニューに戻る
@@ -158,7 +165,7 @@ namespace app
 			{
 				UpdateMainVisual();
 			}
-			// ロゴはサウンドオプションを開いている間も動かす（サウンドオプションの半透明の背景の後ろに見える）
+			// ロゴはサウンドオプション・ステージセレクトを開いている間も動かす（半透明の背景の後ろに見える）
 			UpdateLogoVisual();
 		}
 
@@ -198,10 +205,36 @@ namespace app
 				m_timer = 0.0f;
 				return Result::QuitGame;
 
+			case Item::StageSelect:
+				m_page = Page::StageSelect;
+				m_stageSelect.Open();
+				return Result::None;
+
 			case Item::Sound:
 			default:
 				m_page = Page::Sound;
 				m_soundOption.Open();
+				return Result::None;
+			}
+		}
+
+
+		TitleMenu::Result TitleMenu::UpdateStageSelect()
+		{
+			switch (m_stageSelect.Update(m_input))
+			{
+			case StageSelectMenu::Result::Decide:
+				// タイトルメニューに戻して SELECT を点滅させる（START と同じく、扉が開いていくのが見えるように）
+				m_page = Page::Main;
+				m_isDecided = true;
+				m_timer = 0.0f;
+				return Result::SelectStage;
+
+			case StageSelectMenu::Result::Cancel:
+				m_page = Page::Main;
+				return Result::None;
+
+			default:
 				return Result::None;
 			}
 		}
@@ -310,10 +343,14 @@ namespace app
 				item.Draw(rc);
 			}
 			m_cursor.Draw(rc);
-			// サウンドオプションはタイトルメニューの上に重ねる（半透明の黒い背景ごと）
+			// サウンドオプションとステージセレクトは、タイトルメニューの上に重ねる（半透明の黒い背景ごと）
 			if (m_page == Page::Sound)
 			{
 				m_soundOption.Render(rc);
+			}
+			else if (m_page == Page::StageSelect)
+			{
+				m_stageSelect.Render(rc);
 			}
 		}
 	}

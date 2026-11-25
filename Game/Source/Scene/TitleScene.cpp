@@ -69,6 +69,14 @@ namespace app
 			m_director.BeginEnter();
 			break;
 
+		case ui::TitleMenu::Result::SelectStage:
+			// ステージセレクトで選んだステージから遊ぶ（クリアしたかは関係ない）。プレイログは新しいファイルにする
+			// 続きの記録は消さない（DebugScene::Start で、選んだステージから続けられるように書き直される）
+			playlog::PlayLog::Get().DiscardContinue();
+			stage::SetCurrentStageIndex(m_menu.GetSelectedStage());
+			m_director.BeginEnter();
+			break;
+
 		case ui::TitleMenu::Result::QuitGame:
 			SoundManager::Get().FadeOutBGM(QUIT_FADE_TIME);
 			m_isQuit = true;

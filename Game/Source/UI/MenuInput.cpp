@@ -56,5 +56,7 @@ namespace app
 		bool MenuInput::IsRight() const { return g_pad[0]->IsTrigger(enButtonRight) || m_stickRightTrigger; }
 		bool MenuInput::IsDecide() const { return g_pad[0]->IsTrigger(enButtonA); }
 		bool MenuInput::IsCancel() const { return g_pad[0]->IsTrigger(enButtonB); }
+		bool MenuInput::IsPrevPage() const { return g_pad[0]->IsTrigger(enButtonLB1); }
+		bool MenuInput::IsNextPage() const { return g_pad[0]->IsTrigger(enButtonRB1); }
 	}
 }

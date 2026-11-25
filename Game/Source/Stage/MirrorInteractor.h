@@ -88,6 +88,12 @@ namespace app
 			 */
 			inline float GetMovedDistanceThisFrame() const { return m_movedDistanceThisFrame; }
 			/**
+			 * @brief 「このフレームに回した・つかんだ・動かした」を消す
+			 * @details Update の最初に呼ぶ。カメラがギミックに寄っていて Update を呼ばない間も、毎フレーム呼ぶ
+			 *          （消さないと、止まる前のフレームに回した印が残って、回す音や UI の跳ねが毎フレーム出てしまう）
+			 */
+			void ClearFrameEvents();
+			/**
 			 * @brief 状態を最初に戻す
 			 */
 			void Reset();
