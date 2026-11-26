@@ -38,8 +38,8 @@ namespace app
 	{
 		m_director.Init();
 		m_menu.Init();
-		// 続きの記録があれば CONTINUE を選べる
-		m_menu.Open(save::HasProgress());
+		// 続きの記録があれば START の中の CONTINUE を選べる（どこから続くかも「STAGE 〇」で出す）
+		m_menu.Open(save::LoadProgress());
 		SoundManager::Get().PlayBGM(enSoundKind_Title);
 		return true;
 	}
@@ -53,27 +53,19 @@ namespace app
 		{
 		case ui::TitleMenu::Result::ContinueGame:
 		{
-			// 続きの記録のステージから遊ぶ。プレイログも前のプレイの続きにする（同じファイルに書き直す）
-			const std::optional<int> stageIndex = save::LoadProgress();
-			stage::SetCurrentStageIndex(stageIndex.value_or(stage::FIRST_STAGE_INDEX));
+			// 続きのステージから遊ぶ。プレイログは前のプレイの続きにする（同じファイルに書き直す）
+			stage::SetCurrentStageIndex(m_menu.GetStartStage());
 			playlog::PlayLog::Get().ContinuePlay();
 			m_director.BeginEnter();
 			break;
 		}
 
 		case ui::TitleMenu::Result::StartGame:
-			// 最初のステージから遊ぶ。続きの記録とプレイログの続きは消す（CONTINUE は押せなくなり、ログは新しいファイルになる）
+			// 選んだステージ（NEW GAME なら最初のステージ、ステージセレクトなら選んだステージ）から、新しいプレイとして遊ぶ。
+			// 続きの記録とプレイログの続きは消す（ログは新しいファイルになる。続きの記録はインゲームが始まるときに書き直される）
 			save::EraseProgress();
 			playlog::PlayLog::Get().DiscardContinue();
-			stage::SetCurrentStageIndex(stage::FIRST_STAGE_INDEX);
-			m_director.BeginEnter();
-			break;
-
-		case ui::TitleMenu::Result::SelectStage:
-			// ステージセレクトで選んだステージから遊ぶ（クリアしたかは関係ない）。プレイログは新しいファイルにする
-			// 続きの記録は消さない（DebugScene::Start で、選んだステージから続けられるように書き直される）
-			playlog::PlayLog::Get().DiscardContinue();
-			stage::SetCurrentStageIndex(m_menu.GetSelectedStage());
+			stage::SetCurrentStageIndex(m_menu.GetStartStage());
 			m_director.BeginEnter();
 			break;
 

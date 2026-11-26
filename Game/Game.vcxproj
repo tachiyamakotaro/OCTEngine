@@ -397,8 +397,10 @@
     <ClCompile Include="Source\UI\SoundOptionMenu.cpp" />
     <ClCompile Include="Source\UI\StageIntroUI.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageCard.cpp" />
+    <ClCompile Include="Source\UI\StageSelect\StageNameLabel.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageSelectCursor.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageSelectMenu.cpp" />
+    <ClCompile Include="Source\UI\StageSelect\StartStageMenu.cpp" />
     <ClCompile Include="Source\UI\TimerUI.cpp" />
     <ClCompile Include="Source\UI\TitleMenu.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -566,8 +568,10 @@
     <ClInclude Include="Source\UI\SoundOptionMenu.h" />
     <ClInclude Include="Source\UI\StageIntroUI.h" />
     <ClInclude Include="Source\UI\StageSelect\StageCard.h" />
+    <ClInclude Include="Source\UI\StageSelect\StageNameLabel.h" />
     <ClInclude Include="Source\UI\StageSelect\StageSelectCursor.h" />
     <ClInclude Include="Source\UI\StageSelect\StageSelectMenu.h" />
+    <ClInclude Include="Source\UI\StageSelect\StartStageMenu.h" />
     <ClInclude Include="Source\UI\TimerUI.h" />
     <ClInclude Include="Source\UI\TitleMenu.h" />
     <ClInclude Include="Source\UI\UISprite.h" />

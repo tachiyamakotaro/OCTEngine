@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "Source/Core/Math/MathUtil.h"
 #include "Source/Sound/SoundManager.h"
+#include "Source/Stage/StageCatalog.h"
 #include "TitleMenu.h"
 #include <cmath>
 
@@ -25,9 +26,7 @@ namespace
 	 */
 	constexpr ButtonImage BUTTON_IMAGES[] =
 	{
-		{ "Assets/sprite/title/button_continue.dds", 1861.0f, 316.0f },
 		{ "Assets/sprite/title/button_start.dds",    1181.0f, 316.0f },
-		{ "Assets/sprite/title/button_select.dds",   1483.0f, 316.0f },
 		{ "Assets/sprite/title/button_sound.dds",    1187.0f, 316.0f },
 		{ "Assets/sprite/title/button_quit.dds",      799.0f, 316.0f },
 	};
@@ -62,8 +61,6 @@ namespace
 	const Vector4 TITLE_COLOR_SELECTED(1.0f, 0.82f, 0.05f, 1.0f);
 	const Vector4 TITLE_COLOR_NORMAL(0.82f, 0.82f, 0.86f, 1.0f);
 	const Vector4 TITLE_COLOR_CURSOR(1.0f, 0.80f, 0.0f, 1.0f);
-	/** 選べない項目（続きの記録がないときの CONTINUE）は薄くする */
-	const Vector4 TITLE_COLOR_DISABLED(0.82f, 0.82f, 0.86f, 0.3f);
 
 	// ---- タイトルのロゴ（大きさは画像そのものの大きさ。make_title_scene_sprites.py が出す大きさに合わせる） ----
 	const char* const LOGO_PATH = "Assets/sprite/title/logo.dds";
@@ -111,16 +108,17 @@ namespace app
 
 			// サウンドオプション画面（ポーズ画面と共通）
 			m_soundOption.Init();
-			// ステージセレクト画面（全部のステージの札を作る）
+			// START の中（どこから遊ぶかを選ぶ画面）と、ステージセレクト画面（全部のステージの札を作る）
+			m_startStageMenu.Init();
 			m_stageSelect.Init();
 		}
 
 
-		void TitleMenu::Open(const bool canContinue)
+		void TitleMenu::Open(const std::optional<int>& continueStage)
 		{
 			m_page = Page::Main;
-			m_canContinue = canContinue;
-			m_index = static_cast<int>(canContinue ? Item::Continue : Item::Start);
+			m_continueStage = continueStage;
+			m_index = static_cast<int>(Item::Start);
 			m_isDecided = false;
 			m_timer = 0.0f;
 			m_openTime = 0.0f;
@@ -140,6 +138,10 @@ namespace app
 				if (m_page == Page::Main)
 				{
 					result = UpdateMain();
+				}
+				else if (m_page == Page::StartStage)
+				{
+					result = UpdateStartStage();
 				}
 				else if (m_page == Page::StageSelect)
 				{
@@ -165,7 +167,7 @@ namespace app
 			{
 				UpdateMainVisual();
 			}
-			// ロゴはサウンドオプション・ステージセレクトを開いている間も動かす（半透明の背景の後ろに見える）
+			// ロゴはほかの画面を開いている間も動かす（半透明の背景の後ろに見える）
 			UpdateLogoVisual();
 		}
 
@@ -190,25 +192,16 @@ namespace app
 			SoundManager::Get().PlaySE(enSoundKind_ButtonEnter);
 			switch (GetSelectedItem())
 			{
-			case Item::Continue:
-				m_isDecided = true;
-				m_timer = 0.0f;
-				return Result::ContinueGame;
-
 			case Item::Start:
-				m_isDecided = true;
-				m_timer = 0.0f;
-				return Result::StartGame;
+				// どこから遊ぶかを選ぶ（NEW GAME / CONTINUE / STAGE SELECT）
+				m_page = Page::StartStage;
+				m_startStageMenu.Open(m_continueStage);
+				return Result::None;
 
 			case Item::Quit:
 				m_isDecided = true;
 				m_timer = 0.0f;
 				return Result::QuitGame;
-
-			case Item::StageSelect:
-				m_page = Page::StageSelect;
-				m_stageSelect.Open();
-				return Result::None;
 
 			case Item::Sound:
 			default:
@@ -219,24 +212,60 @@ namespace app
 		}
 
 
-		TitleMenu::Result TitleMenu::UpdateStageSelect()
+		TitleMenu::Result TitleMenu::UpdateStartStage()
 		{
-			switch (m_stageSelect.Update(m_input))
+			switch (m_startStageMenu.Update(m_input))
 			{
-			case StageSelectMenu::Result::Decide:
-				// タイトルメニューに戻して SELECT を点滅させる（START と同じく、扉が開いていくのが見えるように）
-				m_page = Page::Main;
-				m_isDecided = true;
-				m_timer = 0.0f;
-				return Result::SelectStage;
+			case StartStageMenu::Result::NewGame:
+				return DecideStartStage(stage::FIRST_STAGE_INDEX, Result::StartGame);
 
-			case StageSelectMenu::Result::Cancel:
+			case StartStageMenu::Result::Continue:
+				// CONTINUE は続きの記録があるときしか選べない（念のため、なければ最初のステージ）
+				return DecideStartStage(m_continueStage.value_or(stage::FIRST_STAGE_INDEX), Result::ContinueGame);
+
+			case StartStageMenu::Result::StageSelect:
+				// 最初は続きのステージ（なければ最初のステージ）を選んでおく
+				m_page = Page::StageSelect;
+				m_stageSelect.Open(m_continueStage.value_or(stage::FIRST_STAGE_INDEX));
+				return Result::None;
+
+			case StartStageMenu::Result::Cancel:
 				m_page = Page::Main;
 				return Result::None;
 
 			default:
 				return Result::None;
 			}
+		}
+
+
+		TitleMenu::Result TitleMenu::UpdateStageSelect()
+		{
+			switch (m_stageSelect.Update(m_input))
+			{
+			case StageSelectMenu::Result::Decide:
+				// 選んだステージから、新しいプレイとして遊ぶ
+				return DecideStartStage(m_stageSelect.GetSelectedStage(), Result::StartGame);
+
+			case StageSelectMenu::Result::Cancel:
+				// START の中に戻る（STAGE SELECT を選んだまま）
+				m_page = Page::StartStage;
+				return Result::None;
+
+			default:
+				return Result::None;
+			}
+		}
+
+
+		TitleMenu::Result TitleMenu::DecideStartStage(const int stageIndex, const Result result)
+		{
+			// タイトルメニューに戻して、START を点滅させる（扉が開いていくのが見えるように）
+			m_page = Page::Main;
+			m_isDecided = true;
+			m_timer = 0.0f;
+			m_startStage = stageIndex;
+			return result;
 		}
 
 
@@ -247,7 +276,7 @@ namespace app
 				const bool isSelected = i == m_index;
 				if (!isSelected)
 				{
-					m_items[i].Place(m_itemX[i], BUTTON_Y, 1.0f, IsSelectable(i) ? TITLE_COLOR_NORMAL : TITLE_COLOR_DISABLED);
+					m_items[i].Place(m_itemX[i], BUTTON_Y, 1.0f, TITLE_COLOR_NORMAL);
 					continue;
 				}
 				float scale = SELECTED_SCALE;
@@ -275,33 +304,10 @@ namespace app
 
 		void TitleMenu::MoveCursor(const int step)
 		{
-			// 選べる項目に当たるまで進める（全部選べないことはない。START はいつも選べる）
-			int next = m_index;
-			for (int i = 0; i < ITEM_COUNT; ++i)
-			{
-				next = (next + step + ITEM_COUNT) % ITEM_COUNT;
-				if (IsSelectable(next))
-				{
-					break;
-				}
-			}
-			if (next == m_index)
-			{
-				return;
-			}
-			m_index = next;
+			// 端の次は反対の端（全部いつでも選べる）
+			m_index = (m_index + step + ITEM_COUNT) % ITEM_COUNT;
 			m_timer = 0.0f;
 			SoundManager::Get().PlaySE(enSoundKind_CursorMove);
-		}
-
-
-		bool TitleMenu::IsSelectable(const int index) const
-		{
-			if (index == static_cast<int>(Item::Continue))
-			{
-				return m_canContinue;
-			}
-			return true;
 		}
 
 
@@ -343,10 +349,14 @@ namespace app
 				item.Draw(rc);
 			}
 			m_cursor.Draw(rc);
-			// サウンドオプションとステージセレクトは、タイトルメニューの上に重ねる（半透明の黒い背景ごと）
+			// ほかの画面は、タイトルメニューの上に重ねる（半透明の黒い背景ごと）
 			if (m_page == Page::Sound)
 			{
 				m_soundOption.Render(rc);
+			}
+			else if (m_page == Page::StartStage)
+			{
+				m_startStageMenu.Render(rc);
 			}
 			else if (m_page == Page::StageSelect)
 			{

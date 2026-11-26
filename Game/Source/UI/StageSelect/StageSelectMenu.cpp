@@ -121,10 +121,9 @@ namespace app
 		}
 
 
-		void StageSelectMenu::Open()
+		void StageSelectMenu::Open(const int initialStage)
 		{
-			// 前に遊んだステージ（はじめは最初のステージ）を選んだ状態で開く
-			m_cursor.Select(stage::GetCurrentStageIndex());
+			m_cursor.Select(initialStage);
 			m_timer = 0.0f;
 			UpdateVisual();
 		}

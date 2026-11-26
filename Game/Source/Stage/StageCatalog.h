@@ -46,7 +46,6 @@ namespace app
 			{ "Stage08", "Assets/parameter/stage/Stage08_Object.json", "Assets/parameter/stage/Stage08_Gimmick.json",270.0f },
 			{ "Stage09", "Assets/parameter/stage/Stage09_Object.json", "Assets/parameter/stage/Stage09_Gimmick.json",270.0f },
 			{ "StageFinal", "Assets/parameter/stage/StageFinal_Object.json", "Assets/parameter/stage/StageFinal_Gimmick.json", 300.0f },
-
 		};
 
 		/** ステージの数 */
