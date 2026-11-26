@@ -22,9 +22,13 @@
  *              ロゴ … 開いてから少しあとに、少し大きい所から縮みながら出てきて、そのあとゆっくり上下にゆれる
  *              帯   … 下から上へ薄くなる黒。3D の地面の上でもボタンの文字を読めるようにする
  *            （画像は Tools/title_image/make_title_scene_sprites.py で作った）
+ *          ・ボタンの文字とひし形の印には暗い縁を付ける（UISprite::InitWithOutline）
+ *          ・ほかの画面（START の中・ステージセレクト・サウンドオプション）はウィンドウで出す。
+ *            開いている間は、後ろの 3D の絵をぼかして少し暗くし（MenuBackdrop）、ロゴとボタンを薄くして消す
  */
 #pragma once
 #include <array>
+#include "Source/UI/MenuBackdrop.h"
 #include "Source/UI/MenuInput.h"
 #include "Source/UI/SoundOptionMenu.h"
 #include "Source/UI/StageSelect/StageSelectMenu.h"
@@ -109,7 +113,10 @@ namespace app
 			 * @return result をそのまま返す
 			 */
 			Result DecideStartStage(int stageIndex, Result result);
-			/** 項目の見た目（選んでいる項目は色を変えて、少し大きくして、ゆっくり脈打たせる）を更新する */
+			/**
+			 * @brief 項目の見た目（選んでいる項目は色を変えて、少し大きくして、ゆっくり脈打たせる）を更新する
+			 * @details ほかの画面のウィンドウを開いている間は、後ろの画面の強さに合わせて薄くする
+			 */
 			void UpdateMainVisual();
 			/** カーソルを動かす（step は +1 で右、-1 で左。端の次は反対の端） */
 			void MoveCursor(int step);
@@ -144,6 +151,8 @@ namespace app
 			StartStageMenu m_startStageMenu;
 			/** ステージセレクト画面 */
 			StageSelectMenu m_stageSelect;
+			/** ほかの画面を開いている間の、後ろの画面（3D の絵をぼかして、少し暗くする） */
+			MenuBackdrop m_backdrop;
 
 			// ---- 画像 ----
 			/** START / SOUND / QUIT のボタン */

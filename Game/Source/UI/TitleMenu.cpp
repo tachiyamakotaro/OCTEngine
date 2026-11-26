@@ -93,18 +93,22 @@ namespace app
 	{
 		void TitleMenu::Init()
 		{
+			// ボタンの文字とひし形の印は、3D の背景の上に直接出すので縁を付ける
 			for (int i = 0; i < ITEM_COUNT; ++i)
 			{
 				const ButtonImage& image = BUTTON_IMAGES[i];
-				m_items[i].Init(image.path, image.pixelWidth, image.pixelHeight, BUTTON_HEIGHT);
+				m_items[i].InitWithOutline(image.path, image.pixelWidth, image.pixelHeight, BUTTON_HEIGHT);
 			}
-			m_cursor.Init(CURSOR_PATH, 64.0f, 64.0f, CURSOR_SIZE);
+			m_cursor.InitWithOutline(CURSOR_PATH, 64.0f, 64.0f, CURSOR_SIZE);
 			LayoutItems();
 
 			// ロゴと、ボタンの後ろの帯（帯は縦のグラデーションだけなので、画面の幅いっぱいに伸ばしてよい）
 			m_logo.Init(LOGO_PATH, LOGO_PIXEL_WIDTH, LOGO_PIXEL_HEIGHT, LOGO_HEIGHT);
 			m_buttonShade.Init(BUTTON_SHADE_PATH, static_cast<float>(FRAME_BUFFER_W), BUTTON_SHADE_HEIGHT, BUTTON_SHADE_HEIGHT);
 			m_buttonShade.Place(0.0f, BUTTON_SHADE_Y, 1.0f, menu_color::White);
+
+			// ほかの画面を開いている間の、後ろの画面（ぼかしと暗さ）
+			m_backdrop.Init();
 
 			// サウンドオプション画面（ポーズ画面と共通）
 			m_soundOption.Init();
@@ -163,11 +167,10 @@ namespace app
 			const float deltaTime = g_gameTime->GetFrameDeltaTime();
 			m_timer += deltaTime;
 			m_openTime += deltaTime;
-			if (m_page == Page::Main)
-			{
-				UpdateMainVisual();
-			}
-			// ロゴはほかの画面を開いている間も動かす（半透明の背景の後ろに見える）
+			// ほかの画面を開いている間は、後ろの 3D の絵をぼかす（閉じたら少しずつ戻る）
+			m_backdrop.Update(m_page != Page::Main);
+			// ボタンとロゴは、後ろの画面の強さに合わせて薄くする（ほかの画面を開いている間も動かす）
+			UpdateMainVisual();
 			UpdateLogoVisual();
 		}
 
@@ -271,21 +274,28 @@ namespace app
 
 		void TitleMenu::UpdateMainVisual()
 		{
+			// ほかの画面のウィンドウを開いている間は薄くして消す（ウィンドウの後ろで文字が重ならないように）
+			const float mainAlpha = 1.0f - m_backdrop.GetRate();
+			m_buttonShade.Place(0.0f, BUTTON_SHADE_Y, 1.0f, Vector4(1.0f, 1.0f, 1.0f, mainAlpha));
+
 			for (int i = 0; i < ITEM_COUNT; ++i)
 			{
 				const bool isSelected = i == m_index;
 				if (!isSelected)
 				{
-					m_items[i].Place(m_itemX[i], BUTTON_Y, 1.0f, TITLE_COLOR_NORMAL);
+					Vector4 color = TITLE_COLOR_NORMAL;
+					color.w *= mainAlpha;
+					m_items[i].Place(m_itemX[i], BUTTON_Y, 1.0f, color);
 					continue;
 				}
 				float scale = SELECTED_SCALE;
 				Vector4 color = TITLE_COLOR_SELECTED;
+				color.w *= mainAlpha;
 				if (m_isDecided)
 				{
 					// 決定したら点滅させる
 					const bool isVisible = std::fmod(m_timer * BLINK_SPEED, 1.0f) < 0.5f;
-					color.w = isVisible ? 1.0f : 0.2f;
+					color.w *= isVisible ? 1.0f : 0.2f;
 				}
 				else
 				{
@@ -298,7 +308,9 @@ namespace app
 			// 選んでいる項目の左にひし形の印
 			const UISprite& selected = m_items[m_index];
 			const float cursorX = m_itemX[m_index] - selected.width * SELECTED_SCALE * 0.5f - CURSOR_GAP;
-			m_cursor.Place(cursorX, BUTTON_Y, 1.0f, TITLE_COLOR_CURSOR, 45.0f);
+			Vector4 cursorColor = TITLE_COLOR_CURSOR;
+			cursorColor.w *= mainAlpha;
+			m_cursor.Place(cursorX, BUTTON_Y, 1.0f, cursorColor, 45.0f);
 		}
 
 
@@ -335,7 +347,9 @@ namespace app
 			const float scale = math::Lerp(LOGO_APPEAR_SCALE, 1.0f, rate);
 			// 出きったあとは、ゆっくり上下にゆれる
 			const float bob = std::sin(m_openTime * LOGO_BOB_SPEED * 2.0f * math::PI) * LOGO_BOB_HEIGHT * rate;
-			m_logo.Place(LOGO_X, LOGO_Y + bob, scale, Vector4(1.0f, 1.0f, 1.0f, rate));
+			// ほかの画面のウィンドウを開いている間は薄くして消す
+			const float alpha = rate * (1.0f - m_backdrop.GetRate());
+			m_logo.Place(LOGO_X, LOGO_Y + bob, scale, Vector4(1.0f, 1.0f, 1.0f, alpha));
 		}
 
 
@@ -349,7 +363,9 @@ namespace app
 				item.Draw(rc);
 			}
 			m_cursor.Draw(rc);
-			// ほかの画面は、タイトルメニューの上に重ねる（半透明の黒い背景ごと）
+			// 後ろの画面を暗くする黒（3D の絵のぼかしは RenderingEngine がする）
+			m_backdrop.Draw(rc);
+			// ほかの画面は、ウィンドウに入れてタイトルメニューの上に重ねる
 			if (m_page == Page::Sound)
 			{
 				m_soundOption.Render(rc);

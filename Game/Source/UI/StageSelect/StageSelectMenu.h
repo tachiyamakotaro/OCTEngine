@@ -11,9 +11,13 @@
  *          1ページに5ステージずつ並べる。ページの数はステージの数（StageCatalog の STAGE_COUNT）から決まるので、
  *          StageCatalog の表にステージを足す・減らすだけで、札とページが増える・減る（ここは直さなくてよい）。
  *          ページとカーソルの計算は StageSelectCursor、1ステージぶんの見た目は StageCard。
- *          背景（半透明の黒）もこのクラスが描くので、呼んだ側は背景を描かなくてよい。
+ *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に、見出し・札・ページの印を入れる。文字には暗い縁を付ける。
+ *          右下の操作の案内（Ⓐ OK　Ⓑ BACK）も小さなウィンドウ（MenuGuide）。
+ *          後ろの 3D の絵のぼかし・暗さは、呼んだ側（TitleMenu の MenuBackdrop）がする。
  */
 #pragma once
+#include "Source/UI/MenuGuide.h"
+#include "Source/UI/MenuWindow.h"
 #include "Source/UI/StageSelect/StageCard.h"
 #include "Source/UI/StageSelect/StageSelectCursor.h"
 #include "Source/UI/UISprite.h"
@@ -75,7 +79,7 @@ namespace app
 			void PlaceCards();
 			/** ページの印（ひし形）を並べる */
 			void PlacePageMarks();
-			/** 動かない画像（見出し・案内）を置く */
+			/** 動かない画像（見出し・LB / RB）を置く */
 			void PlaceFixedSprites();
 
 
@@ -86,8 +90,8 @@ namespace app
 			float m_timer;
 
 			// ---- 画像 ----
-			/** 背景（フェードの黒い画像を半透明にして使う） */
-			UISprite m_background;
+			/** ウィンドウ（見出しの帯つき） */
+			MenuWindow m_window;
 			/** 見出し（STAGE SELECT） */
 			UISprite m_title;
 			/**
@@ -100,11 +104,8 @@ namespace app
 			/** ページをめくる案内（LB / RB。2ページ以上あるときだけ出す） */
 			UISprite m_buttonLB;
 			UISprite m_buttonRB;
-			/** 操作の案内（A OK / B BACK） */
-			UISprite m_buttonA;
-			UISprite m_labelOk;
-			UISprite m_buttonB;
-			UISprite m_labelBack;
+			/** 操作の案内（Ⓐ OK　Ⓑ BACK） */
+			MenuGuide m_guide;
 		};
 	}
 }

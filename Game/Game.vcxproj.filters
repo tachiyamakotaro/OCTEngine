@@ -507,6 +507,15 @@
     <ClCompile Include="Source\UI\StageSelect\StartStageMenu.cpp">
       <Filter>Source\UI\StageSelect</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\MenuBackdrop.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\MenuGuide.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\MenuWindow.cpp">
+      <Filter>Source\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -1002,6 +1011,15 @@
     </ClInclude>
     <ClInclude Include="Source\UI\StageSelect\StartStageMenu.h">
       <Filter>Source\UI\StageSelect</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\MenuBackdrop.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\MenuGuide.h">
+      <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\MenuWindow.h">
+      <Filter>Source\UI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

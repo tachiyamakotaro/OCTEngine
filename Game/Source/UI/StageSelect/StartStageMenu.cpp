@@ -13,7 +13,6 @@
 namespace
 {
 	// ---- 画像（パスと元の大きさ） ----
-	const char* const BACKGROUND_PATH = "Assets/sprite/fade.dds";
 	/** 見出し（タイトルの START のボタンと同じ画像。白い文字に黄色をかける） */
 	const char* const HEADER_PATH = "Assets/sprite/title/button_start.dds";
 	constexpr float HEADER_PIXEL_W = 1181.0f;
@@ -36,27 +35,23 @@ namespace
 	constexpr float ITEM_PIXEL_H = 316.0f;
 	/** 印（白い四角。45 度回してひし形にする） */
 	const char* const CURSOR_PATH = "Assets/sprite/title/block.dds";
-	/** A / B の絵と、OK / BACK の文字（サウンドオプション画面と同じ物） */
-	const char* const BUTTON_A_PATH = "Assets/sprite/pause/button_a.dds";
-	const char* const BUTTON_B_PATH = "Assets/sprite/pause/button_b.dds";
-	constexpr float BUTTON_AB_PIXEL_W = 104.0f;
-	constexpr float BUTTON_AB_PIXEL_H = 102.0f;
-	const char* const LABEL_OK_PATH = "Assets/sprite/pause/label_ok.dds";
-	const char* const LABEL_BACK_PATH = "Assets/sprite/pause/label_back.dds";
-	constexpr float LABEL_PIXEL_H = 306.0f;
-	constexpr float LABEL_OK_PIXEL_W = 540.0f;
-	constexpr float LABEL_BACK_PIXEL_W = 925.0f;
-
-	/** 背景の濃さ */
-	constexpr float BACKGROUND_ALPHA = 0.75f;
 
 	// ---- 配置（画面の真ん中が原点、上が +Y。画面は 1920x1080） ----
-	/** 見出し */
-	constexpr float HEADER_Y = 270.0f;
+	/**
+	 * ウィンドウ（真ん中・幅と高さ・見出しの帯の高さ）
+	 * 中身（ひし形の印から CONTINUE の右の「STAGE 10」まで）が左右の余白 70 くらいで収まる大きさ
+	 */
+	const app::ui::MenuWindowShape WINDOW_SHAPE = { Vector2(0.0f, 70.0f), Vector2(900.0f, 560.0f), 130.0f };
+	/** 見出し（帯の真ん中に置く） */
 	constexpr float HEADER_HEIGHT = 80.0f;
-	/** 項目（Item の順に上から。左端をそろえて、一番長い STAGE SELECT が画面の真ん中に来るようにする） */
-	constexpr float ROW_Y[] = { 100.0f, -10.0f, -120.0f };
+	/** 項目（Item の順に上から。帯の下の真ん中に、上下の間をそろえて並べる） */
+	constexpr float ROW_PITCH = 110.0f;
 	constexpr float ROW_HEIGHT = 64.0f;
+	/**
+	 * 項目の左端を、一番長い STAGE SELECT が真ん中に来る所から、この分だけずらす
+	 * （CONTINUE の右に「STAGE 〇」が出るぶん右が長いので、少し左に寄せて全体をウィンドウの真ん中に）
+	 */
+	constexpr float CONTENT_OFFSET_X = -20.0f;
 	/**
 	 * CONTINUE の右に出す「STAGE 〇」の高さと、CONTINUE との間
 	 * （stage_intro の画像は項目の画像より上下の余白が多いので、そのぶん大きめ。文字の高さで項目の約 7 割）
@@ -66,13 +61,6 @@ namespace
 	/** ひし形の印の大きさと、項目の左端からの距離 */
 	constexpr float CURSOR_SIZE = 28.0f;
 	constexpr float CURSOR_GAP = 40.0f;
-	/** 操作の案内（ステージセレクト画面と同じ位置） */
-	constexpr float GUIDE_Y = -478.0f;
-	constexpr float GUIDE_A_X = 400.0f;
-	constexpr float GUIDE_B_X = 640.0f;
-	constexpr float GUIDE_ICON_SIZE = 60.0f;
-	constexpr float GUIDE_LABEL_HEIGHT = 40.0f;
-	constexpr float GUIDE_LABEL_GAP = 10.0f;
 
 	// ---- 見た目 ----
 	/** 選んでいる項目が脈打つ大きさと速さ（1秒に何回） */
@@ -100,18 +88,16 @@ namespace app
 
 		void StartStageMenu::Init()
 		{
-			m_background.InitFullScreen(BACKGROUND_PATH);
-			m_header.Init(HEADER_PATH, HEADER_PIXEL_W, HEADER_PIXEL_H, HEADER_HEIGHT);
+			m_window.Init(WINDOW_SHAPE);
+			// 文字には縁を付ける（ひし形の印はウィンドウの中なので縁なし）
+			m_header.InitWithOutline(HEADER_PATH, HEADER_PIXEL_W, HEADER_PIXEL_H, HEADER_HEIGHT);
 			for (int i = 0; i < ITEM_COUNT; ++i)
 			{
-				m_items[i].Init(ITEM_IMAGES[i].path, ITEM_IMAGES[i].pixelWidth, ITEM_PIXEL_H, ROW_HEIGHT);
+				m_items[i].InitWithOutline(ITEM_IMAGES[i].path, ITEM_IMAGES[i].pixelWidth, ITEM_PIXEL_H, ROW_HEIGHT);
 			}
 			m_continueStage.Init(CONTINUE_STAGE_HEIGHT);
 			m_cursor.Init(CURSOR_PATH, 64.0f, 64.0f, CURSOR_SIZE);
-			m_buttonA.Init(BUTTON_A_PATH, BUTTON_AB_PIXEL_W, BUTTON_AB_PIXEL_H, GUIDE_ICON_SIZE);
-			m_labelOk.Init(LABEL_OK_PATH, LABEL_OK_PIXEL_W, LABEL_PIXEL_H, GUIDE_LABEL_HEIGHT);
-			m_buttonB.Init(BUTTON_B_PATH, BUTTON_AB_PIXEL_W, BUTTON_AB_PIXEL_H, GUIDE_ICON_SIZE);
-			m_labelBack.Init(LABEL_BACK_PATH, LABEL_BACK_PIXEL_W, LABEL_PIXEL_H, GUIDE_LABEL_HEIGHT);
+			m_guide.Init(MenuGuideButtons::OkAndBack);
 			PlaceFixedSprites();
 		}
 
@@ -169,7 +155,8 @@ namespace app
 
 		void StartStageMenu::Render(RenderContext& rc)
 		{
-			m_background.Draw(rc);
+			// ウィンドウ → 中身 → 案内の順
+			m_window.Draw(rc);
 			m_header.Draw(rc);
 			for (UISprite& item : m_items)
 			{
@@ -181,10 +168,7 @@ namespace app
 				m_continueStage.Draw(rc);
 			}
 			m_cursor.Draw(rc);
-			m_buttonA.Draw(rc);
-			m_labelOk.Draw(rc);
-			m_buttonB.Draw(rc);
-			m_labelBack.Draw(rc);
+			m_guide.Draw(rc);
 		}
 
 
@@ -222,25 +206,25 @@ namespace app
 
 		void StartStageMenu::UpdateVisual()
 		{
-			// 左端は一番長い STAGE SELECT に合わせる（全体がだいたい画面の真ん中に来る）
-			const float left = -m_items[static_cast<int>(Item::StageSelect)].width * 0.5f;
+			// 左端は一番長い STAGE SELECT に合わせる（全体がだいたいウィンドウの真ん中に来る）
+			const float left = WINDOW_SHAPE.center.x + CONTENT_OFFSET_X - m_items[static_cast<int>(Item::StageSelect)].width * 0.5f;
 			const float pulse = 1.0f + PULSE_SCALE * std::sin(m_timer * PULSE_SPEED * 2.0f * math::PI);
 
 			for (int i = 0; i < ITEM_COUNT; ++i)
 			{
 				const float scale = i == m_index ? pulse : 1.0f;
 				UISprite& item = m_items[i];
-				item.Place(left + item.width * scale * 0.5f, ROW_Y[i], scale, GetItemColor(i));
+				item.Place(left + item.width * scale * 0.5f, GetRowY(i), scale, GetItemColor(i));
 			}
 
 			// CONTINUE の右に、続きのステージ
 			const int continueRow = static_cast<int>(Item::Continue);
 			const float continueScale = m_index == continueRow ? pulse : 1.0f;
 			const float stageLeft = left + m_items[continueRow].width * continueScale + CONTINUE_STAGE_GAP;
-			m_continueStage.PlaceLeft(stageLeft, ROW_Y[continueRow], continueScale, GetItemColor(continueRow));
+			m_continueStage.PlaceLeft(stageLeft, GetRowY(continueRow), continueScale, GetItemColor(continueRow));
 
 			// 選んでいる項目の左にひし形の印
-			m_cursor.Place(left - CURSOR_GAP, ROW_Y[m_index], 1.0f, menu_color::Selected, 45.0f);
+			m_cursor.Place(left - CURSOR_GAP, GetRowY(m_index), 1.0f, menu_color::Selected, 45.0f);
 		}
 
 
@@ -256,14 +240,16 @@ namespace app
 
 		void StartStageMenu::PlaceFixedSprites()
 		{
-			m_background.Place(0.0f, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, BACKGROUND_ALPHA));
-			m_header.Place(0.0f, HEADER_Y, 1.0f, menu_color::Selected);
+			// 見出しはウィンドウの帯の真ん中
+			m_header.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
+		}
 
-			// 案内：A OK　B BACK（右下）
-			m_buttonA.Place(GUIDE_A_X, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelOk.Place(GUIDE_A_X + m_buttonA.width * 0.5f + GUIDE_LABEL_GAP + m_labelOk.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
-			m_buttonB.Place(GUIDE_B_X, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelBack.Place(GUIDE_B_X + m_buttonB.width * 0.5f + GUIDE_LABEL_GAP + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
+
+		float StartStageMenu::GetRowY(const int index) const
+		{
+			// 帯の下の真ん中を中心に、ROW_PITCH ずつ並べる（項目の数が変わっても真ん中にそろう）
+			const float centerOffset = (static_cast<float>(ITEM_COUNT) - 1.0f) * 0.5f - static_cast<float>(index);
+			return WINDOW_SHAPE.GetBodyCenterY() + ROW_PITCH * centerOffset;
 		}
 	}
 }

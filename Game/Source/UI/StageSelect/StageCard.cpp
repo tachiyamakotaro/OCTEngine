@@ -95,7 +95,8 @@ namespace app
 			// 枠と地（同じ白い角丸の四角。枠は少し大きくする。色は Place で付ける）
 			m_frame.Init(CARD_PATH, CARD_PIXEL_W, CARD_PIXEL_H, HEIGHT + FRAME_THICKNESS * 2.0f);
 			m_panel.Init(CARD_PATH, CARD_PIXEL_W, CARD_PIXEL_H, HEIGHT);
-			m_label.Init(LABEL_PATH, LABEL_PIXEL_W, LABEL_PIXEL_H, LABEL_HEIGHT);
+			// 文字（STAGE・番号・FINAL）には縁を付ける。アイコンは縁なし
+			m_label.InitWithOutline(LABEL_PATH, LABEL_PIXEL_W, LABEL_PIXEL_H, LABEL_HEIGHT);
 
 			// 最後のステージは「FINAL」、ほかは番号
 			if (stage::IsFinalStage(stageIndex))
@@ -150,7 +151,7 @@ namespace app
 			int rest = number;
 			for (int i = m_digitCount - 1; i >= 0; --i)
 			{
-				m_digits[i].Init(DIGIT_PATHS[rest % 10], DIGIT_PIXEL_W, DIGIT_PIXEL_H, DIGIT_HEIGHT);
+				m_digits[i].InitWithOutline(DIGIT_PATHS[rest % 10], DIGIT_PIXEL_W, DIGIT_PIXEL_H, DIGIT_HEIGHT);
 				rest /= 10;
 			}
 
@@ -168,7 +169,7 @@ namespace app
 
 		void StageCard::InitFinal()
 		{
-			m_final.Init(FINAL_PATH, FINAL_PIXEL_W, FINAL_PIXEL_H, FINAL_HEIGHT);
+			m_final.InitWithOutline(FINAL_PATH, FINAL_PIXEL_W, FINAL_PIXEL_H, FINAL_HEIGHT);
 			m_digitCount = 0;
 			m_isFinal = true;
 		}

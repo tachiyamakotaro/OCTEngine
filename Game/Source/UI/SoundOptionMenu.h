@@ -6,10 +6,14 @@
  *              上下 … MASTER / BGM / SE を選ぶ
  *              左右 … 音量を 10% ずつ変える（すぐに SoundManager に反映）
  *              B    … 閉じる（Update が true を返すので、呼んだ側で前の画面に戻す）
- *          背景（半透明の黒）もこのクラスが描くので、呼んだ側は背景を描かなくてよい。
+ *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に入れて、文字には暗い縁を付ける。
+ *          右下の操作の案内（Ⓑ BACK）も小さなウィンドウ（MenuGuide）。
+ *          後ろの画面（ぼかし・暗さ）は呼んだ側が描く（タイトルは MenuBackdrop、ポーズ画面は半透明の黒）。
  */
 #pragma once
 #include <array>
+#include "Source/UI/MenuGuide.h"
+#include "Source/UI/MenuWindow.h"
 #include "Source/UI/UISprite.h"
 
 
@@ -60,6 +64,8 @@ namespace app
 		private:
 			/** 項目の見た目（選んでいる行は黄色）と目盛りを更新する */
 			void UpdateVisual();
+			/** 行の高さ（Y。上から row 番目） */
+			static float GetRowY(int row);
 
 			/** 音量を取得・設定する */
 			static float GetVolume(Item item);
@@ -74,8 +80,8 @@ namespace app
 			int m_index = 0;
 
 			// ---- 画像 ----
-			/** 背景（フェードの黒い画像を半透明にして使う） */
-			UISprite m_background;
+			/** ウィンドウ（見出しの帯つき） */
+			MenuWindow m_window;
 			/** 見出し（SOUND の文字） */
 			UISprite m_title;
 			/** MASTER / BGM / SE の文字 */
@@ -84,9 +90,8 @@ namespace app
 			std::array<std::array<UISprite, BLOCK_COUNT>, ITEM_COUNT> m_volumeBlocks;
 			/** 選んでいる行の印（ひし形） */
 			UISprite m_cursor;
-			/** 操作の案内（B BACK） */
-			UISprite m_buttonB;
-			UISprite m_labelBack;
+			/** 操作の案内（Ⓑ BACK） */
+			MenuGuide m_guide;
 		};
 	}
 }

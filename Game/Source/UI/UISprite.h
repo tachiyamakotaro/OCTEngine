@@ -1,8 +1,9 @@
 ﻿/**
  * @file UISprite.h
- * @brief メニュー画面で使う画像1枚（SpriteRender と表示する大きさのセット）と、メニュー共通の色
+ * @brief メニュー画面で使う画像1枚（SpriteRender と表示する大きさのセット）と、メニュー共通の色・文字の縁
  * @details タイトルメニュー・ポーズ画面・サウンドオプション画面で同じものを使う。
  *          座標は画面の真ん中が原点、上が +Y（画面は 1920x1080）。
+ *          文字は InitWithOutline で読み込むと、まわりに暗い縁が付く（背景の上でも読みやすくする）。
  */
 #pragma once
 
@@ -29,6 +30,18 @@ namespace app
 
 
 		/**
+		 * @brief メニューの文字の縁（UISprite::InitWithOutline で付く）
+		 */
+		namespace menu_outline
+		{
+			/** 縁の色（ほぼ黒の焦げ茶。少しだけ透ける） */
+			inline const Vector4 Color(0.03f, 0.022f, 0.015f, 0.92f);
+			/** 縁の太さ（画面のピクセル。拡大率 1 のとき） */
+			constexpr float Thickness = 4.0f;
+		}
+
+
+		/**
 		 * @brief メニュー用の画像1枚
 		 */
 		struct UISprite
@@ -49,6 +62,21 @@ namespace app
 				height = displayHeight;
 				width = displayHeight * pixelWidth / pixelHeight;
 				render.Init(path, width, height);
+			}
+
+			/**
+			 * @brief 縁を付けて読み込む（文字や、背景の上に直接置く印に使う）
+			 * @details 大きさの決め方は Init と同じ（width / height は縁を含まない、画像そのものの大きさ）。
+			 *          縁の色と太さは menu_outline。
+			 */
+			void InitWithOutline(const char* path, const float pixelWidth, const float pixelHeight, const float displayHeight)
+			{
+				height = displayHeight;
+				width = displayHeight * pixelWidth / pixelHeight;
+				SpriteOutline outline;
+				outline.color = menu_outline::Color;
+				outline.thickness = menu_outline::Thickness;
+				render.InitWithOutline(path, width, height, outline);
 			}
 
 			/** 画面いっぱいに出す画像として読み込む */

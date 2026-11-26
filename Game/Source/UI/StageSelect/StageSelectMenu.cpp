@@ -14,7 +14,6 @@
 namespace
 {
 	// ---- 画像（パスと元の大きさ） ----
-	const char* const BACKGROUND_PATH = "Assets/sprite/fade.dds";
 	/** 見出し「STAGE SELECT」（白い文字。Tools/stage_select_image/make_stage_select_sprites.py で作った） */
 	const char* const TITLE_PATH = "Assets/sprite/stage_select/title.dds";
 	constexpr float TITLE_PIXEL_W = 2873.0f;
@@ -26,42 +25,26 @@ namespace
 	const char* const BUTTON_RB_PATH = "Assets/sprite/prompt/button_rb.dds";
 	constexpr float BUTTON_LR_PIXEL_W = 192.0f;
 	constexpr float BUTTON_LR_PIXEL_H = 112.0f;
-	/** A / B の絵と、OK / BACK の文字（サウンドオプション画面と同じ物） */
-	const char* const BUTTON_A_PATH = "Assets/sprite/pause/button_a.dds";
-	const char* const BUTTON_B_PATH = "Assets/sprite/pause/button_b.dds";
-	constexpr float BUTTON_AB_PIXEL_W = 104.0f;
-	constexpr float BUTTON_AB_PIXEL_H = 102.0f;
-	const char* const LABEL_OK_PATH = "Assets/sprite/pause/label_ok.dds";
-	const char* const LABEL_BACK_PATH = "Assets/sprite/pause/label_back.dds";
-	constexpr float LABEL_PIXEL_H = 306.0f;
-	constexpr float LABEL_OK_PIXEL_W = 540.0f;
-	constexpr float LABEL_BACK_PIXEL_W = 925.0f;
-
-	/** 背景の濃さ */
-	constexpr float BACKGROUND_ALPHA = 0.75f;
 
 	// ---- 配置（画面の真ん中が原点、上が +Y。画面は 1920x1080） ----
-	/** 見出し */
-	constexpr float TITLE_Y = 390.0f;
+	/**
+	 * ウィンドウ（真ん中・幅と高さ・見出しの帯の高さ）
+	 * 幅は、札5枚（選んでいる札は少し大きい）が左右の余白 50 くらいで収まる大きさ
+	 */
+	const app::ui::MenuWindowShape WINDOW_SHAPE = { Vector2(0.0f, 70.0f), Vector2(1790.0f, 800.0f), 130.0f };
+	/** 見出し（帯の真ん中に置く） */
 	constexpr float TITLE_HEIGHT = 80.0f;
-	/** 札の真ん中の高さと、となりの札との間（中心から中心） */
-	constexpr float CARD_Y = 40.0f;
+	/** 札の真ん中の高さ（帯の下の真ん中から少し上。下にページの印を置くため）と、となりの札との間（中心から中心） */
+	const float CARD_Y = WINDOW_SHAPE.GetBodyCenterY() + 45.0f;
 	constexpr float CARD_PITCH = app::ui::StageCard::WIDTH + 40.0f;
-	/** ページの印 */
-	constexpr float PAGE_MARK_Y = -255.0f;
+	/** ページの印（ウィンドウの下の端の少し上） */
+	const float PAGE_MARK_Y = WINDOW_SHAPE.GetBodyCenterY() - 255.0f;
 	constexpr float PAGE_MARK_SPACING = 44.0f;
 	constexpr float PAGE_MARK_SIZE = 18.0f;
 	constexpr float PAGE_MARK_SIZE_CURRENT = 26.0f;
 	/** LB / RB の絵（ページの印の両わき） */
 	constexpr float BUTTON_LR_HEIGHT = 50.0f;
 	constexpr float BUTTON_LR_GAP = 80.0f;
-	/** 操作の案内（右下。後ろに透けて見えるタイトルのボタン（Y = -380）と重ならないように、少し下げている） */
-	constexpr float GUIDE_Y = -478.0f;
-	constexpr float GUIDE_A_X = 400.0f;
-	constexpr float GUIDE_B_X = 640.0f;
-	constexpr float GUIDE_ICON_SIZE = 60.0f;
-	constexpr float GUIDE_LABEL_HEIGHT = 40.0f;
-	constexpr float GUIDE_LABEL_GAP = 10.0f;
 
 	// ---- 見た目 ----
 	/** 選んでいる札の大きさと、脈打つ大きさ・速さ（1秒に何回） */
@@ -89,8 +72,9 @@ namespace app
 
 		void StageSelectMenu::Init()
 		{
-			m_background.InitFullScreen(BACKGROUND_PATH);
-			m_title.Init(TITLE_PATH, TITLE_PIXEL_W, TITLE_PIXEL_H, TITLE_HEIGHT);
+			m_window.Init(WINDOW_SHAPE);
+			// 見出しの文字には縁を付ける
+			m_title.InitWithOutline(TITLE_PATH, TITLE_PIXEL_W, TITLE_PIXEL_H, TITLE_HEIGHT);
 
 			// 札はステージの数だけ（StageCatalog の表を足す・減らすと、ここで作る数も変わる）
 			m_cards.clear();
@@ -113,10 +97,7 @@ namespace app
 
 			m_buttonLB.Init(BUTTON_LB_PATH, BUTTON_LR_PIXEL_W, BUTTON_LR_PIXEL_H, BUTTON_LR_HEIGHT);
 			m_buttonRB.Init(BUTTON_RB_PATH, BUTTON_LR_PIXEL_W, BUTTON_LR_PIXEL_H, BUTTON_LR_HEIGHT);
-			m_buttonA.Init(BUTTON_A_PATH, BUTTON_AB_PIXEL_W, BUTTON_AB_PIXEL_H, GUIDE_ICON_SIZE);
-			m_labelOk.Init(LABEL_OK_PATH, LABEL_OK_PIXEL_W, LABEL_PIXEL_H, GUIDE_LABEL_HEIGHT);
-			m_buttonB.Init(BUTTON_B_PATH, BUTTON_AB_PIXEL_W, BUTTON_AB_PIXEL_H, GUIDE_ICON_SIZE);
-			m_labelBack.Init(LABEL_BACK_PATH, LABEL_BACK_PIXEL_W, LABEL_PIXEL_H, GUIDE_LABEL_HEIGHT);
+			m_guide.Init(MenuGuideButtons::OkAndBack);
 			PlaceFixedSprites();
 		}
 
@@ -174,7 +155,8 @@ namespace app
 
 		void StageSelectMenu::Render(RenderContext& rc)
 		{
-			m_background.Draw(rc);
+			// ウィンドウ → 中身 → 案内の順
+			m_window.Draw(rc);
 			m_title.Draw(rc);
 
 			// 今のページの札だけ描く
@@ -195,10 +177,7 @@ namespace app
 				m_buttonRB.Draw(rc);
 			}
 
-			m_buttonA.Draw(rc);
-			m_labelOk.Draw(rc);
-			m_buttonB.Draw(rc);
-			m_labelBack.Draw(rc);
+			m_guide.Draw(rc);
 		}
 
 
@@ -214,7 +193,7 @@ namespace app
 			// 最後のページが5個より少なくても、全体が画面の真ん中に来るようにする
 			const StagePageRange page = m_cursor.GetPageRange();
 			const int selected = m_cursor.GetSelectedStage();
-			const float left = -CARD_PITCH * static_cast<float>(page.count - 1) * 0.5f;
+			const float left = WINDOW_SHAPE.center.x - CARD_PITCH * static_cast<float>(page.count - 1) * 0.5f;
 			for (int i = 0; i < page.count; ++i)
 			{
 				const int stageIndex = page.first + i;
@@ -237,7 +216,7 @@ namespace app
 			// 横に並べて、全体を画面の真ん中に。今のページは黄色で大きく
 			const int pageCount = static_cast<int>(m_pageMarks.size());
 			const int currentPage = m_cursor.GetPage();
-			const float left = -PAGE_MARK_SPACING * static_cast<float>(pageCount - 1) * 0.5f;
+			const float left = WINDOW_SHAPE.center.x - PAGE_MARK_SPACING * static_cast<float>(pageCount - 1) * 0.5f;
 			for (int i = 0; i < pageCount; ++i)
 			{
 				const bool isCurrent = i == currentPage;
@@ -250,21 +229,15 @@ namespace app
 
 		void StageSelectMenu::PlaceFixedSprites()
 		{
-			m_background.Place(0.0f, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, BACKGROUND_ALPHA));
-			m_title.Place(0.0f, TITLE_Y, 1.0f, menu_color::Selected);
+			// 見出しはウィンドウの帯の真ん中
+			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
 
 			// LB / RB はページの印の両わき（ページの数で印の幅が変わるので、それに合わせる）
 			const int pageCount = static_cast<int>(m_pageMarks.size());
 			const float marksHalfWidth = PAGE_MARK_SPACING * static_cast<float>(pageCount - 1) * 0.5f;
 			const float buttonX = marksHalfWidth + BUTTON_LR_GAP + m_buttonLB.width * 0.5f;
-			m_buttonLB.Place(-buttonX, PAGE_MARK_Y, 1.0f, menu_color::White);
-			m_buttonRB.Place(buttonX, PAGE_MARK_Y, 1.0f, menu_color::White);
-
-			// 案内：A OK　B BACK（右下）
-			m_buttonA.Place(GUIDE_A_X, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelOk.Place(GUIDE_A_X + m_buttonA.width * 0.5f + GUIDE_LABEL_GAP + m_labelOk.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
-			m_buttonB.Place(GUIDE_B_X, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelBack.Place(GUIDE_B_X + m_buttonB.width * 0.5f + GUIDE_LABEL_GAP + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
+			m_buttonLB.Place(WINDOW_SHAPE.center.x - buttonX, PAGE_MARK_Y, 1.0f, menu_color::White);
+			m_buttonRB.Place(WINDOW_SHAPE.center.x + buttonX, PAGE_MARK_Y, 1.0f, menu_color::White);
 		}
 	}
 }

@@ -203,7 +203,8 @@ namespace app
 		{
 			if (m_page == Page::Sound)
 			{
-				// 背景はサウンドオプションが描く
+				// サウンドオプションはウィンドウだけ描くので、後ろの半透明の黒はポーズ画面が描く
+				m_background.Draw(rc);
 				m_soundOption.Render(rc);
 				return;
 			}

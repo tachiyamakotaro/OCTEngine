@@ -13,14 +13,11 @@
 namespace
 {
 	// ---- 画像（パスと元の大きさ） ----
-	const char* const BACKGROUND_PATH = "Assets/sprite/fade.dds";
 	const char* const TITLE_PATH = "Assets/sprite/pause/item_sound.dds";
 	const char* const BLOCK_PATH = "Assets/sprite/pause/block.dds";
 	const char* const LABEL_MASTER_PATH = "Assets/sprite/pause/label_master.dds";
 	const char* const LABEL_BGM_PATH = "Assets/sprite/pause/label_bgm.dds";
 	const char* const LABEL_SE_PATH = "Assets/sprite/pause/label_se.dds";
-	const char* const LABEL_BACK_PATH = "Assets/sprite/pause/label_back.dds";
-	const char* const BUTTON_B_PATH = "Assets/sprite/pause/button_b.dds";
 	/**
 	 * 文字の画像は、文字の大きさと縦の範囲がそろえてあり、高さは全部 TEXT_PIXEL_H（Tools/make_menu_sprites.py が出す大きさ）。
 	 * 同じ高さで出せば、どの文字も同じ大きさになる（大文字の高さは、出す高さの約 8 割）
@@ -30,35 +27,27 @@ namespace
 	constexpr float LABEL_MASTER_PIXEL_W = 1149.0f;
 	constexpr float LABEL_BGM_PIXEL_W = 764.0f;
 	constexpr float LABEL_SE_PIXEL_W = 476.0f;
-	constexpr float LABEL_BACK_PIXEL_W = 925.0f;
-	/** B ボタンの絵（絵のまわりで切ってある） */
-	constexpr float BUTTON_PIXEL_W = 104.0f;
-	constexpr float BUTTON_PIXEL_H = 102.0f;
-
-	/** 背景の濃さ */
-	constexpr float BACKGROUND_ALPHA = 0.65f;
 
 	// ---- 配置（画面の真ん中が原点、上が +Y。画面は 1920x1080） ----
-	constexpr float TITLE_Y = 300.0f;
+	/**
+	 * ウィンドウ（真ん中・幅と高さ・見出しの帯の高さ）
+	 * 中身（ひし形の印から目盛りの右端まで）が左右の余白 55 くらいで収まる大きさ
+	 */
+	const app::ui::MenuWindowShape WINDOW_SHAPE = { Vector2(0.0f, 60.0f), Vector2(1060.0f, 640.0f), 130.0f };
+	/** 見出し（帯の真ん中に置く） */
 	constexpr float TITLE_HEIGHT = 90.0f;
-	constexpr float ROW_Y[] = { 110.0f, -30.0f, -170.0f };
+	/** 行の間（帯の下の真ん中に、この間で並べる） */
+	constexpr float ROW_PITCH = 140.0f;
 	/** 文字の高さ（大文字の高さが、目盛りの大きさとだいたい同じになる） */
 	constexpr float LABEL_HEIGHT = 56.0f;
-	/** 文字の右端のX（右寄せにする） */
-	constexpr float LABEL_RIGHT_X = -230.0f;
+	/** 文字の右端のX（右寄せにする。全体がウィンドウの真ん中に来るように、前より 38 右へ） */
+	constexpr float LABEL_RIGHT_X = -192.0f;
 	/** 目盛りの1つ目の中心のX と間隔・大きさ */
-	constexpr float BLOCK_START_X = -150.0f;
+	constexpr float BLOCK_START_X = -112.0f;
 	constexpr float BLOCK_PITCH = 62.0f;
 	constexpr float BLOCK_SIZE = 46.0f;
 	constexpr float CURSOR_SIZE = 34.0f;
 	constexpr float CURSOR_GAP = 50.0f;
-
-	constexpr float GUIDE_X = 640.0f;
-	constexpr float GUIDE_Y = -430.0f;
-	constexpr float GUIDE_ICON_SIZE = 60.0f;
-	constexpr float GUIDE_LABEL_HEIGHT = 40.0f;
-	/** 案内のボタンの絵と文字のすき間 */
-	constexpr float GUIDE_LABEL_GAP = 10.0f;
 
 	/** 音量を1回で変える量 */
 	constexpr float VOLUME_STEP = 0.1f;
@@ -71,11 +60,12 @@ namespace app
 	{
 		void SoundOptionMenu::Init()
 		{
-			m_background.InitFullScreen(BACKGROUND_PATH);
-			m_title.Init(TITLE_PATH, TITLE_PIXEL_W, TEXT_PIXEL_H, TITLE_HEIGHT);
-			m_labels[static_cast<int>(Item::Master)].Init(LABEL_MASTER_PATH, LABEL_MASTER_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
-			m_labels[static_cast<int>(Item::BGM)].Init(LABEL_BGM_PATH, LABEL_BGM_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
-			m_labels[static_cast<int>(Item::SE)].Init(LABEL_SE_PATH, LABEL_SE_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
+			m_window.Init(WINDOW_SHAPE);
+			// 文字には縁を付ける（目盛りと印はウィンドウの中なので縁なし）
+			m_title.InitWithOutline(TITLE_PATH, TITLE_PIXEL_W, TEXT_PIXEL_H, TITLE_HEIGHT);
+			m_labels[static_cast<int>(Item::Master)].InitWithOutline(LABEL_MASTER_PATH, LABEL_MASTER_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
+			m_labels[static_cast<int>(Item::BGM)].InitWithOutline(LABEL_BGM_PATH, LABEL_BGM_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
+			m_labels[static_cast<int>(Item::SE)].InitWithOutline(LABEL_SE_PATH, LABEL_SE_PIXEL_W, TEXT_PIXEL_H, LABEL_HEIGHT);
 			for (auto& row : m_volumeBlocks)
 			{
 				for (UISprite& block : row)
@@ -84,15 +74,11 @@ namespace app
 				}
 			}
 			m_cursor.Init(BLOCK_PATH, 64.0f, 64.0f, CURSOR_SIZE);
-			m_buttonB.Init(BUTTON_B_PATH, BUTTON_PIXEL_W, BUTTON_PIXEL_H, GUIDE_ICON_SIZE);
-			m_labelBack.Init(LABEL_BACK_PATH, LABEL_BACK_PIXEL_W, TEXT_PIXEL_H, GUIDE_LABEL_HEIGHT);
+			// 案内：Ⓑ BACK（右下）
+			m_guide.Init(MenuGuideButtons::Back);
 
-			// 動かない画像はここで置いておく
-			m_background.Place(0.0f, 0.0f, 1.0f, Vector4(1.0f, 1.0f, 1.0f, BACKGROUND_ALPHA));
-			m_title.Place(0.0f, TITLE_Y, 1.0f, menu_color::Selected);
-			// 案内：B BACK（右下）
-			m_buttonB.Place(GUIDE_X, GUIDE_Y, 1.0f, menu_color::White);
-			m_labelBack.Place(GUIDE_X + m_buttonB.width * 0.5f + GUIDE_LABEL_GAP + m_labelBack.width * 0.5f, GUIDE_Y, 1.0f, menu_color::White);
+			// 動かない画像はここで置いておく（見出しはウィンドウの帯の真ん中）
+			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
 		}
 
 
@@ -148,7 +134,7 @@ namespace app
 				const bool isSelected = row == m_index;
 				UISprite& label = m_labels[row];
 				// 文字は右寄せ
-				label.Place(LABEL_RIGHT_X - label.width * 0.5f, ROW_Y[row], 1.0f, isSelected ? menu_color::Selected : menu_color::Normal);
+				label.Place(LABEL_RIGHT_X - label.width * 0.5f, GetRowY(row), 1.0f, isSelected ? menu_color::Selected : menu_color::Normal);
 
 				// 目盛り：音量の分だけ光らせる
 				const int litCount = static_cast<int>(std::round(GetVolume(static_cast<Item>(row)) * BLOCK_COUNT));
@@ -156,19 +142,27 @@ namespace app
 				{
 					const bool isLit = i < litCount;
 					const Vector4& color = isLit ? (isSelected ? menu_color::Selected : menu_color::White) : menu_color::BlockOff;
-					m_volumeBlocks[row][i].Place(BLOCK_START_X + BLOCK_PITCH * static_cast<float>(i), ROW_Y[row], 1.0f, color);
+					m_volumeBlocks[row][i].Place(BLOCK_START_X + BLOCK_PITCH * static_cast<float>(i), GetRowY(row), 1.0f, color);
 				}
 			}
 			// 選んでいる行の左にひし形の印
 			const UISprite& label = m_labels[m_index];
-			m_cursor.Place(LABEL_RIGHT_X - label.width - CURSOR_GAP, ROW_Y[m_index], 1.0f, menu_color::Selected, 45.0f);
+			m_cursor.Place(LABEL_RIGHT_X - label.width - CURSOR_GAP, GetRowY(m_index), 1.0f, menu_color::Selected, 45.0f);
+		}
+
+
+		float SoundOptionMenu::GetRowY(const int row)
+		{
+			// 帯の下の真ん中を中心に、ROW_PITCH ずつ並べる
+			const float centerOffset = (static_cast<float>(ITEM_COUNT) - 1.0f) * 0.5f - static_cast<float>(row);
+			return WINDOW_SHAPE.GetBodyCenterY() + ROW_PITCH * centerOffset;
 		}
 
 
 		void SoundOptionMenu::Render(RenderContext& rc)
 		{
-			// 描いた順に重なる（背景がいちばん下）
-			m_background.Draw(rc);
+			// 描いた順に重なる（ウィンドウがいちばん下）
+			m_window.Draw(rc);
 			m_title.Draw(rc);
 			for (int row = 0; row < ITEM_COUNT; ++row)
 			{
@@ -179,8 +173,7 @@ namespace app
 				}
 			}
 			m_cursor.Draw(rc);
-			m_buttonB.Draw(rc);
-			m_labelBack.Draw(rc);
+			m_guide.Draw(rc);
 		}
 
 

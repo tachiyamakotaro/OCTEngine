@@ -9,9 +9,14 @@
  *              上下（左右でも可）… 選ぶ（選べない項目は飛ばす）
  *              A … 決定（Update が NewGame / Continue / StageSelect を返す）
  *              B … 閉じる（Update が Cancel を返す）
- *          見出しはタイトルの START のボタンと同じ画像。背景（半透明の黒）もこのクラスが描く。
+ *          見出しはタイトルの START のボタンと同じ画像。
+ *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に入れて、文字には暗い縁を付ける。
+ *          右下の操作の案内（Ⓐ OK　Ⓑ BACK）も小さなウィンドウ（MenuGuide）。
+ *          後ろの 3D の絵のぼかし・暗さは、呼んだ側（TitleMenu の MenuBackdrop）がする。
  */
 #pragma once
+#include "Source/UI/MenuGuide.h"
+#include "Source/UI/MenuWindow.h"
 #include "Source/UI/StageSelect/StageNameLabel.h"
 #include "Source/UI/UISprite.h"
 #include <array>
@@ -82,8 +87,10 @@ namespace app
 			void UpdateVisual();
 			/** 項目の色（選んでいる・選んでいない・選べない） */
 			Vector4 GetItemColor(int index) const;
-			/** 動かない画像（背景・見出し・案内）を置く */
+			/** 動かない画像（見出し）を置く */
 			void PlaceFixedSprites();
+			/** 項目の高さ（Y。上から index 番目） */
+			float GetRowY(int index) const;
 
 
 		private:
@@ -97,8 +104,8 @@ namespace app
 			float m_timer;
 
 			// ---- 画像 ----
-			/** 背景（フェードの黒い画像を半透明にして使う） */
-			UISprite m_background;
+			/** ウィンドウ（見出しの帯つき） */
+			MenuWindow m_window;
 			/** 見出し（START） */
 			UISprite m_header;
 			/** NEW GAME / CONTINUE / STAGE SELECT の文字 */
@@ -107,11 +114,8 @@ namespace app
 			StageNameLabel m_continueStage;
 			/** 選んでいる項目の印（ひし形） */
 			UISprite m_cursor;
-			/** 操作の案内（A OK / B BACK） */
-			UISprite m_buttonA;
-			UISprite m_labelOk;
-			UISprite m_buttonB;
-			UISprite m_labelBack;
+			/** 操作の案内（Ⓐ OK　Ⓑ BACK） */
+			MenuGuide m_guide;
 		};
 	}
 }

@@ -53,13 +53,14 @@ namespace app
 
 		void StageNameLabel::Init(const float height)
 		{
-			m_label.Init(LABEL_PATH, LABEL_PIXEL_W, LABEL_PIXEL_H, height);
-			m_final.Init(FINAL_PATH, FINAL_PIXEL_W, FINAL_PIXEL_H, height);
+			// メニューのほかの文字とそろえて、縁を付ける
+			m_label.InitWithOutline(LABEL_PATH, LABEL_PIXEL_W, LABEL_PIXEL_H, height);
+			m_final.InitWithOutline(FINAL_PATH, FINAL_PIXEL_W, FINAL_PIXEL_H, height);
 			for (auto& digitKinds : m_digits)
 			{
 				for (int i = 0; i < DIGIT_KIND_COUNT; ++i)
 				{
-					digitKinds[i].Init(DIGIT_PATHS[i], DIGIT_PIXEL_W, DIGIT_PIXEL_H, height);
+					digitKinds[i].InitWithOutline(DIGIT_PATHS[i], DIGIT_PIXEL_W, DIGIT_PIXEL_H, height);
 				}
 			}
 		}
