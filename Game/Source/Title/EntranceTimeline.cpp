@@ -66,18 +66,34 @@ namespace app
 		}
 
 
+		float EntranceTimeline::GetWalkInRate() const
+		{
+			// 止まっている所から走り出して、だんだん速くなる（光の中に消えるまで止まらない）
+			const float t = RateBetween(GetEnterTime(), m_timing.walkInDelay, m_timing.walkInTime);
+			return t * t * 0.4f + t * 0.6f;
+		}
+
+
 		bool EntranceTimeline::IsRunning() const
 		{
 			const bool isRunningIn = m_time >= m_timing.runStart && m_time < m_timing.runEnd;
 			const float enterTime = GetEnterTime();
 			const bool isApproaching = enterTime >= 0.0f && enterTime < m_timing.approachTime;
-			return isRunningIn || isApproaching;
+			// 門の中へ入り始めたら、光の中に消えるまで（消えたあとも）走ったまま
+			const bool isWalkingIn = enterTime >= m_timing.walkInDelay;
+			return isRunningIn || isApproaching || isWalkingIn;
 		}
 
 
 		float EntranceTimeline::GetTurnRate() const
 		{
 			return math::SmoothStep(RateBetween(GetEnterTime(), m_timing.approachTime, m_timing.turnTime));
+		}
+
+
+		float EntranceTimeline::GetWalkInTurnRate() const
+		{
+			return math::SmoothStep(RateBetween(GetEnterTime(), m_timing.walkInDelay, m_timing.walkInTurnTime));
 		}
 
 

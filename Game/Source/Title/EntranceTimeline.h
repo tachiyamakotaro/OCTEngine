@@ -13,8 +13,9 @@ namespace app
 		/**
 		 * @brief タイトル画面の演出の時間の流れ
 		 * @details ・始まると、プレイヤーが走ってきて門の少し手前で止まって待つ
-		 *          ・BeginEnter（START / CONTINUE を押したとき）で、門の前まで走る → 門のほうを向く → 扉が開く が始まる
-		 *            走ってくる途中で押したら、手前で止まってから始める
+		 *          ・BeginEnter（遊ぶステージを決めたとき）で、門の前まで走る → 門のほうを向く → 扉が開く
+		 *            → 門の中へ走って入る が始まる
+		 *            走ってくる途中で決めたら、手前で止まってから始める
 		 *          ・毎フレーム Update で時間を進め、そのフレームに起きたこと（扉が開き始めた など）を返す。
 		 *            扉を開けて音を鳴らすのは TitleDirector
 		 *          ・どこまで進んだかを 0〜1 の割合で答える（GetRunRate など）。
@@ -37,17 +38,21 @@ namespace app
 			void Init(const EntranceTiming& timing = EntranceTiming());
 			/** 時間を進める（そのフレームに起きたことを返す） */
 			Events Update(float deltaTime);
-			/** 門へ入り始める（START / CONTINUE を押したとき。2回目からは何もしない） */
+			/** 門へ入り始める（遊ぶステージを決めたとき。2回目からは何もしない） */
 			void BeginEnter();
 
 			/** 走ってきた割合（0 = 走り始めの位置 〜 1 = 門の少し手前。止まる前はゆっくりになる） */
 			float GetRunRate() const;
 			/** 門の前まで走った割合（0 = 門の少し手前 〜 1 = 門の前。入り始める前は 0） */
 			float GetApproachRate() const;
-			/** 走っているか（走ってくる間と、門の前まで走る間） */
+			/** 門の中へ入った割合（0 = 門の前 〜 1 = 扉の奥の光の中。走り出しはゆっくり、だんだん速くなる） */
+			float GetWalkInRate() const;
+			/** 走っているか（走ってくる間・門の前まで走る間・門の中へ入っていく間） */
 			bool IsRunning() const;
 			/** 門のほうを向いた割合（0 = 右向き 〜 1 = 門のほう） */
 			float GetTurnRate() const;
+			/** 門の中へ入るときに、まっすぐ奥を向いた割合（0 = 門のほう（少し横顔） 〜 1 = まっすぐ奥） */
+			float GetWalkInTurnRate() const;
 			/** 入る演出が終わったか（次のシーンへ移ってよいか） */
 			bool IsEnterFinished() const;
 			/** 扉が開ききるまでの時間 */

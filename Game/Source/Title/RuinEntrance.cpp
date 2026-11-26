@@ -4,6 +4,7 @@
  */
 #include "stdafx.h"
 #include "RuinEntrance.h"
+#include "Source/Core/Math/MathUtil.h"
 
 
 namespace app
@@ -48,6 +49,29 @@ namespace app
 				constexpr float TIER3_HEIGHT = 500.0f;
 				/** 建物の右端（門の真ん中から。画面の右の外まで伸ばす） */
 				constexpr float RIGHT_END = 900.0f;
+			}
+
+			/**
+			 * @brief 門の足元の段（goal_gate.tkm の形。大きさ 1 のとき。門の足元からの奥行きと、段の上の高さ）
+			 * @details 1段目は奥行き 8 から高さ 7、2段目は奥行き 20 から高さ 13（門の中の床もこの高さ。扉の奥の光の板まで続く）
+			 *          門のモデルを作り直して段の形を変えたら、ここも合わせる
+			 */
+			namespace gate_step
+			{
+				struct Step
+				{
+					/** 段の手前の面（門の足元からの奥行き） */
+					float frontZ;
+					/** 段の上の高さ */
+					float topY;
+				};
+				constexpr Step STEPS[] =
+				{
+					{ 8.0f, 7.0f },
+					{ 20.0f, 13.0f },
+				};
+				/** 段の手前の、上り始める所から段の手前の面までの長さ（ここで少しずつ上がる。上るアニメーションがないので、ぱっと上がって見えないように） */
+				constexpr float STEP_UP_LENGTH = 12.0f;
 			}
 
 			/** 門のゴールの判定の大きさ（判定は使わない。門を置く位置を決めるだけ。下端の真ん中に門が立つ） */
@@ -133,6 +157,22 @@ namespace app
 			m_groundRenderer.Draw(rc);
 			m_ruinRenderer.Draw(rc);
 			m_gateRenderer.Draw(rc);
+		}
+
+
+		float RuinEntrance::GetFloorHeight(const float z) const
+		{
+			// 門は大きくして手前へ出しているので、段の位置と高さも門の大きさと足元の奥行きに合わせる
+			const float scale = m_layout.gateScale;
+			const float footZ = m_gateRenderer.GetStyle().footZ;
+			float height = 0.0f;
+			for (const gate_step::Step& step : gate_step::STEPS)
+			{
+				const float frontZ = footZ + step.frontZ * scale;
+				const float rate = math::SmoothStep(math::Clamp01((z - (frontZ - gate_step::STEP_UP_LENGTH)) / gate_step::STEP_UP_LENGTH));
+				height = math::Lerp(height, step.topY * scale, rate);
+			}
+			return height;
 		}
 
 

@@ -49,6 +49,12 @@ namespace app
 			void Update(float deltaTime);
 			/** 描く（地面 → 建物 → 門） */
 			void Draw(RenderContext& rc);
+			/**
+			 * @brief その奥行きの、門の前と門の中の床の高さ（門の足元の2段の段を上る。段の手前で少しずつ上がる）
+			 * @param z 奥行き（門の真ん中の X を、まっすぐ奥へ歩くとき）
+			 * @return 地面の上が 0。門の中（扉の奥まで）は段の上の高さ
+			 */
+			float GetFloorHeight(float z) const;
 
 		private:
 			/** 地面を作る */

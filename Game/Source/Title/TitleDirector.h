@@ -23,9 +23,9 @@ namespace app
 		 *              TitleCamera      … カメラ
 		 *              TitleSkyRenderer … 夕暮れの空
 		 *              RuinEntrance     … 地面・遺跡の建物・門（扉・門の光）
-		 *              TitlePlayerModel … プレイヤー（走る・止まる・門のほうを向く）
+		 *              TitlePlayerModel … プレイヤー（走る・止まる・門のほうを向く・門の中へ入る）
 		 *          ・始まると、プレイヤーが走ってきて門の少し手前で待つ
-		 *          ・BeginEnter で、門の前まで走る → 門のほうを向く → 扉が開く（音も鳴らす）
+		 *          ・BeginEnter で、門の前まで走る → 門のほうを向く → 扉が開く（音も鳴らす）→ 門の中へ走って入り、光の中に消える
 		 *            IsEnterFinished が true になったら、シーンが次へ移ってよい
 		 */
 		class TitleDirector
@@ -43,7 +43,7 @@ namespace app
 			/** 描く（空 → 地面・建物・門 → プレイヤー） */
 			void Draw(RenderContext& rc);
 
-			/** 門へ入り始める（START / CONTINUE を押したとき） */
+			/** 門へ入り始める（遊ぶステージを決めたとき。NEW GAME / CONTINUE / ステージセレクトのどれでも同じ） */
 			void BeginEnter();
 			/** 門へ入る演出が終わったか（次のシーンへ移ってよいか） */
 			bool IsEnterFinished() const { return m_timeline.IsEnterFinished(); }

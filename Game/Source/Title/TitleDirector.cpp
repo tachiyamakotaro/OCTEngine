@@ -29,7 +29,8 @@ namespace app
 			m_camera.Apply();
 			m_sky.Update(deltaTime);
 			m_entrance.Update(deltaTime);
-			m_player.Update(m_timeline);
+			// 門の中へ入るときに段を上るので、床の高さを遺跡の入口に答えてもらう
+			m_player.Update(m_timeline, m_entrance);
 			SceneLight::GetInstance()->Update();
 		}
 

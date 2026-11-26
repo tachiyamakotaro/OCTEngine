@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "TitlePlayerModel.h"
 #include "EntranceTimeline.h"
+#include "RuinEntrance.h"
 #include "Source/Core/Math/MathUtil.h"
 
 
@@ -57,29 +58,36 @@ namespace app
 
 			m_currentAnimation = Animation::Num;
 			Play(Animation::Idle);
+			m_isInsideGate = false;
 			m_isInited = true;
 		}
 
 
-		void TitlePlayerModel::Update(const EntranceTimeline& timeline)
+		void TitlePlayerModel::Update(const EntranceTimeline& timeline, const RuinEntrance& entrance)
 		{
 			if (!m_isInited)
 			{
 				return;
 			}
 
-			// ---- 位置（左の外から走ってきて門の少し手前で待つ。START / CONTINUE を押したら門の前まで走る） ----
+			// ---- 位置（左の外から走ってきて門の少し手前で待つ。遊ぶステージを決めたら門の前まで走り、扉が開いたら門の中へ入る） ----
 			const float waitX = math::Lerp(m_layout.playerStartX, m_layout.playerWaitX, timeline.GetRunRate());
 			const float x = math::Lerp(waitX, m_layout.playerStopX, timeline.GetApproachRate());
+			const float walkInRate = timeline.GetWalkInRate();
+			const float z = math::Lerp(m_layout.playerZ, m_layout.playerEnterZ, walkInRate);
+			// 門の足元の段を上る（門の前より手前では地面の高さ 0）
+			const float y = entrance.GetFloorHeight(z);
+			m_isInsideGate = walkInRate >= 1.0f;
 
 			// ---- アニメーション ----
 			Play(timeline.IsRunning() ? Animation::Run : Animation::Idle);
 
-			// ---- 向き（右向きから、門の前に着いたら門のほう（奥）へ向く） ----
+			// ---- 向き（右向きから、門の前に着いたら門のほう（奥）へ向き、門の中へ入るときはまっすぐ奥を向く） ----
+			const float faceGateDeg = math::Lerp(FACE_RIGHT_DEG, m_layout.faceGateDeg, timeline.GetTurnRate());
 			Quaternion rotation;
-			rotation.SetRotationDegY(math::Lerp(FACE_RIGHT_DEG, m_layout.faceGateDeg, timeline.GetTurnRate()));
+			rotation.SetRotationDegY(math::Lerp(faceGateDeg, m_layout.enterGateDeg, timeline.GetWalkInTurnRate()));
 
-			m_modelRender.SetPosition(Vector3(x, 0.0f, m_layout.playerZ));
+			m_modelRender.SetPosition(Vector3(x, y, z));
 			m_modelRender.SetRotation(rotation);
 			m_modelRender.SetScale(Vector3(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
 			m_modelRender.Update();
@@ -88,7 +96,8 @@ namespace app
 
 		void TitlePlayerModel::Draw(RenderContext& rc)
 		{
-			if (!m_isInited)
+			// 門の中へ入りきったら、光の板に隠れているので描かない（影も門のまわりに残さない）
+			if (!m_isInited || m_isInsideGate)
 			{
 				return;
 			}
