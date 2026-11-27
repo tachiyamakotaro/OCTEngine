@@ -107,11 +107,22 @@ namespace app
 			m_page = Page::Main;
 			m_mainIndex = static_cast<int>(MainItem::Sound);
 			m_input.Reset();
+			// 前にサウンドオプションを開いたままポーズを解いていても、残らないように消しておく
+			m_soundOption.Hide();
 			UpdateMainVisual();
 		}
 
 
 		PauseMenu::Result PauseMenu::Update()
+		{
+			const Result result = UpdatePage();
+			// サウンドオプションのウィンドウの出し入れは、閉じている途中も進める
+			m_soundOption.Animate();
+			return result;
+		}
+
+
+		PauseMenu::Result PauseMenu::UpdatePage()
 		{
 			m_input.Update();
 
@@ -126,9 +137,10 @@ namespace app
 			{
 				return UpdateMain();
 			}
-			// サウンドオプション：B で閉じたらポーズ画面に戻る
+			// サウンドオプション：B で閉じたら（小さくなって消えながら）ポーズ画面に戻る
 			if (m_soundOption.Update(m_input))
 			{
+				m_soundOption.Close();
 				m_page = Page::Main;
 				UpdateMainVisual();
 			}
@@ -220,6 +232,8 @@ namespace app
 			m_labelOk.Draw(rc);
 			m_buttonB.Draw(rc);
 			m_labelBack.Draw(rc);
+			// サウンドオプションを閉じている途中なら、小さくなって消えていくのを重ねる（見えていなければ何もしない）
+			m_soundOption.Render(rc);
 		}
 	}
 }

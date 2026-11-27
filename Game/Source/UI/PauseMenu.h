@@ -75,6 +75,8 @@ namespace app
 
 
 		private:
+			/** 今の画面の操作（Update から呼ぶ） */
+			Result UpdatePage();
 			Result UpdateMain();
 			/** 項目の見た目（選んでいる項目は黄色で少し大きく）を更新する */
 			void UpdateMainVisual();

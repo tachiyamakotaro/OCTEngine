@@ -7,6 +7,8 @@
  *              左右 … 音量を 10% ずつ変える（すぐに SoundManager に反映）
  *              B    … 閉じる（Update が true を返すので、呼んだ側で前の画面に戻す）
  *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に入れて、文字には暗い縁を付ける。
+ *          ウィンドウは拡大縮小で出し入れする（UIPopupAnimation）。Open で大きくなって出て、Close で小さくなって消える。
+ *          閉じている途中も描くので、呼んだ側は毎フレーム Animate と Render を呼ぶ（見えていないときは何もしない）。
  *          右下の操作の案内（Ⓑ BACK）も小さなウィンドウ（MenuGuide）。
  *          後ろの画面（ぼかし・暗さ）は呼んだ側が描く（タイトルは MenuBackdrop、ポーズ画面は半透明の黒）。
  */
@@ -14,6 +16,7 @@
 #include <array>
 #include "Source/UI/MenuGuide.h"
 #include "Source/UI/MenuWindow.h"
+#include "Source/UI/Animation/UIPopupAnimation.h"
 #include "Source/UI/UISprite.h"
 
 
@@ -47,22 +50,30 @@ namespace app
 
 			/** 画像を読み込む */
 			void Init();
-			/** 開く（MASTER を選んだ状態にする） */
+			/** 開く（MASTER を選んだ状態にして、ウィンドウが大きくなって出てくる） */
 			void Open();
+			/** 閉じる（ウィンドウが小さくなって消える） */
+			void Close();
+			/** すぐに消す（アニメーションしない。ポーズを解いたときなど） */
+			void Hide();
 			/**
 			 * @brief 入力を見て操作する（開いている間、毎フレーム呼ぶ）
 			 * @param input 呼んだ側のカーソル操作（Update() 済みのもの）
-			 * @return 閉じたいなら true（B が押された）
+			 * @return 閉じたいなら true（B が押された。Close は呼んだ側がする）
 			 */
 			bool Update(const MenuInput& input);
-			/** 描く（開いている間だけ呼ぶ） */
+			/** 開閉のアニメーションを進めて、置き直す（開いていないときも毎フレーム呼ぶ） */
+			void Animate();
+			/** 描く（見えていないときは何もしない） */
 			void Render(RenderContext& rc);
+			/** 見えているか（開いている・開いている途中・閉じている途中） */
+			bool IsVisible() const { return m_popup.IsVisible(); }
 
 			inline Item GetSelectedItem() const { return static_cast<Item>(m_index); }
 
 
 		private:
-			/** 項目の見た目（選んでいる行は黄色）と目盛りを更新する */
+			/** 全部の画像を置き直す（選んでいる行は黄色。目盛り。ウィンドウの拡大率・濃さもかける） */
 			void UpdateVisual();
 			/** 行の高さ（Y。上から row 番目） */
 			static float GetRowY(int row);
@@ -78,6 +89,8 @@ namespace app
 
 			/** 選んでいる項目 */
 			int m_index = 0;
+			/** ウィンドウの出し入れ（拡大縮小） */
+			UIPopupAnimation m_popup;
 
 			// ---- 画像 ----
 			/** ウィンドウ（見出しの帯つき） */

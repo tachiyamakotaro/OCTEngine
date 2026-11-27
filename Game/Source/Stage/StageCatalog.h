@@ -52,7 +52,6 @@ namespace app
 		constexpr int STAGE_COUNT = static_cast<int>(std::size(STAGE_INFO_TABLE));
 		/**
 		 * @brief タイトルから START したときに遊ぶステージ（STAGE_INFO_TABLE の番号）
-		 * @details 手鏡の確認のために、今は Stage02（1）から始める。本番は 0 に戻す。
 		 */
 		constexpr int FIRST_STAGE_INDEX = 0;
 		static_assert(FIRST_STAGE_INDEX >= 0 && FIRST_STAGE_INDEX < STAGE_COUNT, "FIRST_STAGE_INDEX が表の範囲の外");

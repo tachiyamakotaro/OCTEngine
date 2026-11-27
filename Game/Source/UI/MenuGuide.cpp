@@ -43,6 +43,11 @@ namespace app
 
 		MenuGuide::MenuGuide()
 			: m_hasOk(true)
+			, m_shape()
+			, m_buttonAX(0.0f)
+			, m_labelOkX(0.0f)
+			, m_buttonBX(0.0f)
+			, m_labelBackX(0.0f)
 			, m_window()
 			, m_buttonA()
 			, m_labelOk()
@@ -64,6 +69,21 @@ namespace app
 			m_buttonB.Init(BUTTON_B_PATH, BUTTON_PIXEL_W, BUTTON_PIXEL_H, ICON_SIZE);
 			m_labelBack.InitWithOutline(LABEL_BACK_PATH, LABEL_BACK_PIXEL_W, LABEL_PIXEL_H, LABEL_HEIGHT);
 			Layout();
+			m_window.Init(m_shape);
+			Place(UIGroupTransform::Identity());
+		}
+
+
+		void MenuGuide::Place(const UIGroupTransform& group)
+		{
+			// 案内のウィンドウの真ん中を中心に、拡大縮小する
+			const UIGroupTransform local = group.WithPivot(m_shape.center);
+			const float y = m_shape.center.y;
+			m_window.Place(local);
+			m_buttonA.Place(m_buttonAX, y, 1.0f, menu_color::White, 0.0f, local);
+			m_labelOk.Place(m_labelOkX, y, 1.0f, menu_color::White, 0.0f, local);
+			m_buttonB.Place(m_buttonBX, y, 1.0f, menu_color::White, 0.0f, local);
+			m_labelBack.Place(m_labelBackX, y, 1.0f, menu_color::White, 0.0f, local);
 		}
 
 
@@ -89,24 +109,22 @@ namespace app
 
 			// ウィンドウは右端をそろえる
 			const float windowWidth = contentWidth + WINDOW_PADDING_X * 2.0f;
-			MenuWindowShape shape;
-			shape.center = Vector2(WINDOW_RIGHT_X - windowWidth * 0.5f, WINDOW_CENTER_Y);
-			shape.size = Vector2(windowWidth, WINDOW_HEIGHT);
-			shape.headerHeight = 0.0f;
-			m_window.Init(shape);
+			m_shape.center = Vector2(WINDOW_RIGHT_X - windowWidth * 0.5f, WINDOW_CENTER_Y);
+			m_shape.size = Vector2(windowWidth, WINDOW_HEIGHT);
+			m_shape.headerHeight = 0.0f;
 
-			// 左から順に置く
+			// 左から順に並べたときの真ん中の X
 			float left = WINDOW_RIGHT_X - windowWidth + WINDOW_PADDING_X;
 			if (m_hasOk)
 			{
-				m_buttonA.Place(left + m_buttonA.width * 0.5f, WINDOW_CENTER_Y, 1.0f, menu_color::White);
+				m_buttonAX = left + m_buttonA.width * 0.5f;
 				left += m_buttonA.width + LABEL_GAP;
-				m_labelOk.Place(left + m_labelOk.width * 0.5f, WINDOW_CENTER_Y, 1.0f, menu_color::White);
+				m_labelOkX = left + m_labelOk.width * 0.5f;
 				left += m_labelOk.width + PAIR_GAP;
 			}
-			m_buttonB.Place(left + m_buttonB.width * 0.5f, WINDOW_CENTER_Y, 1.0f, menu_color::White);
+			m_buttonBX = left + m_buttonB.width * 0.5f;
 			left += m_buttonB.width + LABEL_GAP;
-			m_labelBack.Place(left + m_labelBack.width * 0.5f, WINDOW_CENTER_Y, 1.0f, menu_color::White);
+			m_labelBackX = left + m_labelBack.width * 0.5f;
 		}
 	}
 }

@@ -76,16 +76,37 @@ namespace app
 			m_cursor.Init(BLOCK_PATH, 64.0f, 64.0f, CURSOR_SIZE);
 			// 案内：Ⓑ BACK（右下）
 			m_guide.Init(MenuGuideButtons::Back);
-
-			// 動かない画像はここで置いておく（見出しはウィンドウの帯の真ん中）
-			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
+			m_popup.Hide();
 		}
 
 
 		void SoundOptionMenu::Open()
 		{
 			m_index = static_cast<int>(Item::Master);
+			m_popup.Open();
 			UpdateVisual();
+		}
+
+
+		void SoundOptionMenu::Close()
+		{
+			m_popup.Close();
+		}
+
+
+		void SoundOptionMenu::Hide()
+		{
+			m_popup.Hide();
+		}
+
+
+		void SoundOptionMenu::Animate()
+		{
+			m_popup.Update();
+			if (m_popup.IsVisible())
+			{
+				UpdateVisual();
+			}
 		}
 
 
@@ -129,12 +150,18 @@ namespace app
 
 		void SoundOptionMenu::UpdateVisual()
 		{
+			// ウィンドウの真ん中を中心に、出し入れの拡大率・濃さをかける
+			const UIGroupTransform group = m_popup.MakeTransform(WINDOW_SHAPE.center);
+			m_window.Place(group);
+			// 見出しはウィンドウの帯の真ん中
+			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected, 0.0f, group);
+
 			for (int row = 0; row < ITEM_COUNT; ++row)
 			{
 				const bool isSelected = row == m_index;
 				UISprite& label = m_labels[row];
 				// 文字は右寄せ
-				label.Place(LABEL_RIGHT_X - label.width * 0.5f, GetRowY(row), 1.0f, isSelected ? menu_color::Selected : menu_color::Normal);
+				label.Place(LABEL_RIGHT_X - label.width * 0.5f, GetRowY(row), 1.0f, isSelected ? menu_color::Selected : menu_color::Normal, 0.0f, group);
 
 				// 目盛り：音量の分だけ光らせる
 				const int litCount = static_cast<int>(std::round(GetVolume(static_cast<Item>(row)) * BLOCK_COUNT));
@@ -142,12 +169,14 @@ namespace app
 				{
 					const bool isLit = i < litCount;
 					const Vector4& color = isLit ? (isSelected ? menu_color::Selected : menu_color::White) : menu_color::BlockOff;
-					m_volumeBlocks[row][i].Place(BLOCK_START_X + BLOCK_PITCH * static_cast<float>(i), GetRowY(row), 1.0f, color);
+					m_volumeBlocks[row][i].Place(BLOCK_START_X + BLOCK_PITCH * static_cast<float>(i), GetRowY(row), 1.0f, color, 0.0f, group);
 				}
 			}
 			// 選んでいる行の左にひし形の印
 			const UISprite& label = m_labels[m_index];
-			m_cursor.Place(LABEL_RIGHT_X - label.width - CURSOR_GAP, GetRowY(m_index), 1.0f, menu_color::Selected, 45.0f);
+			m_cursor.Place(LABEL_RIGHT_X - label.width - CURSOR_GAP, GetRowY(m_index), 1.0f, menu_color::Selected, 45.0f, group);
+			// 案内は、案内のウィンドウの真ん中を中心に拡大縮小する
+			m_guide.Place(group);
 		}
 
 
@@ -161,6 +190,10 @@ namespace app
 
 		void SoundOptionMenu::Render(RenderContext& rc)
 		{
+			if (!m_popup.IsVisible())
+			{
+				return;
+			}
 			// 描いた順に重なる（ウィンドウがいちばん下）
 			m_window.Draw(rc);
 			m_title.Draw(rc);

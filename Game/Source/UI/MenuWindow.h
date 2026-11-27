@@ -4,9 +4,11 @@
  * @details 画像を使わず、シェーダー（Assets/shader/menuWindow.fx）で描く。大きさを変えても角や枠の太さは崩れない。
  *          見た目（下から）：影 → 暗い石の色の地 → 見出しの帯（上の端。下に金の線）→ 内側の細い金の線 → 金の枠
  *          見出しの帯の高さを 0 にすると、帯なしのウィンドウ（操作の案内など）になる。
+ *          Place に UIGroupTransform を渡すと、拡大縮小・濃さを変えて置ける（ウィンドウを拡大縮小で出し入れするとき）。
  *          座標は画面の真ん中が原点、上が +Y（画面は 1920x1080）。
  */
 #pragma once
+#include "Source/UI/UIGroupTransform.h"
 
 
 namespace app
@@ -49,6 +51,11 @@ namespace app
 			 * @param shape ウィンドウの位置・大きさ・見出しの帯の高さ
 			 */
 			void Init(const MenuWindowShape& shape);
+			/**
+			 * @brief まとめた変形（拡大率・濃さ）をかけて置く（開閉のアニメーション中は毎フレーム呼ぶ）
+			 * @param group 変形（ふつうはウィンドウの真ん中を中心にした物）
+			 */
+			void Place(const UIGroupTransform& group);
 			/** 描く（メニューの中身より先に呼ぶ） */
 			void Draw(RenderContext& rc);
 
@@ -79,6 +86,8 @@ namespace app
 			Sprite m_sprite;
 			/** シェーダーに渡す値 */
 			WindowValues m_values;
+			/** ウィンドウの真ん中（変形をかける前） */
+			Vector2 m_center;
 			/** 初期化済みか */
 			bool m_isInited;
 		};

@@ -16,6 +16,8 @@
  *          選んでいるステージの計算は StageSelectCursor、札の置き方は StageCarousel、1ステージぶんの見た目は StageCard。
  *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に、見出し・札・ひし形・LB / RB を入れる。文字には暗い縁を付ける。
  *          右下の操作の案内（Ⓐ OK　Ⓑ BACK）も小さなウィンドウ（MenuGuide）。
+ *          ウィンドウは中身（札・ひし形など）ごと拡大縮小で出し入れする（UIPopupAnimation）。Open で大きくなって出て、Close で小さくなって消える。
+ *          閉じている途中も描くので、呼んだ側は毎フレーム Animate と Render を呼ぶ（見えていないときは何もしない）。
  *          後ろの 3D の絵のぼかし・暗さは、呼んだ側（TitleMenu の MenuBackdrop）がする。
  */
 #pragma once
@@ -24,6 +26,7 @@
 #include "Source/UI/StageSelect/StageCard.h"
 #include "Source/UI/StageSelect/StageCarousel.h"
 #include "Source/UI/StageSelect/StageSelectCursor.h"
+#include "Source/UI/Animation/UIPopupAnimation.h"
 #include "Source/UI/UISprite.h"
 #include <memory>
 #include <vector>
@@ -64,29 +67,33 @@ namespace app
 			 * @param initialStage 最初に選んでおくステージ（StageCatalog の表の番号。タイトルからは、続きのステージ（なければ最初のステージ））
 			 */
 			void Open(int initialStage);
+			/** 閉じる（ウィンドウが中身ごと小さくなって消える） */
+			void Close();
 			/**
 			 * @brief 入力を見て操作する（開いている間、毎フレーム呼ぶ）
 			 * @param input 呼んだ側のカーソル操作（Update() 済みのもの）
 			 */
 			Result Update(const MenuInput& input);
-			/** 描く（開いている間だけ呼ぶ） */
+			/** 開閉のアニメーションを進めて、置き直す（開いていないときも毎フレーム呼ぶ） */
+			void Animate();
+			/** 描く（見えていないときは何もしない） */
 			void Render(RenderContext& rc);
+			/** 見えているか（開いている・開いている途中・閉じている途中） */
+			bool IsVisible() const { return m_popup.IsVisible(); }
 
 			/** 選んでいるステージ（StageCatalog の表の番号） */
 			int GetSelectedStage() const { return m_cursor.GetSelectedStage(); }
 
 
 		private:
-			/** 札・ひし形・LB / RB の見た目を更新する */
+			/** 全部の画像を置き直す（ウィンドウの拡大率・濃さもかける） */
 			void UpdateVisual();
 			/** 札を並べる（StageCarousel が決めた位置・大きさ・濃さ。選んでいる札は黄色で脈打つ） */
-			void PlaceCards();
+			void PlaceCards(const UIGroupTransform& group);
 			/** ひし形を並べる（全体をウィンドウの真ん中に。今のステージは黄色で大きい） */
-			void PlaceStageMarks();
+			void PlaceStageMarks(const UIGroupTransform& group);
 			/** LB / RB を置く（押したあとしばらくは、ポンと大きくなって戻る） */
-			void PlaceJumpButtons();
-			/** 動かない画像（見出し）を置く */
-			void PlaceFixedSprites();
+			void PlaceJumpButtons(const UIGroupTransform& group);
 			/** LB / RB を押してからの時間から、LB / RB の絵の拡大率を決める */
 			static float GetButtonPopScale(float timeSincePressed);
 
@@ -98,6 +105,8 @@ namespace app
 			StageCarousel m_carousel;
 			/** 演出用のタイマー（秒。選んでいる札を脈打たせる。カーソルを動かすと 0 に戻る） */
 			float m_timer;
+			/** ウィンドウの出し入れ（拡大縮小） */
+			UIPopupAnimation m_popup;
 			/** LB / RB を押してからの時間（秒。押した絵をポンと大きくする） */
 			float m_timeSinceLB;
 			float m_timeSinceRB;

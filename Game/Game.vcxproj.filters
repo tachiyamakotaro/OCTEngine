@@ -85,6 +85,9 @@
     <Filter Include="Source\UI\StageSelect">
       <UniqueIdentifier>{5df5b958-8ce3-4be0-a9b2-97e8701dad0f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\UI\Animation">
+      <UniqueIdentifier>{4c808e5c-11bd-4110-85c5-89ba69ace8e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp" />
@@ -518,6 +521,9 @@
     </ClCompile>
     <ClCompile Include="Source\UI\StageSelect\StageCarousel.cpp">
       <Filter>Source\UI\StageSelect</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\Animation\UIPopupAnimation.cpp">
+      <Filter>Source\UI\Animation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1026,6 +1032,9 @@
     </ClInclude>
     <ClInclude Include="Source\UI\StageSelect\StageCarousel.h">
       <Filter>Source\UI\StageSelect</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\Animation\UIPopupAnimation.h">
+      <Filter>Source\UI\Animation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

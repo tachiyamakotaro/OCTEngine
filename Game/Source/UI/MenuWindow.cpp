@@ -39,6 +39,7 @@ namespace app
 		MenuWindow::MenuWindow()
 			: m_sprite()
 			, m_values()
+			, m_center(0.0f, 0.0f)
 			, m_isInited(false)
 		{}
 
@@ -70,9 +71,24 @@ namespace app
 			initData.m_expandConstantBufferSize = sizeof(m_values);
 			m_sprite.Init(initData);
 
-			// 動かさないので、ここで置いておく
-			m_sprite.Update(Vector3(shape.center.x, shape.center.y, 0.0f), Quaternion::Identity, Vector3::One);
+			// 開ききった状態で置いておく（拡大縮小で出し入れするときは、Place で置き直す）
+			m_center = shape.center;
 			m_isInited = true;
+			Place(UIGroupTransform::Identity());
+		}
+
+
+		void MenuWindow::Place(const UIGroupTransform& group)
+		{
+			if (!m_isInited)
+			{
+				return;
+			}
+			const Vector2 position = group.ApplyPosition(m_center);
+			const float scale = group.ApplyScale(1.0f);
+			m_sprite.Update(Vector3(position.x, position.y, 0.0f), Quaternion::Identity, Vector3(scale, scale, 1.0f));
+			// シェーダーの最後に乗算カラーの透明度をかけているので、濃さはここで変える
+			m_sprite.SetMulColor(group.ApplyColor(Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
 		}
 
 

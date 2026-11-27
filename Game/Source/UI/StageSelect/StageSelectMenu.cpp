@@ -104,7 +104,7 @@ namespace app
 			m_buttonLB.Init(BUTTON_LB_PATH, BUTTON_LR_PIXEL_W, BUTTON_LR_PIXEL_H, BUTTON_LR_HEIGHT);
 			m_buttonRB.Init(BUTTON_RB_PATH, BUTTON_LR_PIXEL_W, BUTTON_LR_PIXEL_H, BUTTON_LR_HEIGHT);
 			m_guide.Init(MenuGuideButtons::OkAndBack);
-			PlaceFixedSprites();
+			m_popup.Hide();
 		}
 
 
@@ -116,7 +116,24 @@ namespace app
 			m_timer = 0.0f;
 			m_timeSinceLB = BUTTON_POP_IDLE;
 			m_timeSinceRB = BUTTON_POP_IDLE;
+			m_popup.Open();
 			UpdateVisual();
+		}
+
+
+		void StageSelectMenu::Close()
+		{
+			m_popup.Close();
+		}
+
+
+		void StageSelectMenu::Animate()
+		{
+			m_popup.Update();
+			if (m_popup.IsVisible())
+			{
+				UpdateVisual();
+			}
 		}
 
 
@@ -174,6 +191,10 @@ namespace app
 
 		void StageSelectMenu::Render(RenderContext& rc)
 		{
+			if (!m_popup.IsVisible())
+			{
+				return;
+			}
 			// ウィンドウ → 中身 → 案内の順
 			m_window.Draw(rc);
 			m_title.Draw(rc);
@@ -202,31 +223,42 @@ namespace app
 
 		void StageSelectMenu::UpdateVisual()
 		{
-			PlaceCards();
-			PlaceStageMarks();
-			PlaceJumpButtons();
+			// ウィンドウの真ん中を中心に、出し入れの拡大率・濃さをかける
+			const UIGroupTransform group = m_popup.MakeTransform(WINDOW_SHAPE.center);
+			m_window.Place(group);
+			// 見出しはウィンドウの帯の真ん中
+			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected, 0.0f, group);
+			PlaceCards(group);
+			PlaceStageMarks(group);
+			PlaceJumpButtons(group);
+			// 案内は、案内のウィンドウの真ん中を中心に拡大縮小する
+			m_guide.Place(group);
 		}
 
 
-		void StageSelectMenu::PlaceCards()
+		void StageSelectMenu::PlaceCards(const UIGroupTransform& group)
 		{
 			const int selected = m_cursor.GetSelectedStage();
 			for (int i = 0; i < static_cast<int>(m_cards.size()); ++i)
 			{
+				// 横に流れる並べ方で決めた位置・大きさ・濃さに、ウィンドウの拡大率・濃さをかける
 				StageCardPose pose = m_carousel.GetPose(i);
+				pose.center = group.ApplyPosition(pose.center);
+				pose.scale = group.ApplyScale(pose.scale);
+				pose.alpha *= group.alpha;
 				if (i != selected)
 				{
 					m_cards[i]->PlaceNormal(pose);
 					continue;
 				}
 				// 選んでいる札はゆっくり脈打つ
-				pose.scale += PULSE_SCALE * std::sin(m_timer * PULSE_SPEED * 2.0f * math::PI);
+				pose.scale += group.ApplyScale(PULSE_SCALE * std::sin(m_timer * PULSE_SPEED * 2.0f * math::PI));
 				m_cards[i]->PlaceSelected(pose);
 			}
 		}
 
 
-		void StageSelectMenu::PlaceStageMarks()
+		void StageSelectMenu::PlaceStageMarks(const UIGroupTransform& group)
 		{
 			// 横に並べて、全体をウィンドウの真ん中に。今のステージは黄色で大きく
 			const int markCount = static_cast<int>(m_stageMarks.size());
@@ -237,26 +269,19 @@ namespace app
 				const bool isCurrent = i == selected;
 				const float scale = isCurrent ? STAGE_MARK_SIZE_CURRENT / STAGE_MARK_SIZE : 1.0f;
 				const Vector4& color = isCurrent ? menu_color::Selected : STAGE_MARK_COLOR_OTHER;
-				m_stageMarks[i]->Place(left + STAGE_MARK_SPACING * static_cast<float>(i), STAGE_MARK_Y, scale, color, 45.0f);
+				m_stageMarks[i]->Place(left + STAGE_MARK_SPACING * static_cast<float>(i), STAGE_MARK_Y, scale, color, 45.0f, group);
 			}
 		}
 
 
-		void StageSelectMenu::PlaceJumpButtons()
+		void StageSelectMenu::PlaceJumpButtons(const UIGroupTransform& group)
 		{
 			// LB / RB はひし形の列の両わき（ステージの数で列の幅が変わるので、それに合わせる）
 			const int markCount = static_cast<int>(m_stageMarks.size());
 			const float marksHalfWidth = STAGE_MARK_SPACING * static_cast<float>(markCount - 1) * 0.5f;
 			const float buttonX = marksHalfWidth + BUTTON_LR_GAP + m_buttonLB.width * 0.5f;
-			m_buttonLB.Place(WINDOW_SHAPE.center.x - buttonX, STAGE_MARK_Y, GetButtonPopScale(m_timeSinceLB), menu_color::White);
-			m_buttonRB.Place(WINDOW_SHAPE.center.x + buttonX, STAGE_MARK_Y, GetButtonPopScale(m_timeSinceRB), menu_color::White);
-		}
-
-
-		void StageSelectMenu::PlaceFixedSprites()
-		{
-			// 見出しはウィンドウの帯の真ん中
-			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
+			m_buttonLB.Place(WINDOW_SHAPE.center.x - buttonX, STAGE_MARK_Y, GetButtonPopScale(m_timeSinceLB), menu_color::White, 0.0f, group);
+			m_buttonRB.Place(WINDOW_SHAPE.center.x + buttonX, STAGE_MARK_Y, GetButtonPopScale(m_timeSinceRB), menu_color::White, 0.0f, group);
 		}
 
 

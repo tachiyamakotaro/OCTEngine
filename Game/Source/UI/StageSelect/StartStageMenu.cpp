@@ -98,7 +98,7 @@ namespace app
 			m_continueStage.Init(CONTINUE_STAGE_HEIGHT);
 			m_cursor.Init(CURSOR_PATH, 64.0f, 64.0f, CURSOR_SIZE);
 			m_guide.Init(MenuGuideButtons::OkAndBack);
-			PlaceFixedSprites();
+			m_popup.Hide();
 		}
 
 
@@ -111,7 +111,31 @@ namespace app
 			}
 			m_index = static_cast<int>(m_canContinue ? Item::Continue : Item::NewGame);
 			m_timer = 0.0f;
+			m_popup.Open();
 			UpdateVisual();
+		}
+
+
+		void StartStageMenu::Reopen()
+		{
+			m_popup.Open();
+			UpdateVisual();
+		}
+
+
+		void StartStageMenu::Close()
+		{
+			m_popup.Close();
+		}
+
+
+		void StartStageMenu::Animate()
+		{
+			m_popup.Update();
+			if (m_popup.IsVisible())
+			{
+				UpdateVisual();
+			}
 		}
 
 
@@ -155,6 +179,10 @@ namespace app
 
 		void StartStageMenu::Render(RenderContext& rc)
 		{
+			if (!m_popup.IsVisible())
+			{
+				return;
+			}
 			// ウィンドウ → 中身 → 案内の順
 			m_window.Draw(rc);
 			m_header.Draw(rc);
@@ -206,6 +234,12 @@ namespace app
 
 		void StartStageMenu::UpdateVisual()
 		{
+			// ウィンドウの真ん中を中心に、出し入れの拡大率・濃さをかける
+			const UIGroupTransform group = m_popup.MakeTransform(WINDOW_SHAPE.center);
+			m_window.Place(group);
+			// 見出しはウィンドウの帯の真ん中
+			m_header.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected, 0.0f, group);
+
 			// 左端は一番長い STAGE SELECT に合わせる（全体がだいたいウィンドウの真ん中に来る）
 			const float left = WINDOW_SHAPE.center.x + CONTENT_OFFSET_X - m_items[static_cast<int>(Item::StageSelect)].width * 0.5f;
 			const float pulse = 1.0f + PULSE_SCALE * std::sin(m_timer * PULSE_SPEED * 2.0f * math::PI);
@@ -214,17 +248,20 @@ namespace app
 			{
 				const float scale = i == m_index ? pulse : 1.0f;
 				UISprite& item = m_items[i];
-				item.Place(left + item.width * scale * 0.5f, GetRowY(i), scale, GetItemColor(i));
+				item.Place(left + item.width * scale * 0.5f, GetRowY(i), scale, GetItemColor(i), 0.0f, group);
 			}
 
 			// CONTINUE の右に、続きのステージ
 			const int continueRow = static_cast<int>(Item::Continue);
 			const float continueScale = m_index == continueRow ? pulse : 1.0f;
 			const float stageLeft = left + m_items[continueRow].width * continueScale + CONTINUE_STAGE_GAP;
-			m_continueStage.PlaceLeft(stageLeft, GetRowY(continueRow), continueScale, GetItemColor(continueRow));
+			const Vector2 stagePosition = group.ApplyPosition(Vector2(stageLeft, GetRowY(continueRow)));
+			m_continueStage.PlaceLeft(stagePosition.x, stagePosition.y, group.ApplyScale(continueScale), group.ApplyColor(GetItemColor(continueRow)));
 
 			// 選んでいる項目の左にひし形の印
-			m_cursor.Place(left - CURSOR_GAP, GetRowY(m_index), 1.0f, menu_color::Selected, 45.0f);
+			m_cursor.Place(left - CURSOR_GAP, GetRowY(m_index), 1.0f, menu_color::Selected, 45.0f, group);
+			// 案内は、案内のウィンドウの真ん中を中心に拡大縮小する
+			m_guide.Place(group);
 		}
 
 
@@ -235,13 +272,6 @@ namespace app
 				return COLOR_DISABLED;
 			}
 			return index == m_index ? menu_color::Selected : menu_color::Normal;
-		}
-
-
-		void StartStageMenu::PlaceFixedSprites()
-		{
-			// 見出しはウィンドウの帯の真ん中
-			m_header.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
 		}
 
 

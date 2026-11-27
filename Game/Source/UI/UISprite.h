@@ -6,6 +6,7 @@
  *          文字は InitWithOutline で読み込むと、まわりに暗い縁が付く（背景の上でも読みやすくする）。
  */
 #pragma once
+#include "Source/UI/UIGroupTransform.h"
 
 
 namespace app
@@ -100,6 +101,16 @@ namespace app
 			}
 
 			/** 描く */
+			/**
+			 * @brief まとめた変形（ウィンドウの拡大縮小など）をかけて置く
+			 * @details x, y, scale, color は変形をかける前（ウィンドウが開ききったとき）の値
+			 */
+			void Place(const float x, const float y, const float scale, const Vector4& color, const float rotationDeg, const UIGroupTransform& group)
+			{
+				const Vector2 position = group.ApplyPosition(Vector2(x, y));
+				Place(position.x, position.y, group.ApplyScale(scale), group.ApplyColor(color), rotationDeg);
+			}
+
 			void Draw(RenderContext& rc)
 			{
 				render.Draw(rc);

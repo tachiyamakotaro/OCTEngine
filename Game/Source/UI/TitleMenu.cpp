@@ -153,7 +153,8 @@ namespace app
 				}
 				else if (m_soundOption.Update(m_input))
 				{
-					// サウンドオプション：B で閉じたらタイトルメニューに戻る
+					// サウンドオプション：B で閉じたら（小さくなって消えながら）タイトルメニューに戻る
+					m_soundOption.Close();
 					m_page = Page::Main;
 				}
 			}
@@ -172,6 +173,10 @@ namespace app
 			// ボタンとロゴは、後ろの画面の強さに合わせて薄くする（ほかの画面を開いている間も動かす）
 			UpdateMainVisual();
 			UpdateLogoVisual();
+			// ほかの画面のウィンドウの出し入れ（閉じている途中の画面も進める）
+			m_soundOption.Animate();
+			m_startStageMenu.Animate();
+			m_stageSelect.Animate();
 		}
 
 
@@ -227,13 +232,16 @@ namespace app
 				return DecideStartStage(m_continueStage.value_or(stage::FIRST_STAGE_INDEX), Result::ContinueGame);
 
 			case StartStageMenu::Result::StageSelect:
+				// START の中は小さくなって消え、ステージセレクトが大きくなって出てくる
 				// 最初は続きのステージ（なければ最初のステージ）を選んでおく
 				m_page = Page::StageSelect;
+				m_startStageMenu.Close();
 				m_stageSelect.Open(m_continueStage.value_or(stage::FIRST_STAGE_INDEX));
 				return Result::None;
 
 			case StartStageMenu::Result::Cancel:
 				m_page = Page::Main;
+				m_startStageMenu.Close();
 				return Result::None;
 
 			default:
@@ -251,8 +259,10 @@ namespace app
 				return DecideStartStage(m_stageSelect.GetSelectedStage(), Result::StartGame);
 
 			case StageSelectMenu::Result::Cancel:
-				// START の中に戻る（STAGE SELECT を選んだまま）
+				// START の中に戻る（ステージセレクトは小さくなって消え、START の中が STAGE SELECT を選んだまま出てくる）
 				m_page = Page::StartStage;
+				m_stageSelect.Close();
+				m_startStageMenu.Reopen();
 				return Result::None;
 
 			default:
@@ -263,8 +273,10 @@ namespace app
 
 		TitleMenu::Result TitleMenu::DecideStartStage(const int stageIndex, const Result result)
 		{
-			// タイトルメニューに戻して、START を点滅させる（扉が開いていくのが見えるように）
+			// ウィンドウを小さくして消し、タイトルメニューに戻して START を点滅させる（扉が開いていくのが見えるように）
 			m_page = Page::Main;
+			m_startStageMenu.Close();
+			m_stageSelect.Close();
 			m_isDecided = true;
 			m_timer = 0.0f;
 			m_startStage = stageIndex;
@@ -366,17 +378,32 @@ namespace app
 			// 後ろの画面を暗くする黒（3D の絵のぼかしは RenderingEngine がする）
 			m_backdrop.Draw(rc);
 			// ほかの画面は、ウィンドウに入れてタイトルメニューの上に重ねる
-			if (m_page == Page::Sound)
+			// 閉じている途中の画面を先に、今の画面を最後に描く（今の画面が手前。見えていない画面は何も描かない）
+			if (m_page != Page::Sound)
 			{
 				m_soundOption.Render(rc);
 			}
-			else if (m_page == Page::StartStage)
+			if (m_page != Page::StartStage)
 			{
 				m_startStageMenu.Render(rc);
 			}
-			else if (m_page == Page::StageSelect)
+			if (m_page != Page::StageSelect)
 			{
 				m_stageSelect.Render(rc);
+			}
+			switch (m_page)
+			{
+			case Page::Sound:
+				m_soundOption.Render(rc);
+				break;
+			case Page::StartStage:
+				m_startStageMenu.Render(rc);
+				break;
+			case Page::StageSelect:
+				m_stageSelect.Render(rc);
+				break;
+			default:
+				break;
 			}
 		}
 	}
