@@ -74,6 +74,7 @@ namespace app
 		, m_indicatorOn()
 		, m_doorOpenAmount()
 		, m_doorDirection()
+		, m_doorRumbleHandle(INVALID_SE_HANDLE)
 		, m_mistCount(0)
 		, m_mirrorPlatformCount(0)
 		, m_isStageSnapshotPending(false)
@@ -139,6 +140,13 @@ namespace app
 
 	void GameplaySEPlayer::StopLoops()
 	{
+		StopSlide();
+		StopDoorRumble();
+	}
+
+
+	void GameplaySEPlayer::StopSlide()
+	{
 		if (m_slideHandle != INVALID_SE_HANDLE && SoundManager::IsCreated())
 		{
 			SoundManager::Get().StopSE(m_slideHandle);
@@ -147,9 +155,25 @@ namespace app
 	}
 
 
+	void GameplaySEPlayer::StopDoorRumble()
+	{
+		if (m_doorRumbleHandle != INVALID_SE_HANDLE && SoundManager::IsCreated())
+		{
+			SoundManager::Get().StopSE(m_doorRumbleHandle);
+		}
+		m_doorRumbleHandle = INVALID_SE_HANDLE;
+	}
+
+
 	bool GameplaySEPlayer::IsSlidePlaying() const
 	{
 		return SoundManager::IsCreated() && SoundManager::Get().IsPlayingSE(m_slideHandle);
+	}
+
+
+	bool GameplaySEPlayer::IsDoorRumblePlaying() const
+	{
+		return SoundManager::IsCreated() && SoundManager::Get().IsPlayingSE(m_doorRumbleHandle);
 	}
 
 
@@ -298,7 +322,8 @@ namespace app
 			++i;
 		}
 
-		// ---- 扉：動く向きが変わったときに鳴らす（開き始め・閉まり始め）----
+		// ---- 扉：開いている間は「ゴゴゴ」をループで鳴らす。閉まり始めたときは1回だけ鳴らす ----
+		bool isAnyDoorOpening = false;
 		i = 0;
 		for (const stage::Door& door : gimmicks.View<stage::Door>())
 		{
@@ -306,12 +331,20 @@ namespace app
 			const int direction = delta > DOOR_MOVE_EPSILON ? 1 : (delta < -DOOR_MOVE_EPSILON ? -1 : 0);
 			if (direction != 0 && direction != m_doorDirection[i])
 			{
-				Play(direction > 0 ? enSoundKind_DoorOpen : enSoundKind_DoorClose);
+				if (direction < 0)
+				{
+					Play(enSoundKind_DoorClose);
+				}
 				m_doorDirection[i] = direction;
+			}
+			if (direction > 0)
+			{
+				isAnyDoorOpening = true;
 			}
 			m_doorOpenAmount[i] = door.openAmount;
 			++i;
 		}
+		UpdateDoorRumble(isAnyDoorOpening);
 
 		// ---- 霧 ----
 		for (const stage::MistEmitter& mist : gimmicks.View<stage::MistEmitter>())
@@ -359,7 +392,24 @@ namespace app
 		m_slideIdleTimer += deltaTime;
 		if (!mirrorInteractor.IsDragging() || m_slideIdleTimer >= slideStopDelay || !isEnabled)
 		{
-			StopLoops();
+			StopSlide();
+		}
+	}
+
+
+	void GameplaySEPlayer::UpdateDoorRumble(const bool isAnyDoorOpening)
+	{
+		// 扉が上がっている間だけ鳴らし、開ききったら（止まったら）すぐ止める
+		if (!isAnyDoorOpening || !isEnabled)
+		{
+			StopDoorRumble();
+			return;
+		}
+		if (SoundManager::IsCreated() && !SoundManager::Get().IsPlayingSE(m_doorRumbleHandle))
+		{
+			m_doorRumbleHandle = SoundManager::Get().PlaySE(enSoundKind_DoorRumble, INVALID_VOLUME, true);
+			m_lastPlayedKind = enSoundKind_DoorRumble;
+			++m_playCount;
 		}
 	}
 

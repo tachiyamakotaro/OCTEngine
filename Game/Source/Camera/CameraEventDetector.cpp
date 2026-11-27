@@ -16,6 +16,12 @@ namespace
 	constexpr float DOOR_OPENED_AMOUNT = 0.01f;
 	/** 暗がりの中の鏡をそろえたときに映す、暗がりの真ん中の範囲の大きさ */
 	constexpr app::math::Vec2 DARK_ZONE_FOCUS_SIZE(400.0f, 300.0f);
+
+	/** 扉が開き始めたか（信号がそろって待っている間も「開き始めた」とみなす） */
+	bool HasDoorStartedOpening(const app::stage::Door& door)
+	{
+		return door.isOpenRequested || door.openAmount > DOOR_OPENED_AMOUNT;
+	}
 }
 
 
@@ -38,7 +44,7 @@ namespace app
 			m_hasDoorOpened.clear();
 			for (const stage::Door& door : stage.GetGimmicks().View<stage::Door>())
 			{
-				m_hasDoorOpened.push_back(door.openAmount > DOOR_OPENED_AMOUNT);
+				m_hasDoorOpened.push_back(HasDoorStartedOpening(door));
 			}
 			// 今もう動いている床も「動いたことがある」にしておく
 			m_hasBlockStarted.clear();
@@ -76,7 +82,8 @@ namespace app
 			size_t i = 0;
 			for (const stage::Door& door : stage.GetGimmicks().View<stage::Door>())
 			{
-				if (!m_hasDoorOpened[i] && door.openAmount > DOOR_OPENED_AMOUNT)
+				// 扉が動き出す前（openDelay で待っている間）に寄り始める。寄りきってから扉が上がるのを見せる
+				if (!m_hasDoorOpened[i] && HasDoorStartedOpening(door))
 				{
 					// ステージエディタで「Camera Focus」にした扉だけ寄る（閉じているときの範囲を映す）
 					if (door.isCameraFocus)

@@ -17,6 +17,20 @@ namespace app
 	namespace ui
 	{
 		/**
+		 * @brief 札を置く所と大きさ・濃さ（StageCarousel が決める）
+		 */
+		struct StageCardPose
+		{
+			/** 札の真ん中 */
+			Vector2 center;
+			/** 拡大率 */
+			float scale = 1.0f;
+			/** 濃さ（0 = 見えない 〜 1）。枠・地・文字・アイコンの全部にかける */
+			float alpha = 1.0f;
+		};
+
+
+		/**
 		 * @brief 1ステージぶんの札
 		 */
 		class StageCard
@@ -38,13 +52,10 @@ namespace app
 			 * @param stageIndex StageCatalog の表の番号
 			 */
 			void Init(int stageIndex);
-			/** 選んでいない札として置く */
-			void PlaceNormal(const Vector2& center);
-			/**
-			 * @brief 選んでいる札として置く（枠と文字を黄色にして、少し大きくする）
-			 * @param scale 拡大率（脈打たせるのは呼ぶ側）
-			 */
-			void PlaceSelected(const Vector2& center, float scale);
+			/** 選んでいない札として置く（灰色） */
+			void PlaceNormal(const StageCardPose& pose);
+			/** 選んでいる札として置く（枠と文字を黄色にする。大きさ・脈打たせるのは呼ぶ側） */
+			void PlaceSelected(const StageCardPose& pose);
 			/** 描く */
 			void Draw(RenderContext& rc);
 
@@ -53,7 +64,6 @@ namespace app
 			/** 札の色と大きさ */
 			struct Look
 			{
-				float scale;
 				Vector4 frameColor;
 				Vector4 textColor;
 				Vector4 iconColor;
@@ -65,8 +75,8 @@ namespace app
 			void InitFinal();
 			/** そのステージに置いてあるギミックのアイコンを用意する */
 			void InitIcons(int stageIndex);
-			/** 中身をまとめて置く（札の真ん中からの位置に、拡大率をかける） */
-			void Place(const Vector2& center, const Look& look);
+			/** 中身をまとめて置く（札の真ん中からの位置に拡大率をかけ、色に濃さをかける） */
+			void Place(const StageCardPose& pose, const Look& look);
 
 
 		private:

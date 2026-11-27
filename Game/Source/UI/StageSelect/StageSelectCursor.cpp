@@ -25,7 +25,7 @@ namespace app
 
 		bool StageSelectCursor::Move(const int step)
 		{
-			// 全体を1列とみなして動かす（ページはステージの番号から決まるので、端を越えると自然にとなりのページになる）
+			// 端の次は反対の端（回り込む）
 			const int next = ((m_selected + step) % m_stageCount + m_stageCount) % m_stageCount;
 			if (next == m_selected)
 			{
@@ -36,35 +36,10 @@ namespace app
 		}
 
 
-		bool StageSelectCursor::TurnPage(const int step)
+		bool StageSelectCursor::Jump(const int direction)
 		{
-			const int pageCount = GetPageCount();
-			if (pageCount <= 1)
-			{
-				return false;
-			}
-			const int slot = m_selected % STAGES_PER_PAGE;
-			const int nextPage = ((GetPage() + step) % pageCount + pageCount) % pageCount;
-			// めくった先にその位置がなければ（最後のページが短いとき）、そのページの一番右
-			Select(nextPage * STAGES_PER_PAGE + slot);
-			return true;
-		}
-
-
-		int StageSelectCursor::GetPageCount() const
-		{
-			// 切り上げ（例：10 ステージ → 2ページ、11 ステージ → 3ページ）
-			return (m_stageCount + STAGES_PER_PAGE - 1) / STAGES_PER_PAGE;
-		}
-
-
-		StagePageRange StageSelectCursor::GetPageRange() const
-		{
-			StagePageRange range;
-			range.first = GetPage() * STAGES_PER_PAGE;
-			const int rest = m_stageCount - range.first;
-			range.count = rest < STAGES_PER_PAGE ? rest : STAGES_PER_PAGE;
-			return range;
+			// 札の列が輪になっているので、端を越えたら反対側へ回り込む（左右の Move と同じ）
+			return Move(direction >= 0 ? JUMP_STAGE_COUNT : -JUMP_STAGE_COUNT);
 		}
 	}
 }

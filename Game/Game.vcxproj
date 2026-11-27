@@ -400,6 +400,7 @@
     <ClCompile Include="Source\UI\SoundOptionMenu.cpp" />
     <ClCompile Include="Source\UI\StageIntroUI.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageCard.cpp" />
+    <ClCompile Include="Source\UI\StageSelect\StageCarousel.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageNameLabel.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageSelectCursor.cpp" />
     <ClCompile Include="Source\UI\StageSelect\StageSelectMenu.cpp" />
@@ -574,6 +575,7 @@
     <ClInclude Include="Source\UI\SoundOptionMenu.h" />
     <ClInclude Include="Source\UI\StageIntroUI.h" />
     <ClInclude Include="Source\UI\StageSelect\StageCard.h" />
+    <ClInclude Include="Source\UI\StageSelect\StageCarousel.h" />
     <ClInclude Include="Source\UI\StageSelect\StageNameLabel.h" />
     <ClInclude Include="Source\UI\StageSelect\StageSelectCursor.h" />
     <ClInclude Include="Source\UI\StageSelect\StageSelectMenu.h" />

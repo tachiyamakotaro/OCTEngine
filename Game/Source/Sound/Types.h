@@ -47,6 +47,7 @@ namespace app
 		// --- ギミック：扉・スイッチ・霧 ---
 		enSoundKind_DoorOpen,			// 扉が開き始めた
 		enSoundKind_DoorClose,			// 扉が閉まり始めた
+		enSoundKind_DoorRumble,			// 扉が開いている間（ループ。ゴゴゴゴ…と石がこすれる音）
 		enSoundKind_SwitchOn,			// 床スイッチを踏んだ
 		enSoundKind_MistBurst,			// 霧が吹き出した
 		enSoundKind_MirrorPlatformReveal,	// 鏡の足場が見えた
@@ -107,6 +108,7 @@ namespace app
 		// --- ギミック：扉・スイッチ・霧 ---
 		case enSoundKind_DoorOpen:				return "Assets/sound/SE/gimmick/doorOpen.wav";
 		case enSoundKind_DoorClose:				return "Assets/sound/SE/gimmick/doorClose.wav";
+		case enSoundKind_DoorRumble:			return "Assets/sound/SE/gimmick/doorRumble.wav";
 		case enSoundKind_SwitchOn:				return "Assets/sound/SE/gimmick/switchOn.wav";
 		case enSoundKind_MistBurst:				return "Assets/sound/SE/gimmick/mistBurst.wav";
 		case enSoundKind_MirrorPlatformReveal:	return "Assets/sound/SE/gimmick/mirrorPlatformReveal.wav";
@@ -136,6 +138,7 @@ namespace app
 		case enSoundKind_PlayerFootstep:		return 0.6f;
 		case enSoundKind_MirrorSlide:			return 0.7f;
 		case enSoundKind_ReceiverOff:			return 0.7f;
+		case enSoundKind_DoorRumble:			return 1.0f;
 		default:								return 1.0f;
 		}
 	}

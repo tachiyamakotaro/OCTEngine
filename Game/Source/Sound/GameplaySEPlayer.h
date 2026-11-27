@@ -8,7 +8,7 @@
  *          ・プレイヤー：足音（走っている間、一定の間隔）・ジャンプ・着地・よろけ着地・崖つかまり・崖登り・ダメージ・死亡
  *          ・反射鏡    ：回した・つかんだ・引きずっている間（ループ）
  *          ・光        ：受光器の点灯/消灯・光の足場が出た・合図のランプが光った
- *          ・扉など    ：扉が開き始めた/閉まり始めた・スイッチを踏んだ・霧が吹き出した・鏡の足場が見えた
+ *          ・扉など    ：扉が開いている間（ループ）・閉まり始めた・スイッチを踏んだ・霧が吹き出した・鏡の足場が見えた
  *          ワープ・チェックポイント・ゴール・リスタートは、起きた場所（DebugScene）から Play を呼ぶ。
  *
  *          使い方（DebugScene）
@@ -75,7 +75,7 @@ namespace app
 		 * @param kind enSoundKind
 		 */
 		void Play(int kind);
-		/** @brief 鳴り続けている SE（鏡を引きずる音）を止める */
+		/** @brief 鳴り続けている SE（鏡を引きずる音・扉が開く音）を止める */
 		void StopLoops();
 
 
@@ -87,6 +87,8 @@ namespace app
 		inline int GetPlayCount() const { return m_playCount; }
 		/** @brief 鏡を引きずる音が鳴っているか */
 		bool IsSlidePlaying() const;
+		/** @brief 扉が開く音（ゴゴゴ）が鳴っているか */
+		bool IsDoorRumblePlaying() const;
 
 
 	public:
@@ -103,6 +105,12 @@ namespace app
 		void UpdateStage(const stage::Stage& stage);
 		/** 反射鏡の操作 */
 		void UpdateMirror(float deltaTime, const stage::MirrorInteractor& mirrorInteractor);
+		/** 扉が開く音：どれかの扉が開いている間だけループで鳴らす */
+		void UpdateDoorRumble(bool isAnyDoorOpening);
+		/** 鏡を引きずる音を止める */
+		void StopSlide();
+		/** 扉が開く音を止める */
+		void StopDoorRumble();
 		/** プレイヤーの今の状態を覚える */
 		void TakePlayerSnapshot(const actor::Player& player);
 		/** ステージの今の状態を覚える */
@@ -132,6 +140,8 @@ namespace app
 		std::vector<float> m_doorOpenAmount;
 		/** 扉が最後に動いた向き（1=開く、-1=閉まる、0=まだ動いていない） */
 		std::vector<int> m_doorDirection;
+		/** 扉が開く音（ゴゴゴ。ループ） */
+		SEHandle m_doorRumbleHandle;
 		/** 霧の装置の数 */
 		size_t m_mistCount;
 		/** 鏡の足場の数 */

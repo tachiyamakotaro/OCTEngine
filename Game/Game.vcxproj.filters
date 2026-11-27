@@ -516,6 +516,9 @@
     <ClCompile Include="Source\UI\MenuWindow.cpp">
       <Filter>Source\UI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UI\StageSelect\StageCarousel.cpp">
+      <Filter>Source\UI\StageSelect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -1020,6 +1023,9 @@
     </ClInclude>
     <ClInclude Include="Source\UI\MenuWindow.h">
       <Filter>Source\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\StageSelect\StageCarousel.h">
+      <Filter>Source\UI\StageSelect</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

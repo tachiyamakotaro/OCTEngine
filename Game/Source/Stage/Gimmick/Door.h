@@ -21,6 +21,11 @@ namespace app
 			std::vector<std::string> requiredReceivers;
 			/** 開閉の速さ（1秒あたりの割合） */
 			float openSpeed = 2.0f;
+			/**
+			 * 信号がそろってから動き出すまでの時間（秒。JSON の "openDelay"）
+			 * カメラが寄りきってから開き始めるようにして、扉が開いたことに気づかせる。閉まるときは待たない
+			 */
+			float openDelay = 0.0f;
 			/** 一度開いたら開いたままにするか */
 			bool isLatch = false;
 			/** 初めて開いたときにカメラが寄るか（ステージエディタで扉ごとに決める。JSON の "isCameraFocus"） */
@@ -30,6 +35,10 @@ namespace app
 			float openAmount = 0.0f;
 			/** 【実行時】ラッチで開きっぱなしになったか */
 			bool isLatched = false;
+			/** 【実行時】信号がそろっていて、開こうとしているか（openDelay の間も true。カメラはこれで寄る） */
+			bool isOpenRequested = false;
+			/** 【実行時】信号がそろってからの時間（openDelay まで待つのに使う） */
+			float openWaitTime = 0.0f;
 
 
 		public:

@@ -68,6 +68,12 @@ namespace app
 			const Vector4 FRAME_COLOR_NORMAL(0.45f, 0.45f, 0.50f, 0.9f);
 			/** 選んでいない札のアイコン（少し暗くする） */
 			const Vector4 ICON_COLOR_NORMAL(0.65f, 0.65f, 0.68f, 1.0f);
+
+			/** 色の透明度に濃さをかける */
+			Vector4 Fade(const Vector4& color, const float alpha)
+			{
+				return Vector4(color.x, color.y, color.z, color.w * alpha);
+			}
 		}
 
 
@@ -111,15 +117,15 @@ namespace app
 		}
 
 
-		void StageCard::PlaceNormal(const Vector2& center)
+		void StageCard::PlaceNormal(const StageCardPose& pose)
 		{
-			Place(center, Look{ 1.0f, FRAME_COLOR_NORMAL, menu_color::Normal, ICON_COLOR_NORMAL });
+			Place(pose, Look{ FRAME_COLOR_NORMAL, menu_color::Normal, ICON_COLOR_NORMAL });
 		}
 
 
-		void StageCard::PlaceSelected(const Vector2& center, const float scale)
+		void StageCard::PlaceSelected(const StageCardPose& pose)
 		{
-			Place(center, Look{ scale, menu_color::Selected, menu_color::Selected, menu_color::White });
+			Place(pose, Look{ menu_color::Selected, menu_color::Selected, menu_color::White });
 		}
 
 
@@ -199,27 +205,30 @@ namespace app
 		}
 
 
-		void StageCard::Place(const Vector2& center, const Look& look)
+		void StageCard::Place(const StageCardPose& pose, const Look& look)
 		{
-			const float s = look.scale;
-			m_frame.Place(center.x, center.y, s, look.frameColor);
-			m_panel.Place(center.x, center.y, s, PANEL_COLOR);
-			m_label.Place(center.x, center.y + LABEL_Y * s, s, look.textColor);
+			const Vector2& center = pose.center;
+			const float s = pose.scale;
+			const Vector4 textColor = Fade(look.textColor, pose.alpha);
+			m_frame.Place(center.x, center.y, s, Fade(look.frameColor, pose.alpha));
+			m_panel.Place(center.x, center.y, s, Fade(PANEL_COLOR, pose.alpha));
+			m_label.Place(center.x, center.y + LABEL_Y * s, s, textColor);
 			if (m_isFinal)
 			{
-				m_final.Place(center.x, center.y + NUMBER_Y * s, s, look.textColor);
+				m_final.Place(center.x, center.y + NUMBER_Y * s, s, textColor);
 			}
 			for (int i = 0; i < m_digitCount; ++i)
 			{
-				m_digits[i].Place(center.x + m_digitOffsetX[i] * s, center.y + NUMBER_Y * s, s, look.textColor);
+				m_digits[i].Place(center.x + m_digitOffsetX[i] * s, center.y + NUMBER_Y * s, s, textColor);
 			}
 
 			// アイコンは横に並べて、全体を札の真ん中に
 			const float left = -m_iconSpacing * static_cast<float>(m_iconCount - 1) * 0.5f;
+			const Vector4 iconColor = Fade(look.iconColor, pose.alpha);
 			for (int i = 0; i < m_iconCount; ++i)
 			{
 				const float offsetX = left + m_iconSpacing * static_cast<float>(i);
-				m_icons[i].Place(center.x + offsetX * s, center.y + ICON_Y * s, s, look.iconColor);
+				m_icons[i].Place(center.x + offsetX * s, center.y + ICON_Y * s, s, iconColor);
 			}
 		}
 	}

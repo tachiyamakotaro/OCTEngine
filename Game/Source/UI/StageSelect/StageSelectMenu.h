@@ -4,14 +4,17 @@
  * @details 展示会や作品の提出で、好きなステージをすぐに見せられるようにするための画面。
  *          タイトルの START → どこから遊ぶか（StartStageMenu）の「STAGE SELECT」から開く。
  *          操作
- *              左右 … ステージを選ぶ（ページの端を越えると、となりのページへ）
- *              LB / RB（キーボードは B / 7）… ページをめくる
+ *              左右 … ステージを1つずつ選ぶ（最後のステージの次は最初のステージ。逆も）
+ *              LB / RB（キーボードは B / 7）… 5つずつ飛ぶ（端を越えたら反対側へ回り込む）。押すと LB / RB の絵がポンと大きくなって戻る
  *              A … そのステージから遊ぶ（Update が Decide を返す）
  *              B … 閉じる（Update が Cancel を返す）
- *          1ページに5ステージずつ並べる。ページの数はステージの数（StageCatalog の STAGE_COUNT）から決まるので、
- *          StageCatalog の表にステージを足す・減らすだけで、札とページが増える・減る（ここは直さなくてよい）。
- *          ページとカーソルの計算は StageSelectCursor、1ステージぶんの見た目は StageCard。
- *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に、見出し・札・ページの印を入れる。文字には暗い縁を付ける。
+ *          ページはない。全部の札を1列に並べ、選んでいる札が真ん中に来るように列全体が横にすべって動く。
+ *          列は輪になっていて、FINAL の右には STAGE 1 が並ぶ（マリオWiiのワールド選択のように、ぐるっと回れる）。
+ *          真ん中の札が一番大きく、離れるほど小さく、ウィンドウの端のほうは薄くなって消える（StageCarousel）。
+ *          札の下に、ステージの数だけひし形を並べ、今どこを選んでいるかを出す（今のステージは黄色で大きい）。
+ *          StageCatalog の表にステージを足す・減らすだけで、札とひし形が増える・減る（ここは直さなくてよい）。
+ *          選んでいるステージの計算は StageSelectCursor、札の置き方は StageCarousel、1ステージぶんの見た目は StageCard。
+ *          見た目：見出しの帯のあるウィンドウ（MenuWindow）に、見出し・札・ひし形・LB / RB を入れる。文字には暗い縁を付ける。
  *          右下の操作の案内（Ⓐ OK　Ⓑ BACK）も小さなウィンドウ（MenuGuide）。
  *          後ろの 3D の絵のぼかし・暗さは、呼んだ側（TitleMenu の MenuBackdrop）がする。
  */
@@ -19,6 +22,7 @@
 #include "Source/UI/MenuGuide.h"
 #include "Source/UI/MenuWindow.h"
 #include "Source/UI/StageSelect/StageCard.h"
+#include "Source/UI/StageSelect/StageCarousel.h"
 #include "Source/UI/StageSelect/StageSelectCursor.h"
 #include "Source/UI/UISprite.h"
 #include <memory>
@@ -73,21 +77,30 @@ namespace app
 
 
 		private:
-			/** 札とページの印の見た目を更新する */
+			/** 札・ひし形・LB / RB の見た目を更新する */
 			void UpdateVisual();
-			/** 今のページの札を並べる（ページのステージの数に合わせて、全体を画面の真ん中に） */
+			/** 札を並べる（StageCarousel が決めた位置・大きさ・濃さ。選んでいる札は黄色で脈打つ） */
 			void PlaceCards();
-			/** ページの印（ひし形）を並べる */
-			void PlacePageMarks();
-			/** 動かない画像（見出し・LB / RB）を置く */
+			/** ひし形を並べる（全体をウィンドウの真ん中に。今のステージは黄色で大きい） */
+			void PlaceStageMarks();
+			/** LB / RB を置く（押したあとしばらくは、ポンと大きくなって戻る） */
+			void PlaceJumpButtons();
+			/** 動かない画像（見出し）を置く */
 			void PlaceFixedSprites();
+			/** LB / RB を押してからの時間から、LB / RB の絵の拡大率を決める */
+			static float GetButtonPopScale(float timeSincePressed);
 
 
 		private:
-			/** 選んでいるステージとページ */
+			/** 選んでいるステージ */
 			StageSelectCursor m_cursor;
+			/** 札の並べ方（横に流れる） */
+			StageCarousel m_carousel;
 			/** 演出用のタイマー（秒。選んでいる札を脈打たせる。カーソルを動かすと 0 に戻る） */
 			float m_timer;
+			/** LB / RB を押してからの時間（秒。押した絵をポンと大きくする） */
+			float m_timeSinceLB;
+			float m_timeSinceRB;
 
 			// ---- 画像 ----
 			/** ウィンドウ（見出しの帯つき） */
@@ -99,9 +112,9 @@ namespace app
 			 * 画像は中に GPU の資源を持っていてコピーできないので、unique_ptr で持つ（vector が増えるときに中身が動かないように）
 			 */
 			std::vector<std::unique_ptr<StageCard>> m_cards;
-			/** ページの印（ページの数だけ） */
-			std::vector<std::unique_ptr<UISprite>> m_pageMarks;
-			/** ページをめくる案内（LB / RB。2ページ以上あるときだけ出す） */
+			/** 今どこを選んでいるかのひし形（ステージの数だけ） */
+			std::vector<std::unique_ptr<UISprite>> m_stageMarks;
+			/** 5つずつ飛ぶ案内（LB / RB。ひし形の両わき） */
 			UISprite m_buttonLB;
 			UISprite m_buttonRB;
 			/** 操作の案内（Ⓐ OK　Ⓑ BACK） */

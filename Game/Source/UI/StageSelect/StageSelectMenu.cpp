@@ -18,7 +18,7 @@ namespace
 	const char* const TITLE_PATH = "Assets/sprite/stage_select/title.dds";
 	constexpr float TITLE_PIXEL_W = 2873.0f;
 	constexpr float TITLE_PIXEL_H = 316.0f;
-	/** ページの印（白い四角。45 度回してひし形にする） */
+	/** 今どこを選んでいるかの印（白い四角。45 度回してひし形にする） */
 	const char* const MARK_PATH = "Assets/sprite/title/block.dds";
 	/** LB / RB の絵（192 x 112） */
 	const char* const BUTTON_LB_PATH = "Assets/sprite/prompt/button_lb.dds";
@@ -29,30 +29,33 @@ namespace
 	// ---- 配置（画面の真ん中が原点、上が +Y。画面は 1920x1080） ----
 	/**
 	 * ウィンドウ（真ん中・幅と高さ・見出しの帯の高さ）
-	 * 幅は、札5枚（選んでいる札は少し大きい）が左右の余白 50 くらいで収まる大きさ
+	 * 横に流れる札の、真ん中から2枚ずつ（と、消えかけの3枚目）が収まる幅
 	 */
 	const app::ui::MenuWindowShape WINDOW_SHAPE = { Vector2(0.0f, 70.0f), Vector2(1790.0f, 800.0f), 130.0f };
 	/** 見出し（帯の真ん中に置く） */
 	constexpr float TITLE_HEIGHT = 80.0f;
-	/** 札の真ん中の高さ（帯の下の真ん中から少し上。下にページの印を置くため）と、となりの札との間（中心から中心） */
-	const float CARD_Y = WINDOW_SHAPE.GetBodyCenterY() + 45.0f;
-	constexpr float CARD_PITCH = app::ui::StageCard::WIDTH + 40.0f;
-	/** ページの印（ウィンドウの下の端の少し上） */
-	const float PAGE_MARK_Y = WINDOW_SHAPE.GetBodyCenterY() - 255.0f;
-	constexpr float PAGE_MARK_SPACING = 44.0f;
-	constexpr float PAGE_MARK_SIZE = 18.0f;
-	constexpr float PAGE_MARK_SIZE_CURRENT = 26.0f;
-	/** LB / RB の絵（ページの印の両わき） */
+	/** 真ん中の札の真ん中の高さ（帯の下の真ん中から少し上。下にひし形を置くため） */
+	const float CARD_Y = WINDOW_SHAPE.GetBodyCenterY() + 35.0f;
+	/** 今どこを選んでいるかのひし形（ウィンドウの下の端の少し上） */
+	const float STAGE_MARK_Y = WINDOW_SHAPE.GetBodyCenterY() - 250.0f;
+	constexpr float STAGE_MARK_SPACING = 34.0f;
+	constexpr float STAGE_MARK_SIZE = 14.0f;
+	constexpr float STAGE_MARK_SIZE_CURRENT = 24.0f;
+	/** LB / RB の絵（ひし形の列の両わき） */
 	constexpr float BUTTON_LR_HEIGHT = 50.0f;
-	constexpr float BUTTON_LR_GAP = 80.0f;
+	constexpr float BUTTON_LR_GAP = 60.0f;
 
 	// ---- 見た目 ----
-	/** 選んでいる札の大きさと、脈打つ大きさ・速さ（1秒に何回） */
-	constexpr float SELECTED_SCALE = 1.08f;
+	/** 選んでいる札が脈打つ大きさ・速さ（1秒に何回） */
 	constexpr float PULSE_SCALE = 0.02f;
 	constexpr float PULSE_SPEED = 0.8f;
-	/** 今のページではない印の色 */
-	const Vector4 PAGE_MARK_COLOR_OTHER(0.45f, 0.45f, 0.50f, 1.0f);
+	/** 今ではないひし形の色 */
+	const Vector4 STAGE_MARK_COLOR_OTHER(0.45f, 0.45f, 0.50f, 1.0f);
+	/** LB / RB を押したときに、絵をどれだけ大きくするかと、元に戻るまでの時間（秒） */
+	constexpr float BUTTON_POP_SCALE = 0.35f;
+	constexpr float BUTTON_POP_TIME = 0.25f;
+	/** LB / RB を押してからの時間の初めの値（押していない = 戻りきっている） */
+	constexpr float BUTTON_POP_IDLE = BUTTON_POP_TIME;
 }
 
 
@@ -62,7 +65,10 @@ namespace app
 	{
 		StageSelectMenu::StageSelectMenu()
 			: m_cursor(stage::STAGE_COUNT)
+			, m_carousel(Vector2(WINDOW_SHAPE.center.x, CARD_Y), stage::STAGE_COUNT)
 			, m_timer(0.0f)
+			, m_timeSinceLB(BUTTON_POP_IDLE)
+			, m_timeSinceRB(BUTTON_POP_IDLE)
 		{}
 
 
@@ -86,13 +92,13 @@ namespace app
 				m_cards.push_back(std::move(card));
 			}
 
-			// ページの印はページの数だけ（大きさは今のページかどうかで変えるので、Place で拡大率をかける）
-			m_pageMarks.clear();
-			for (int i = 0; i < m_cursor.GetPageCount(); ++i)
+			// ひし形もステージの数だけ（大きさは今のステージかどうかで変えるので、Place で拡大率をかける）
+			m_stageMarks.clear();
+			for (int i = 0; i < stage::STAGE_COUNT; ++i)
 			{
 				auto mark = std::make_unique<UISprite>();
-				mark->Init(MARK_PATH, 64.0f, 64.0f, PAGE_MARK_SIZE);
-				m_pageMarks.push_back(std::move(mark));
+				mark->Init(MARK_PATH, 64.0f, 64.0f, STAGE_MARK_SIZE);
+				m_stageMarks.push_back(std::move(mark));
 			}
 
 			m_buttonLB.Init(BUTTON_LB_PATH, BUTTON_LR_PIXEL_W, BUTTON_LR_PIXEL_H, BUTTON_LR_HEIGHT);
@@ -105,16 +111,23 @@ namespace app
 		void StageSelectMenu::Open(const int initialStage)
 		{
 			m_cursor.Select(initialStage);
+			// 開いたときは、すべらせずに選んでいる札を真ん中に
+			m_carousel.SnapTo(m_cursor.GetSelectedStage());
 			m_timer = 0.0f;
+			m_timeSinceLB = BUTTON_POP_IDLE;
+			m_timeSinceRB = BUTTON_POP_IDLE;
 			UpdateVisual();
 		}
 
 
 		StageSelectMenu::Result StageSelectMenu::Update(const MenuInput& input)
 		{
-			m_timer += g_gameTime->GetFrameDeltaTime();
+			const float deltaTime = g_gameTime->GetFrameDeltaTime();
+			m_timer += deltaTime;
+			m_timeSinceLB += deltaTime;
+			m_timeSinceRB += deltaTime;
 
-			// 左右で1つずつ、LB / RB でページごと
+			// 左右で1つずつ、LB / RB で5つずつ
 			bool isMoved = false;
 			if (input.IsLeft())
 			{
@@ -126,11 +139,14 @@ namespace app
 			}
 			else if (input.IsPrevPage())
 			{
-				isMoved = m_cursor.TurnPage(-1);
+				// 押したことが分かるように、絵をポンとさせる
+				m_timeSinceLB = 0.0f;
+				isMoved = m_cursor.Jump(-1);
 			}
 			else if (input.IsNextPage())
 			{
-				isMoved = m_cursor.TurnPage(1);
+				m_timeSinceRB = 0.0f;
+				isMoved = m_cursor.Jump(1);
 			}
 			if (isMoved)
 			{
@@ -148,6 +164,9 @@ namespace app
 				SoundManager::Get().PlaySE(enSoundKind_ButtonBack);
 				return Result::Cancel;
 			}
+
+			// 選んでいる札が真ん中に来るように、列を少しずつ流す
+			m_carousel.Update(m_cursor.GetSelectedStage());
 			UpdateVisual();
 			return Result::None;
 		}
@@ -159,23 +178,23 @@ namespace app
 			m_window.Draw(rc);
 			m_title.Draw(rc);
 
-			// 今のページの札だけ描く
-			const StagePageRange page = m_cursor.GetPageRange();
-			for (int i = 0; i < page.count; ++i)
+			// 見えている札だけ描く。選んでいる札は最後（ほかの札より手前）
+			const int selected = m_cursor.GetSelectedStage();
+			for (int i = 0; i < static_cast<int>(m_cards.size()); ++i)
 			{
-				m_cards[page.first + i]->Draw(rc);
-			}
-
-			// ページの印と LB / RB は、2ページ以上あるときだけ
-			if (m_cursor.GetPageCount() >= 2)
-			{
-				for (auto& mark : m_pageMarks)
+				if (i != selected && m_carousel.IsVisible(i))
 				{
-					mark->Draw(rc);
+					m_cards[i]->Draw(rc);
 				}
-				m_buttonLB.Draw(rc);
-				m_buttonRB.Draw(rc);
 			}
+			m_cards[selected]->Draw(rc);
+
+			for (auto& mark : m_stageMarks)
+			{
+				mark->Draw(rc);
+			}
+			m_buttonLB.Draw(rc);
+			m_buttonRB.Draw(rc);
 
 			m_guide.Draw(rc);
 		}
@@ -184,46 +203,53 @@ namespace app
 		void StageSelectMenu::UpdateVisual()
 		{
 			PlaceCards();
-			PlacePageMarks();
+			PlaceStageMarks();
+			PlaceJumpButtons();
 		}
 
 
 		void StageSelectMenu::PlaceCards()
 		{
-			// 最後のページが5個より少なくても、全体が画面の真ん中に来るようにする
-			const StagePageRange page = m_cursor.GetPageRange();
 			const int selected = m_cursor.GetSelectedStage();
-			const float left = WINDOW_SHAPE.center.x - CARD_PITCH * static_cast<float>(page.count - 1) * 0.5f;
-			for (int i = 0; i < page.count; ++i)
+			for (int i = 0; i < static_cast<int>(m_cards.size()); ++i)
 			{
-				const int stageIndex = page.first + i;
-				const Vector2 center(left + CARD_PITCH * static_cast<float>(page.SlotOf(stageIndex)), CARD_Y);
-				StageCard& card = *m_cards[stageIndex];
-				if (stageIndex != selected)
+				StageCardPose pose = m_carousel.GetPose(i);
+				if (i != selected)
 				{
-					card.PlaceNormal(center);
+					m_cards[i]->PlaceNormal(pose);
 					continue;
 				}
 				// 選んでいる札はゆっくり脈打つ
-				const float pulse = PULSE_SCALE * std::sin(m_timer * PULSE_SPEED * 2.0f * math::PI);
-				card.PlaceSelected(center, SELECTED_SCALE + pulse);
+				pose.scale += PULSE_SCALE * std::sin(m_timer * PULSE_SPEED * 2.0f * math::PI);
+				m_cards[i]->PlaceSelected(pose);
 			}
 		}
 
 
-		void StageSelectMenu::PlacePageMarks()
+		void StageSelectMenu::PlaceStageMarks()
 		{
-			// 横に並べて、全体を画面の真ん中に。今のページは黄色で大きく
-			const int pageCount = static_cast<int>(m_pageMarks.size());
-			const int currentPage = m_cursor.GetPage();
-			const float left = WINDOW_SHAPE.center.x - PAGE_MARK_SPACING * static_cast<float>(pageCount - 1) * 0.5f;
-			for (int i = 0; i < pageCount; ++i)
+			// 横に並べて、全体をウィンドウの真ん中に。今のステージは黄色で大きく
+			const int markCount = static_cast<int>(m_stageMarks.size());
+			const int selected = m_cursor.GetSelectedStage();
+			const float left = WINDOW_SHAPE.center.x - STAGE_MARK_SPACING * static_cast<float>(markCount - 1) * 0.5f;
+			for (int i = 0; i < markCount; ++i)
 			{
-				const bool isCurrent = i == currentPage;
-				const float scale = isCurrent ? PAGE_MARK_SIZE_CURRENT / PAGE_MARK_SIZE : 1.0f;
-				const Vector4& color = isCurrent ? menu_color::Selected : PAGE_MARK_COLOR_OTHER;
-				m_pageMarks[i]->Place(left + PAGE_MARK_SPACING * static_cast<float>(i), PAGE_MARK_Y, scale, color, 45.0f);
+				const bool isCurrent = i == selected;
+				const float scale = isCurrent ? STAGE_MARK_SIZE_CURRENT / STAGE_MARK_SIZE : 1.0f;
+				const Vector4& color = isCurrent ? menu_color::Selected : STAGE_MARK_COLOR_OTHER;
+				m_stageMarks[i]->Place(left + STAGE_MARK_SPACING * static_cast<float>(i), STAGE_MARK_Y, scale, color, 45.0f);
 			}
+		}
+
+
+		void StageSelectMenu::PlaceJumpButtons()
+		{
+			// LB / RB はひし形の列の両わき（ステージの数で列の幅が変わるので、それに合わせる）
+			const int markCount = static_cast<int>(m_stageMarks.size());
+			const float marksHalfWidth = STAGE_MARK_SPACING * static_cast<float>(markCount - 1) * 0.5f;
+			const float buttonX = marksHalfWidth + BUTTON_LR_GAP + m_buttonLB.width * 0.5f;
+			m_buttonLB.Place(WINDOW_SHAPE.center.x - buttonX, STAGE_MARK_Y, GetButtonPopScale(m_timeSinceLB), menu_color::White);
+			m_buttonRB.Place(WINDOW_SHAPE.center.x + buttonX, STAGE_MARK_Y, GetButtonPopScale(m_timeSinceRB), menu_color::White);
 		}
 
 
@@ -231,13 +257,14 @@ namespace app
 		{
 			// 見出しはウィンドウの帯の真ん中
 			m_title.Place(WINDOW_SHAPE.center.x, WINDOW_SHAPE.GetHeaderCenterY(), 1.0f, menu_color::Selected);
+		}
 
-			// LB / RB はページの印の両わき（ページの数で印の幅が変わるので、それに合わせる）
-			const int pageCount = static_cast<int>(m_pageMarks.size());
-			const float marksHalfWidth = PAGE_MARK_SPACING * static_cast<float>(pageCount - 1) * 0.5f;
-			const float buttonX = marksHalfWidth + BUTTON_LR_GAP + m_buttonLB.width * 0.5f;
-			m_buttonLB.Place(WINDOW_SHAPE.center.x - buttonX, PAGE_MARK_Y, 1.0f, menu_color::White);
-			m_buttonRB.Place(WINDOW_SHAPE.center.x + buttonX, PAGE_MARK_Y, 1.0f, menu_color::White);
+
+		float StageSelectMenu::GetButtonPopScale(const float timeSincePressed)
+		{
+			// 押した瞬間に大きくなって、BUTTON_POP_TIME かけてなめらかに戻る
+			const float rate = math::SmoothStep(timeSincePressed / BUTTON_POP_TIME);
+			return 1.0f + BUTTON_POP_SCALE * (1.0f - rate);
 		}
 	}
 }

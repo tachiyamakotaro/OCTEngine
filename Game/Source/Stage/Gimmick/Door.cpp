@@ -43,6 +43,15 @@ namespace app
 				shouldOpen = true;
 			}
 
+			// 信号がそろってから openDelay 秒たつまでは動かない（閉まるときは待たない）
+			isOpenRequested = shouldOpen;
+			openWaitTime = shouldOpen ? openWaitTime + context.deltaTime : 0.0f;
+			const bool isWaiting = shouldOpen && openWaitTime < openDelay;
+			if (isWaiting)
+			{
+				return;
+			}
+
 			const float target = shouldOpen ? 1.0f : 0.0f;
 			openAmount = math::MoveTowards(openAmount, target, openSpeed * context.deltaTime);
 
@@ -57,6 +66,8 @@ namespace app
 		{
 			openAmount = 0.0f;
 			isLatched = false;
+			isOpenRequested = false;
+			openWaitTime = 0.0f;
 		}
 
 
@@ -111,6 +122,8 @@ namespace app
 		{
 			RectGimmick::DrawInspector(inspector);
 			ImGui::DragFloat("Open Speed", &openSpeed, 0.05f, 0.05f, 20.0f, "%.2f");
+			ImGui::DragFloat("Open Delay", &openDelay, 0.05f, 0.0f, 5.0f, "%.2f s");
+			ImGui::SetItemTooltip("Wait this long after the signals turn on before the door starts to open.");
 			ImGui::Checkbox("Latch (stay open)", &isLatch);
 			ImGui::Checkbox("Camera Focus", &isCameraFocus);
 			ImGui::SetItemTooltip("Zoom the camera in when this door opens for the first time.");
@@ -125,6 +138,7 @@ namespace app
 			RectGimmick::Serialize(archive);
 			archive.Field("requiredReceivers", requiredReceivers);
 			archive.Field("openSpeed", openSpeed);
+			archive.Field("openDelay", openDelay);
 			archive.Field("isLatch", isLatch);
 			archive.Field("isCameraFocus", isCameraFocus);
 		}
